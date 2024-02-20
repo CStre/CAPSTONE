@@ -20,12 +20,12 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # See https://docs.djangoproject.com/en/2.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'n+ix+#m!tpi)p4y!$m6o!jyk9^#%#q2jr=2)ofhdd%=z#mt8fx'
+SECRET_KEY = 'u)(=sl5t%01e!44f2qvkn&5s=15yfs7*-ywbd3y^2dkrg0_@_n'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['capstone-env.eba-9zr3iqfd.us-west-2.elasticbeanstalk.com']
+ALLOWED_HOSTS = ['capstone-envi.eba-qfd82qzv.us-west-2.elasticbeanstalk.com']
 
 
 # Application definition
@@ -118,3 +118,4 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
 
 STATIC_URL = '/static/'
+STATIC_ROOT = 'static'
