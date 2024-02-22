@@ -28,7 +28,8 @@ SECRET_KEY = os.environ.get('SHH_KEY')
 DEBUG = True
 
 ALLOWED_HOSTS = ['capstone-envi.eba-qfd82qzv.us-west-2.elasticbeanstalk.com',
-                 '127.0.0.1'
+                 '127.0.0.1',
+                 'buildingbetteralgorithms.com'
                  ]
 
 
