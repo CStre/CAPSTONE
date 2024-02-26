@@ -29,9 +29,9 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['capstone-envi.eba-qfd82qzv.us-west-2.elasticbeanstalk.com',
                  '127.0.0.1',
+                 'www.buildingbetteralgorithms.com',
                  'buildingbetteralgorithms.com'
                  ]
-
 
 # Application definition
 
