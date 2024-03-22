@@ -87,7 +87,7 @@ function Header() {
                         <Link to="/dashbaord">
                             <lord-icon
                                 src="https://cdn.lordicon.com/pbkmxonw.json"
-                                trigger="morph"
+                                trigger="hover"
                                 state="morph-unfold"
                                 stroke="bold"
                                 colors="primary:#ffffff,secondary:#06c56d"
@@ -98,7 +98,6 @@ function Header() {
                                 src="https://cdn.lordicon.com/kjjbpuhp.json"
                                 trigger="hover"
                                 stroke="bold"
-                                state="in-reveal"
                                 colors="primary:#ffffff,secondary:#06c56d"
                                 style={{ width: '30px', height: '30px' }}
                             ></lord-icon>Preferences</Link>

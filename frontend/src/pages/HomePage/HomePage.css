@@ -36,3 +36,19 @@ html {
   line-height: 4rem;
 }
 
+.loaderOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 1000; /* High z-index to ensure it's above other content */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  /* Add other styling for background, etc., as needed */
+}
+
+.loaderOverlay.hidden {
+  display: none;
+}

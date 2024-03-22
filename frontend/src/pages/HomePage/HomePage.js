@@ -1,8 +1,12 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import './HomePage.css';
 import Header from '../../components/Header';
+import Loader from '../../components/Loader';
 
 function HomePage() {
+
+    const [showLoader, setShowLoader] = useState(true);
+
     const canvasRef = useRef(null);
     const animationRef = useRef(null);
 
@@ -191,12 +195,12 @@ function HomePage() {
                     (Math.pow(Math.sin(t), 2) + 1) -
                     target.y;
             }
-        
+
             target.x += target.errx / 10;
             target.y += target.erry / 10;
-        
+
             t += 0.01;
-        
+
             c.beginPath();
             c.arc(
                 target.x,
@@ -207,7 +211,7 @@ function HomePage() {
             );
             c.fillStyle = "hsl(210,100%,80%)";
             c.fill();
-        
+
             for (let i = 0; i < numt; i++) {
                 tent[i].move(last_target, target);
                 tent[i].show2(target);
@@ -218,7 +222,7 @@ function HomePage() {
             last_target.x = target.x;
             last_target.y = target.y;
         }
-        
+
 
         function loop() {
             animationRef.current = window.requestAnimationFrame(loop);
@@ -257,16 +261,16 @@ function HomePage() {
             mouse.x = e.pageX - canvas.offsetLeft;
             mouse.y = e.pageY - canvas.offsetTop;
         };
-    
+
         const handleMouseLeave = () => {
             mouse.x = false;
             mouse.y = false;
         };
-    
+
         const handleMouseDown = () => {
             clicked = true;
         };
-    
+
         const handleMouseUp = () => {
             clicked = false;
         };
@@ -282,7 +286,11 @@ function HomePage() {
         canvas.addEventListener('mouseleave', handleMouseLeave);
         canvas.addEventListener('mousedown', handleMouseDown);
         canvas.addEventListener('mouseup', handleMouseUp);
-    
+
+        const loaderTimeout = setTimeout(() => {
+            setShowLoader(false);
+        }, 3000);
+
         // Cleanup function
         return () => {
             if (animationRef.current) {
@@ -293,11 +301,19 @@ function HomePage() {
             canvas.removeEventListener('mouseleave', handleMouseLeave);
             canvas.removeEventListener('mousedown', handleMouseDown);
             canvas.removeEventListener('mouseup', handleMouseUp);
+
+            clearTimeout(loaderTimeout);
         };
     }, []);
 
     return (
         <div className="homePage">
+            {/* Loader Overlay */}
+            <div className={showLoader ? "loaderOverlay" : "loaderOverlay hidden"}>
+                <Loader />
+            </div>
+
+            {/* Rest of the Page Content */}
             <Header style={{ zIndex: 1001 }} />
             <canvas ref={canvasRef} id="canvas"></canvas>
         </div>
