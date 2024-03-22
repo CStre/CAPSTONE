@@ -5,9 +5,20 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  cursor: url('./logos/cursor.png'), default;
 }
 
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+a, button, input[type="button"], [role="button"] {
+  cursor: url('./logos/cursor-larger.png'), pointer; /* Replace 'expanded_cursor.png' with your expanded cursor image */
+}
+
+/* Optionally, any other elements you've designated as clickable */
+.clickable {
+  cursor: url('./logos/cursor-larger.png'), pointer;
+}
+

@@ -1,2 +1,2 @@
-const BASE_URL = 'http://capstone-envi.eba-qfd82qzv.us-west-2.elasticbeanstalk.com/';
+const BASE_URL = 'https://www.buildingbetteralgorithms.com/';
 export default BASE_URL;

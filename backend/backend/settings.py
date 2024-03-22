@@ -13,19 +13,24 @@ https://docs.djangoproject.com/en/2.2/ref/settings/
 import os
 import pymysql
 pymysql.install_as_MySQLdb()
+from pathlib import Path
+
+# Build paths inside the project like this: BASE_DIR / 'subdir'.
+BASE_DIR = Path(__file__).resolve().parent.parent
+
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+#BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/2.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get('SHH_KEY') # Commented for security
+SECRET_KEY = os.environ.get('SHH_KEY', 'u)(=sl5t%01e!44f2qvkn&5s=15yfs7*-ywbd3y^2dkrg0_@_n') # Commented for security
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ['capstone-envi.eba-qfd82qzv.us-west-2.elasticbeanstalk.com',
                  '127.0.0.1',
@@ -87,14 +92,11 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': os.environ.get('RDS_DB_NAME'), # Commented for security
-        'USER': os.environ.get('RDS_USERNAME'), # Commented for security
-        'PASSWORD': os.environ.get('RDS_PASSWORD'), # Commented for security
-        'HOST': os.environ.get('RDS_HOSTNAME'), # Commented for security
-        'PORT': os.environ.get('RDS_PORT'), # Commented for security
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
+
 
 
 

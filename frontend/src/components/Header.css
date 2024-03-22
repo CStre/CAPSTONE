@@ -1,0 +1,137 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@200;300;400;500;600;700;800;900&display=swap');
+
+* {
+  box-sizing: border-box;
+}
+
+:root {
+  --color-primary: #06c56d;
+}
+
+body {
+  font-family: 'Poppins', sans-serif;
+  background: #ffffff;
+  color: #06c56d;
+  font: bold;
+  margin: 0;
+  place-items: center;
+  cursor: url('../logos/cursor.png'), default;
+}
+
+nav {
+  position: relative;
+  background: #000000;
+  font-weight: 600;
+  display: flex;
+  width: 100%;
+  cursor: url('../logos/cursor.png'), default;
+}
+
+nav .item {
+    font-size: 1rem;
+    display: flex;        /* Changed from inline-block to flex */
+    flex-direction: column; /* Align children (icon and text) in a column */
+    align-items: center;  /* Center align the flex items */
+    justify-content: center; /* Center content vertically */
+    position: relative;
+    padding: 10px 20px;   /* Adjust padding as needed */
+    cursor: pointer;
+    z-index: 5;
+    min-width: 25%;
+    height: auto;        /* Changed from fixed height to auto */
+    text-align: center;
+    cursor: url('../logos/cursor.png'), default;
+    font-family: 'Poppins', sans-serif;
+    color: #06c56d;
+    font: bold;
+    margin: 0;
+    place-items: center;
+    text-decoration: none;
+  }
+
+  
+
+.dropdown {
+  overflow: hidden;
+  list-style: none;
+  position: absolute;
+  padding: 0;
+  width: 100%;
+  left: 0;
+  top: 62px;
+}
+.dropdown > div {
+  transform: translate(0, -100%);
+  transition: all 0.5s 0.1s;
+  position: relative;
+}
+
+.dropdown a {
+    display: flex;         /* Use flex layout */
+    align-items: center;   /* Align items vertically in the center */
+    padding: 10px;         /* Adjust padding as needed */
+    width: 100%;
+    height: auto;          /* Adjust height as needed */
+    line-height: normal;   /* Adjust line height as needed */
+    background: black;
+    color: white;          /* Adjust text color as needed */
+    text-decoration: none; /* Remove underline from links */
+  }
+  
+  /* Additional style for the lord-icon inside the dropdown links */
+.dropdown a lord-icon {
+    margin-right: 10px;    /* Add some space between the icon and text */
+  }
+  
+
+.dropdown a:hover {
+  background: #999999;
+}
+
+.logout {
+    color: red;
+}
+
+
+.underline {
+  height: 6px;
+  background: var(--color-primary);
+  position: absolute;
+  bottom: 0;
+  width: 25%;
+  z-index: 2;
+  pointer-events: none;
+  transition: 0.35s;
+}
+
+nav .item:hover > .dropdown > div {
+  transform: translate(0);
+}
+
+nav .item:nth-child(1):hover ~ .underline {
+  transform: translate(0, 0);
+}
+
+nav .item:nth-child(2):hover ~ .underline {
+  transform: translate(100%, 0);
+}
+
+nav .item:nth-child(3):hover ~ .underline {
+  transform: translate(200%, 0);
+}
+
+nav .item:nth-child(4):hover ~ .underline {
+  transform: translate(300%, 0);
+}
+
+body, nav, nav .item, .dropdown a {
+  cursor: url('../logos/cursor.png'), default;
+}
+
+nav a:hover, 
+button:hover, 
+input[type="button"]:hover, 
+[role="button"]:hover, 
+nav .clickable:hover {
+  cursor: url('../logos/cursor-larger.png'), pointer;
+}

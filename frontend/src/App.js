@@ -1,12 +1,23 @@
 import React, { useEffect, useState } from 'react';
-import logo from './logo.svg';
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import './App.css';
 import axios from 'axios';
 import BASE_URL from './config'; // Importing BASE_URL from your config
 
+import lottie from 'lottie-web';
+import { defineElement } from '@lordicon/element';
+
+import Home from "./pages/HomePage/HomePage";
+import Learn from "./pages/LearnPage/LearnPage";
+import Benchmark from "./pages/BenchmarkPage/BenchmarkPage";
+import Credits from "./pages/CreditsPage/CreditsPage";
+import NotFoundPage from "./pages/NotFoundPage/NotFoundPage";
+
+// Define "lord-icon" custom element with default properties
+defineElement(lottie.loadAnimation);
 
 function App() {
-  const [data, setData] = useState('');
+  const [setData] = useState('');
 
   useEffect(() => {
     axios.get(`${BASE_URL}/api/test`)
@@ -19,22 +30,15 @@ function App() {
   }, []);
 
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/learn" element={<Learn />} />
+        <Route path="/prototype" element={<Benchmark />} />
+        <Route path="/credits" element={<Credits />} />
+        <Route path="*" element={<NotFoundPage />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
 
