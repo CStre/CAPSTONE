@@ -12,6 +12,10 @@ https://docs.djangoproject.com/en/2.2/ref/settings/
 
 import os
 import pymysql
+
+from dotenv import load_dotenv
+load_dotenv()
+
 pymysql.install_as_MySQLdb()
 from pathlib import Path
 
@@ -27,7 +31,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/2.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get('SHH_KEY', 'u)(=sl5t%01e!44f2qvkn&5s=15yfs7*-ywbd3y^2dkrg0_@_n') # Commented for security
+SECRET_KEY = os.environ.get('SECRET_KEY') # Commented for security
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
@@ -92,10 +96,18 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': os.environ.get('NAME'),
+        'USER': os.environ.get('USER'),
+        'PASSWORD': os.environ.get('PASSWORD'),
+        'HOST': os.environ.get('HOST'),
+        'PORT': os.environ.get('PORT'),
+        'OPTIONS': {
+            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+        }
     }
 }
+
 
 
 
