@@ -20,7 +20,7 @@ body {
 
 nav {
   position: relative;
-  background: #000000;
+  background: #111111;
   font-weight: 600;
   display: flex;
   width: 100%;
@@ -73,7 +73,7 @@ nav .item {
     width: 100%;
     height: auto;          /* Adjust height as needed */
     line-height: normal;   /* Adjust line height as needed */
-    background: black;
+    background: #333333;
     color: white;          /* Adjust text color as needed */
     text-decoration: none; /* Remove underline from links */
   }

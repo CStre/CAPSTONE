@@ -1,14 +1,73 @@
 import React, { useEffect, useRef, useState } from 'react';
 import './HomePage.css';
-import Header from '../../components/Header';
 import Loader from '../../components/Loader';
+import { CSSTransition } from 'react-transition-group';
+import confetti from 'canvas-confetti';
+import { useNavigate } from 'react-router-dom';
+
+
 
 function HomePage() {
 
     const [showLoader, setShowLoader] = useState(true);
+    const [showLoginForm, setShowLoginForm] = useState(false);
+
+    const [userName, setUserName] = useState('');
+    const [showWelcomeMessage, setShowWelcomeMessage] = useState(false);
+    const [showWelcomeMessage2, setShowWelcomeMessage2] = useState(false);
+    const [showExploreButton, setShowExploreButton] = useState(false);
+
+    const navigate = useNavigate();
 
     const canvasRef = useRef(null);
     const animationRef = useRef(null);
+
+    // Check login status on every render
+    useEffect(() => {
+        const isLoggedIn = localStorage.getItem('userLoggedIn');
+        console.log("Initial Check - Is Logged In?:", isLoggedIn);
+
+        setShowLoginForm(!isLoggedIn);
+
+        // If the user is logged in, skip directly to showing the explore button
+        if (isLoggedIn) {
+            // Set a slight delay before showing the welcome message and explore button
+            setTimeout(() => {
+                setUserName(localStorage.getItem('userName') || 'User'); // Retrieve username or use a default
+                setShowWelcomeMessage(true);
+
+                setTimeout(() => {
+                    setShowWelcomeMessage(false);
+                    setShowWelcomeMessage2(true);
+
+                    setTimeout(() => {
+                        setShowWelcomeMessage2(false);
+                        setShowExploreButton(true);
+                    }, 3000); // Time until WelcomeMessage2 disappears
+                }, 3000); // Time until WelcomeMessage disappears
+            }, 500); // Time before showing the WelcomeMessage
+        }
+    }, []); // Ensures this runs only on initial render
+
+    useEffect(() => {
+        console.log("showLoginForm State Updated:", showLoginForm);
+    }, [showLoginForm]); // Log when showLoginForm updates
+
+    // Function to trigger confetti
+    const triggerConfetti = () => {
+        confetti({
+            particleCount: 500,
+            spread: 160,
+            zIndex: 9999 // Ensure confetti is above other elements
+        });
+        document.body.style.opacity = '0';
+        // Navigate after a delay
+    setTimeout(() => {
+        navigate('/learn');
+        document.body.style.opacity = '1';
+    }, 1000); // 1 second delay
+    };
+    
 
     useEffect(() => {
         if (!canvasRef.current) return;
@@ -304,18 +363,158 @@ function HomePage() {
 
             clearTimeout(loaderTimeout);
         };
+    }, [showLoginForm]);
+
+    useEffect(() => {
+        // Loader timeout logic
+        const loaderTimeout = setTimeout(() => {
+            setShowLoader(false);
+        }, 3000);
     }, []);
 
+    useEffect(() => {
+        console.log("Updated Show Login Form:", showLoginForm);
+    }, [showLoginForm]);
+
+    const handleLogin = (e) => {
+        e.preventDefault();
+        const name = document.getElementById('logname').value;
+        setUserName(name);
+        localStorage.setItem('userName', name); // Store the username
+        localStorage.setItem('userLoggedIn', 'true');
+        setShowLoginForm(false);
+
+        setShowWelcomeMessage(true);
+
+        setTimeout(() => {
+            setShowWelcomeMessage(false);
+
+            setShowWelcomeMessage2(true);
+
+            setTimeout(() => {
+                setShowWelcomeMessage2(false);
+                setShowExploreButton(true); // Ensure this is set here
+            }, 3000);
+        }, 3000);
+    };
+
+
+
     return (
+
         <div className="homePage">
             {/* Loader Overlay */}
-            <div className={showLoader ? "loaderOverlay" : "loaderOverlay hidden"}>
-                <Loader />
-            </div>
+            {showLoader && (
+                <div className="loaderOverlay">
+                    <Loader />
+                </div>
+            )}
 
-            {/* Rest of the Page Content */}
-            <Header style={{ zIndex: 1001 }} />
+            {/* Canvas */}
             <canvas ref={canvasRef} id="canvas"></canvas>
+
+            {/* Login Form Transition */}
+            <CSSTransition
+                in={showLoginForm}
+                timeout={300}
+                classNames="form"
+                unmountOnExit
+            >
+                <div className="form-overlay">
+                    {/* Form content */}
+                </div>
+            </CSSTransition>
+
+            {/* Welcome Message Transition */}
+            <CSSTransition
+                in={showWelcomeMessage}
+                timeout={500}
+                classNames="message"
+                unmountOnExit
+            >
+                <div className="welcome-message">
+                    Welcome {userName}!
+                </div>
+            </CSSTransition>
+
+            {/* Welcome Message 2 and the Button */}
+            {showWelcomeMessage2 && (
+                <CSSTransition
+                    in={showWelcomeMessage2}
+                    timeout={500}
+                    classNames="message"
+                    unmountOnExit
+                >
+                    <div className="welcome-message">
+                        Click on Explore when ready!
+                    </div>
+                </CSSTransition>
+            )}
+
+            {showExploreButton && (
+                <div className="wrapper">
+                    <button className="confetti-button" onClick={triggerConfetti}>Explore</button>
+                </div>
+            )}
+
+            {/* Login Form */}
+            {showLoginForm && (
+                <div className="form-overlay">
+                    <div className="section">
+                        <div className="container">
+                            <div className="row full-height justify-content-center">
+                                <div className="col-12 text-center align-self-center py-5">
+                                    <div className="section pb-5 pt-5 pt-sm-2 text-center">
+                                        <h6 className="mb-0 pb-3"><span>Log In</span><span>Sign Up</span></h6>
+                                        <input className="checkbox" type="checkbox" id="reg-log" name="reg-log" />
+                                        <label htmlFor="reg-log"></label>
+                                        <div className="card-3d-wrap mx-auto">
+                                            <div className="card-3d-wrapper">
+                                                <div className="card-front">
+                                                    <div className="center-wrap">
+                                                        <div className="section text-center">
+                                                            <h4 className="mb-4 pb-3">Log In</h4>
+                                                            <div className="form-group">
+                                                                <input type="email" name="logemail" className="form-style" placeholder="Your Email" id="logemail" autoComplete="off" />
+                                                                <i className="input-icon uil uil-at"></i>
+                                                            </div>
+                                                            <div className="form-group mt-2">
+                                                                <input type="password" name="logpass" className="form-style" placeholder="Your Password" id="logpass" autoComplete="off" />
+                                                                <i className="input-icon uil uil-lock-alt"></i>
+                                                            </div>
+                                                            <button type="submit" className="btn mt-4" onClick={handleLogin}>submit</button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div className="card-back">
+                                                    <div className="center-wrap">
+                                                        <div className="section text-center">
+                                                            <h4 className="mb-4 pb-3">Sign Up</h4>
+                                                            <div className="form-group">
+                                                                <input type="text" name="logname" className="form-style" placeholder="Your Full Name" id="logname" autoComplete="off" />
+                                                                <i className="input-icon uil uil-user"></i>
+                                                            </div>
+                                                            <div className="form-group mt-2">
+                                                                <input type="email" name="logemail" className="form-style" placeholder="Your Email" id="logemail2" autoComplete="off" />
+                                                                <i className="input-icon uil uil-at"></i>
+                                                            </div>
+                                                            <div className="form-group mt-2">
+                                                                <input type="password" name="logpass" className="form-style" placeholder="Your Password" id="logpass2" autoComplete="off" />
+                                                                <i className="input-icon uil uil-lock-alt"></i>
+                                                            </div>
+                                                            <button type="submit" className="btn mt-4" onClick={handleLogin}>submit</button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

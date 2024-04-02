@@ -84,7 +84,7 @@ function Header() {
                                 colors="primary:#ffffff,secondary:#06c56d"
                                 style={{ width: '30px', height: '30px' }}
                             ></lord-icon>Account</Link>
-                        <Link to="/dashbaord">
+                        <Link to="/dashboard">
                             <lord-icon
                                 src="https://cdn.lordicon.com/pbkmxonw.json"
                                 trigger="hover"

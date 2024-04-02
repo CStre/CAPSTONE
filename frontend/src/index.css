@@ -22,3 +22,10 @@ a, button, input[type="button"], [role="button"] {
   cursor: url('./logos/cursor-larger.png'), pointer;
 }
 
+input[type="checkbox"] {
+  cursor: pointer !important;
+}
+
+input, textarea, select {
+  cursor: url('./logos/cursor-larger.png'), pointer;
+}

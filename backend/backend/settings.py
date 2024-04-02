@@ -36,15 +36,16 @@ SECRET_KEY = os.environ.get('SECRET_KEY') # Commented for security
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = ['capstone-envi.eba-qfd82qzv.us-west-2.elasticbeanstalk.com',
-                 '127.0.0.1',
-                 'www.buildingbetteralgorithms.com',
-                 'buildingbetteralgorithms.com'
+ALLOWED_HOSTS = [os.environ.get('HOST_1'),
+                 os.environ.get('HOST_2'),
+                 os.environ.get('HOST_3'),
+                 os.environ.get('HOST_4')
                  ]
 
 # Application definition
 
 INSTALLED_APPS = [
+    'backend',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -108,9 +109,7 @@ DATABASES = {
     }
 }
 
-
-
-
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
 # Password validation

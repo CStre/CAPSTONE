@@ -11,6 +11,11 @@ import Home from "./pages/HomePage/HomePage";
 import Learn from "./pages/LearnPage/LearnPage";
 import Benchmark from "./pages/BenchmarkPage/BenchmarkPage";
 import Credits from "./pages/CreditsPage/CreditsPage";
+
+import Account from "./pages/AccountPage/AccountPage";
+import Dashboard from "./pages/DashboardPage/DashboardPage";
+import Preferences from "./pages/PreferencesPage/PreferencesPage";
+
 import NotFoundPage from "./pages/NotFoundPage/NotFoundPage";
 
 // Define "lord-icon" custom element with default properties
@@ -36,6 +41,9 @@ function App() {
         <Route path="/learn" element={<Learn />} />
         <Route path="/prototype" element={<Benchmark />} />
         <Route path="/credits" element={<Credits />} />
+        <Route path="/account" element={<Account />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/preferences" element={<Preferences />} />
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </BrowserRouter>
