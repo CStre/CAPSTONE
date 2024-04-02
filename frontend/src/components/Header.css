@@ -16,6 +16,7 @@ body {
   margin: 0;
   place-items: center;
   cursor: url('../logos/cursor.png'), default;
+  overflow: visible;
 }
 
 nav {
@@ -23,7 +24,7 @@ nav {
   background: #111111;
   font-weight: 600;
   display: flex;
-  width: 100%;
+  width: 100vw;
   cursor: url('../logos/cursor.png'), default;
 }
 
@@ -56,9 +57,9 @@ nav .item {
   list-style: none;
   position: absolute;
   padding: 0;
-  width: 100%;
-  left: 0;
-  top: 62px;
+  width: 60%;
+  top: 65px;
+  z-index: 100;
 }
 .dropdown > div {
   transform: translate(0, -100%);
@@ -68,7 +69,7 @@ nav .item {
 
 .dropdown a {
     display: flex;         /* Use flex layout */
-    align-items: center;   /* Align items vertically in the center */
+    align-items:start;   /* Align items vertically in the center */
     padding: 10px;         /* Adjust padding as needed */
     width: 100%;
     height: auto;          /* Adjust height as needed */
@@ -102,6 +103,11 @@ nav .item {
   z-index: 2;
   pointer-events: none;
   transition: 0.35s;
+  opacity: 0; /* Hide the underline by default */
+}
+
+.active-underline {
+  opacity: 1; /* Show the underline when active */
 }
 
 nav .item:hover > .dropdown > div {

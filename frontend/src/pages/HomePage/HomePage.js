@@ -5,22 +5,18 @@ import { CSSTransition } from 'react-transition-group';
 import confetti from 'canvas-confetti';
 import { useNavigate } from 'react-router-dom';
 
-
-
 function HomePage() {
-
     const [showLoader, setShowLoader] = useState(true);
     const [showLoginForm, setShowLoginForm] = useState(false);
-
     const [userName, setUserName] = useState('');
     const [showWelcomeMessage, setShowWelcomeMessage] = useState(false);
     const [showWelcomeMessage2, setShowWelcomeMessage2] = useState(false);
     const [showExploreButton, setShowExploreButton] = useState(false);
 
-    const navigate = useNavigate();
-
     const canvasRef = useRef(null);
     const animationRef = useRef(null);
+    const navigate = useNavigate();
+
 
     // Check login status on every render
     useEffect(() => {
@@ -58,7 +54,7 @@ function HomePage() {
         confetti({
             particleCount: 500,
             spread: 160,
-            zIndex: 9999 // Ensure confetti is above other elements
+            zIndex: 9999 // Ensure confetti is above ther elements
         });
         document.body.style.opacity = '0';
         // Navigate after a delay

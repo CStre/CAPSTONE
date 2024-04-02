@@ -1,79 +1,70 @@
-import React, { useEffect } from 'react';
-import { Link } from 'react-router-dom'; 
-
-import './Header.css';
-import '../index.css';
+import React, { useEffect, useState } from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import './Header.css'; // Import your CSS file
 
 function Header() {
-    useEffect(() => {
-        const link = document.querySelectorAll('.item');
-
-        const animateit = function (e) {
-            const span = this.querySelector('lord-icon');
-            const { offsetX: x, offsetY: y } = e;
-            const { offsetWidth: width, offsetHeight: height } = this;
-
-            const move = 2;
-            const xMove = (x / width) * (move * 10) - move;
-            const yMove = (y / height) * (move * 0) - move;
-
-            span.style.transform = `translate(${xMove}px, ${yMove}px)`;
-
-            if (e.type === 'mouseleave') span.style.transform = '';
-        };
-
-        link.forEach(b => b.addEventListener('mousemove', animateit));
-        link.forEach(b => b.addEventListener('mouseleave', animateit));
-
-        return () => {
-            link.forEach(b => b.removeEventListener('mousemove', animateit));
-            link.forEach(b => b.removeEventListener('mouseleave', animateit));
-        };
-    }, []);
+    const location = useLocation();
+    const [activeTab, setActiveTab] = useState('');
 
     useEffect(() => {
-        document.body.classList.add('item');
-        return () => {
-            document.body.classList.remove('item');
-        };
-    }, []);
+        setActiveTab(location.pathname);
+    }, [location]);
 
     return (
         <nav>
-            <Link className="item" to="/learn">
+            <Link
+                className="item"
+                to="/learn"
+            >
                 <lord-icon
+                    className="item-icon"
                     src="https://cdn.lordicon.com/mrikdaqa.json"
                     trigger="hover"
                     stroke="bold"
                     colors="primary:#ffffff,secondary:#06c56d"
                     style={{ width: '50px', height: '50px' }}
-                ></lord-icon>Learn</Link>
-            <Link className="item" to="/prototype">
+                ></lord-icon>
+                Learn
+            </Link>
+            <Link
+                className="item"
+                to="/travel"
+            >
                 <lord-icon
-                    src="https://cdn.lordicon.com/fttvwdlw.json"
+                    className="item-icon"
+                    src="https://cdn.lordicon.com/gjhbhscz.json"
                     trigger="hover"
                     stroke="bold"
-                    state="hover-roll"
                     colors="primary:#ffffff,secondary:#06c56d"
-                    style={{ width: '50px', height: '50px' }}
-                ></lord-icon>Benchmark</Link>
-            <Link className="item" to="/credits">
+                    style={{ width: '50px', height: '50px' }}>
+                </lord-icon>
+                Travel
+            </Link>
+            <Link
+                className="item"
+                to="/credits"
+            >
                 <lord-icon
+                    className="item-icon"
                     src="https://cdn.lordicon.com/gqjpawbc.json"
                     trigger="hover"
                     stroke="bold"
                     state="hover-burst"
                     colors="primary:#ffffff,secondary:#06c56d"
                     style={{ width: '50px', height: '50px' }}
-                ></lord-icon>Credits</Link>
+                ></lord-icon>
+                Credits
+            </Link>
             <div className="item">
                 <lord-icon
+                    className="item-icon"
                     src="https://cdn.lordicon.com/teofqznt.json"
                     trigger="hover"
                     stroke="bold"
                     colors="primary:#ffffff,secondary:#06c56d"
                     style={{ width: '50px', height: '50px' }}
-                ></lord-icon>Account
+                ></lord-icon>
+                Account
                 <div className="dropdown">
                     <div>
                         <Link to="/dashboard">
@@ -83,7 +74,9 @@ function Header() {
                                 stroke="bold"
                                 colors="primary:#ffffff,secondary:#06c56d"
                                 style={{ width: '30px', height: '30px' }}
-                            ></lord-icon>Account</Link>
+                            ></lord-icon>
+                            Account
+                        </Link>
                         <Link to="/dashboard">
                             <lord-icon
                                 src="https://cdn.lordicon.com/pbkmxonw.json"
@@ -92,7 +85,9 @@ function Header() {
                                 stroke="bold"
                                 colors="primary:#ffffff,secondary:#06c56d"
                                 style={{ width: '30px', height: '30px' }}
-                            ></lord-icon>Dashboard</Link>
+                            ></lord-icon>
+                            Dashboard
+                        </Link>
                         <Link to="/preferences">
                             <lord-icon
                                 src="https://cdn.lordicon.com/kjjbpuhp.json"
@@ -100,7 +95,9 @@ function Header() {
                                 stroke="bold"
                                 colors="primary:#ffffff,secondary:#06c56d"
                                 style={{ width: '30px', height: '30px' }}
-                            ></lord-icon>Preferences</Link>
+                            ></lord-icon>
+                            Preferences
+                        </Link>
                         <Link className="logout" to="/logout">
                             <lord-icon
                                 src="https://cdn.lordicon.com/lbjtvqiv.json"
@@ -108,11 +105,12 @@ function Header() {
                                 stroke="bold"
                                 colors="primary:#c71f16,secondary:#c71f16"
                                 style={{ width: '30px', height: '30px' }}
-                            ></lord-icon>Logout</Link>
+                            ></lord-icon>
+                            Logout
+                        </Link>
                     </div>
                 </div>
             </div>
-            <div className="underline"></div>
         </nav>
     );
 }
