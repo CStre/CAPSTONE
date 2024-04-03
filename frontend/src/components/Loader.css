@@ -1,5 +1,4 @@
 /* KEYFRAMES */
-
 @keyframes spin {
     from {
       transform: rotate(0);
@@ -73,7 +72,7 @@
   
   body {
     margin: 0; /* Remove default margin */
-    overflow: hidden; /* Optional: Prevent scrolling while loading */
+    overflow: auto; /* Optional: Prevent scrolling while loading */
   }
   
   .spinner-box {
@@ -101,28 +100,28 @@
       width: 165px;
       height: 165px;
     border: 3px solid #06c56c;
-    -webkit-animation: spin3D 3s linear .2s infinite;
+    animation: spin3D 3s linear .2s infinite;
   }
   
   .green-orbit {
       width: 120px;
       height: 120px;
     border: 3px solid #00ff66;
-    -webkit-animation: spin3D 2s linear 0s infinite;
+    animation: spin3D 2s linear 0s infinite;
   }
   
   .red-orbit {
       width: 90px;
       height: 90px;
     border: 3px solid #38cdfe;
-    -webkit-animation: spin3D 1s linear 0s infinite;
+    animation: spin3D 1s linear 0s infinite;
   }
   
   .white-orbit {
       width: 60px;
       height: 60px;
     border: 3px solid #ffffff;
-    -webkit-animation: spin3D 10s linear 0s infinite;
+    animation: spin3D 10s linear 0s infinite;
   }
   
   .w1 {

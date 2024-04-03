@@ -1,95 +1,125 @@
 @import url('https://fonts.googleapis.com/css?family=Poppins:400,500,600,700,800,900');
 
-body,
-html {
+.homePage {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 300;
+  font-size: 15px;
+  line-height: 1.7;
+  color: #c4c3ca;
+  background-color: #020215;
+  overflow-x: hidden;
+  position: relative;
+  /* Change from fixed to relative */
+  width: 100vw;
+  /* Full viewport width */
+  height: 100vh;
+  /* Full viewport height *
+  /* Other styles remain the same */
+}
+
+.homePage home-body,
+.homePage home-html {
   margin: 0px;
   padding: 0px;
   position: fixed;
   background: rgb(0, 0, 0);
   transition: opacity 0.5s ease-in-out;
+  overflow-x: hidden;
 
 }
 
-#canvas {
-  z-index: 1; /* Lower than the form overlay */
+.homePage home-#canvas {
+  z-index: 1;
+  /* Lower than the form overlay */
 }
 
-.homePage {
-    background-color: #020215; /* Set background color */
-    width: 100vw; /* Full viewport width */
-    height: 100vh; /* Full viewport height */
-    position: relative;
-  }
 
-.loaderOverlay {
+
+.homePage .loaderOverlay {
   position: fixed;
   top: 0;
   left: 0;
   width: 100vw;
   height: 100vh;
-  z-index: 1000; /* High z-index to ensure it's above other content */
+  z-index: 1000;
+  /* High z-index to ensure it's above other content */
   display: flex;
   justify-content: center;
   align-items: center;
 }
 
-.loaderOverlay.hidden {
+.homePage .loaderOverlay.hidden {
   display: none;
 }
 
-.form-overlay {
+.homePage .form-overlay {
   position: fixed;
   top: 0;
   left: 0;
-  width: 100vw; /* Full viewport width */
-  height: 100vh; /* Full viewport height */
-  background-color: rgba(35, 35, 35, 0.5); /* Semi-transparent black background */
-  z-index: 10; /* Higher than the canvas */
+  width: 100vw;
+
+  /* Full viewport width */
+  height: 100vh;
+  /* Full viewport height */
+  background-color: rgba(35, 35, 35, 0.5);
+  /* Semi-transparent black background */
+  z-index: 10;
+  /* Higher than the canvas */
   display: flex;
   justify-content: center;
   align-items: center;
 }
 
-body{
-	font-family: 'Poppins', sans-serif;
-	font-weight: 300;
-	font-size: 15px;
-	line-height: 1.7;
-	color: #c4c3ca;
-	background-color: #111111;
-	overflow-x: hidden;
+.homePage body {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 300;
+  font-size: 15px;
+  line-height: 1.7;
+  color: #c4c3ca;
+  background-color: #111111;
+  overflow-x: hidden;
 }
-a {
-	cursor: pointer;
+
+.homePage a {
+  cursor: pointer;
   transition: all 200ms linear;
 }
-a:hover {
-	text-decoration: none;
+
+.homePage a:hover {
+  text-decoration: none;
 }
-.link {
+
+.homePage .link {
   color: #c4c3ca;
 }
-.link:hover {
+
+.homePage .link:hover {
   color: #ffeba7;
 }
-p {
+
+.homePage p {
   font-weight: 500;
   font-size: 14px;
   line-height: 1.7;
 }
-h4 {
+
+.homePage h4 {
   font-weight: 700;
   display: flex;
   justify-content: center;
   align-items: center;
   /* Remove or adjust margins and padding as needed */
-  margin: 0; /* Example: removes default margin */
-  width: 100%; /* If you want to span the full width of its container */
-  font-size:large;
-  padding-bottom: 50px;
+  margin: 0;
+  /* Example: removes default margin */
+  width: 100%;
+  /* If you want to span the full width of its container */
+  font-size: x-large;
+  padding-bottom: 30px;
+  padding-top: 10px;
   color: #06c56d;
 }
-h6 span{
+
+.homePage h6 span {
   padding: 20px 20px;
   text-transform: uppercase;
   font-weight: 700;
@@ -98,31 +128,58 @@ h6 span{
   align-items: center;
   color: #06c56d;
 }
-h6 {
+
+.homePage h6 {
   display: flex;
   justify-content: center;
   align-items: center;
   /* Remove or adjust margins and padding as needed */
-  margin: 0; /* Example: removes default margin */
-  width: 100%; /* If you want to span the full width of its container */
-  font-size:large;
+  margin: 0;
+  /* Example: removes default margin */
+  width: 100%;
+  /* If you want to span the full width of its container */
+  font-size: large;
   color: #06c56d;
 }
-.section.full-height {
+
+.homePage .section.full-height {
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100vh; /* This ensures the container takes full viewport height */
+  height: 100vh;
+  /* This ensures the container takes full viewport height */
 }
 
+/* Position and style the Lordicon icon */
+.homePage label[for="reg-log"] lord-icon {
+  position: absolute;
+  top: 50%;
+  left: 15%;
+  transform: translate(-50%, -50%) rotate(0deg);
+  /* Initial position and rotation */
+  transition: transform 0.5s ease;
+  /* Transition for movement and rotation */
+  width: 36px;
+  /* Match the size of the circle */
+  height: 36px;
+  z-index: 25;
+  /* Above the circle */
+}
 
-[type="checkbox"]:checked,
-[type="checkbox"]:not(:checked){
+/* Animate the icon when checkbox is checked */
+.homePage .checkbox:checked+label lord-icon {
+  transform: translate(28px, -50%) rotate(180deg);
+  /* Adjust translate values to match the sliding distance */
+}
+
+.homePage [type="checkbox"]:checked,
+.homePage [type="checkbox"]:not(:checked) {
   position: absolute;
   left: -9999px;
 }
-.checkbox:checked + label,
-.checkbox:not(:checked) + label{
+
+.homePage .checkbox:checked+label,
+.homePage .checkbox:not(:checked)+label {
   position: relative;
   display: block;
   text-align: center;
@@ -133,15 +190,17 @@ h6 {
   margin: 10px auto;
   cursor: pointer;
   background-color: #c4c3ca;
+
 }
-.checkbox:checked + label:before,
-.checkbox:not(:checked) + label:before{
+
+.homePage .checkbox:checked+label:before,
+.homePage .checkbox:not(:checked)+label:before {
   position: absolute;
   display: block;
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  color: #111111;
+  color: #c4c3ca;
   background-color: #c4c3ca;
   font-family: 'unicons';
   content: '\eb4f';
@@ -153,39 +212,56 @@ h6 {
   font-size: 24px;
   transition: all 0.5s ease;
 }
-.checkbox:checked + label:before {
+
+.homePage .checkbox:checked+label:before {
   transform: translateX(44px) rotate(-270deg);
 }
 
 
-.card-3d-wrap {
-  position: center; /**/
-  width: 440px; /**/
-  max-width: 100%; /**/
-  height: 400px; /**/
-  -webkit-transform-style: preserve-3d; /**/
-  transform-style: preserve-3d; /**/
-  perspective: 800px; /**/
-  margin-top: 20px; /**/
-  margin: auto;
-}
-.card-3d-wrapper {
-  width: 100%;
-  height: 100%;
-  position:absolute;    
-  top: 10px;
-  left: 10px;  
+.homePage .card-3d-wrap {
+  position: center;
+  width: 400px;
+  /* Unchanged width */
+  height: 400px;
+  /* Unchanged height */
   -webkit-transform-style: preserve-3d;
   transform-style: preserve-3d;
-  transition: all 600ms ease-out; 
+  perspective: 1500px;
+  margin: 50px auto;
+  /* Increased margin for more space around */
+  overflow: visible;
 }
-.container {
+
+.homePage .card-3d-wrapper {
+  position: absolute;
+  top: 60px;
+  bottom: 60px;
+  width: 100%;
+  /* Adjusted width */
+  height: 100%;
+  /* Increased height */
+  -webkit-transform-style: preserve-3d;
+  transform-style: preserve-3d;
+  perspective: 800px;
+  margin: auto;
+  overflow: visible;
+  /* Hide overflow */
+  transition: all 600ms ease-out;
+}
+
+.homePage .container {
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100%; /* Takes full height of its parent */
+  height: 100%;
+  width: auto;
+  overflow: hidden;
+  background: transparent;
+  /* Takes full height of its parent */
 }
-.card-front, .card-back {
+
+.homePage .card-front,
+.homePage .card-back {
   width: 100%;
   height: 100%;
   background-color: #000000;
@@ -201,16 +277,19 @@ h6 {
   -webkit-backface-visibility: hidden;
   -moz-backface-visibility: hidden;
   -o-backface-visibility: hidden;
-  backface-visibility: hidden;
+  backface-visibility: hidden; 
   justify-content: center;
 }
-.card-back {
+
+.homePage .card-back {
   transform: rotateY(180deg);
 }
-.checkbox:checked ~ .card-3d-wrap .card-3d-wrapper {
+
+.homePage .checkbox:checked~.card-3d-wrap .card-3d-wrapper {
   transform: rotateY(180deg);
 }
-.center-wrap{
+
+.homePage .center-wrap {
   position: absolute;
   width: 100%;
   padding: 0 35px;
@@ -218,17 +297,60 @@ h6 {
   left: 0;
   transform: translate3d(0, -50%, 35px) perspective(100px);
   z-index: 20;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  /* Centers children horizontally */
+}
+
+.homePage label[for="reg-log-2"] lord-icon {
+  position: center;
+  width: 100%;
+  justify-content: center;
+  align-items: center;
+  top: 50%;
+  left: 43%;
+  z-index: 20;
   display: block;
 }
 
+.homePage .form-section {
+  width: 100%;
+  text-align: center;
+}
 
-.form-group{ 
+.homePage .form-group.mt-1 {
   position: relative;
   display: block;
-    margin: 0;
-    padding: 0;
+  margin: 0;
+  padding-bottom: 0%;
 }
-.form-style {
+
+.homePage .form-group {
+  /* other styles */
+  width: 100%;
+  /* Ensure full width */
+  display: flex;
+  justify-content: center;
+  /* Center the form inputs and button */
+}
+
+.homePage .form-group.mt-2 {
+  position: relative;
+  display: block;
+  margin: 0;
+  padding-bottom: .5%;
+}
+
+.homePage .form-group.mt-3 {
+  position: relative;
+  display: block;
+  margin: 0;
+  padding-top: .5%;
+}
+
+.homePage .form-style {
   padding: 20px 20px;
   padding-left: 30px;
   height: 48px;
@@ -244,15 +366,17 @@ h6 {
   border: none;
   -webkit-transition: all 200ms linear;
   transition: all 200ms linear;
-  box-shadow: 0 4px 8px 0 rgba(21,21,21,.2);
+  box-shadow: 0 4px 8px 0 rgba(21, 21, 21, .2);
 }
-.form-style:focus,
-.form-style:active {
+
+.homePage .form-style:focus,
+.homePage .form-style:active {
   border: none;
   outline: none;
-  box-shadow: 0 4px 8px 0 rgba(21,21,21,.2);
+  box-shadow: 0 4px 8px 0 rgba(21, 21, 21, .2);
 }
-.input-icon {
+
+.homePage .input-icon {
   position: center;
   top: 0;
   left: 18px;
@@ -262,61 +386,77 @@ h6 {
   text-align: left;
   color: #c4c3ca;
   -webkit-transition: all 200ms linear;
-    transition: all 200ms linear;
+  transition: all 200ms linear;
 }
 
-.form-group input:-ms-input-placeholder  {
-  color: #c4c3ca;
-  opacity: 0.7;
-  -webkit-transition: all 200ms linear;
-    transition: all 200ms linear;
-}
-.form-group input::-moz-placeholder  {
-  color: #c4c3ca;
-  opacity: 0.7;
-  -webkit-transition: all 200ms linear;
-    transition: all 200ms linear;
-}
-.form-group input:-moz-placeholder  {
-  color: #c4c3ca;
-  opacity: 0.7;
-  -webkit-transition: all 200ms linear;
-    transition: all 200ms linear;
-}
-.form-group input::-webkit-input-placeholder  {
-  color: #c4c3ca;
-  opacity: 0.7;
-  -webkit-transition: all 200ms linear;
-    transition: all 200ms linear;
-}
-.form-group input:focus:-ms-input-placeholder  {
-  opacity: 0;
-  -webkit-transition: all 200ms linear;
-    transition: all 200ms linear;
-}
-.form-group input:focus::-moz-placeholder  {
-  opacity: 0;
-  -webkit-transition: all 200ms linear;
-    transition: all 200ms linear;
-}
-.form-group input:focus:-moz-placeholder  {
-  opacity: 0;
-  -webkit-transition: all 200ms linear;
-    transition: all 200ms linear;
-}
-.form-group input:focus::-webkit-input-placeholder  {
-  opacity: 0;
-  -webkit-transition: all 200ms linear;
-    transition: all 200ms linear;
+/* Additional styling for the icon and text section */
+.homePage .icon-text-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 
-.btn{  
+.homePage .form-group input:-ms-input-placeholder {
+  color: #c4c3ca;
+  opacity: 0.7;
+  -webkit-transition: all 200ms linear;
+  transition: all 200ms linear;
+}
+
+.homePage .form-group input::-moz-placeholder {
+  color: #c4c3ca;
+  opacity: 0.7;
+  -webkit-transition: all 200ms linear;
+  transition: all 200ms linear;
+}
+
+.homePage .form-group input:-moz-placeholder {
+  color: #c4c3ca;
+  opacity: 0.7;
+  -webkit-transition: all 200ms linear;
+  transition: all 200ms linear;
+}
+
+.homePage .form-group input::-webkit-input-placeholder {
+  color: #c4c3ca;
+  opacity: 0.7;
+  -webkit-transition: all 200ms linear;
+  transition: all 200ms linear;
+}
+
+.homePage .form-group input:focus:-ms-input-placeholder {
+  opacity: 0;
+  -webkit-transition: all 200ms linear;
+  transition: all 200ms linear;
+}
+
+.homePage .form-group input:focus::-moz-placeholder {
+  opacity: 0;
+  -webkit-transition: all 200ms linear;
+  transition: all 200ms linear;
+}
+
+.homePage .form-group input:focus:-moz-placeholder {
+  opacity: 0;
+  -webkit-transition: all 200ms linear;
+  transition: all 200ms linear;
+}
+
+.homePage .form-group input:focus::-webkit-input-placeholder {
+  opacity: 0;
+  -webkit-transition: all 200ms linear;
+  transition: all 200ms linear;
+}
+
+.homePage .btn {
+
   border-radius: 4px;
   height: 44px;
   font-size: 13px;
   font-weight: 600;
   text-transform: uppercase;
-  -webkit-transition : all 200ms linear;
+  -webkit-transition: all 200ms linear;
   transition: all 200ms linear;
   padding: 20px;
   letter-spacing: 1px;
@@ -336,138 +476,254 @@ h6 {
   border: none;
   background-color: #c4c3ca;
   color: #111111;
-  box-shadow: 0 8px 24px 0 rgba(255,235,167,.2);
+  box-shadow: 0 8px 24px 0 rgba(255, 235, 167, .2);
   margin-top: 20px;
+  ;
   position: center;
 }
-.btn:active,
-.btn:focus{  
+
+.homePage .btn:active,
+.homePage .btn:focus {
   background-color: #111111;
   color: #c4c3ca;
-  box-shadow: 0 8px 24px 0 rgba(16,39,112,.2);
+  box-shadow: 0 8px 24px 0 rgba(16, 39, 112, .2);
+  align-items: center;
 }
-.btn:hover{  
+
+.homePage .btn:hover {
   background-color: #111111;
   color: #c4c3ca;
-  box-shadow: 0 8px 24px 0 rgba(16,39,112,.2);
+  box-shadow: 0 8px 24px 0 rgba(16, 39, 112, .2);
+  align-items: center;
 }
 
-.logo {
-	position: absolute;
-	top: 30px;
-	right: 30px;
-	display: block;
-	z-index: 100;
-	transition: all 250ms linear;
-}
-.logo img {
-	height: 26px;
-	width: auto;
-	display: block;
+.homePage .logo {
+  position: absolute;
+  top: 30px;
+  right: 30px;
+  display: block;
+  z-index: 100;
+  transition: all 250ms linear;
 }
 
-.mb-0 .pb-3{
+.homePage .logo img {
+  height: 26px;
+  width: auto;
+  display: block;
+}
+
+.homePage .mb-0 .pb-3 {
   position: center;
   justify-content: center;
 }
 
 /* Add this to your HomePage.css */
-.fade-enter {
+.homePage .fade-enter {
   opacity: 0;
   z-index: 1;
 }
 
-.fade-enter.fade-enter-active {
+.homePage .fade-enter.fade-enter-active {
   opacity: 1;
   transition: opacity 500ms ease-in;
 }
 
-.fade-exit {
+.homePage .fade-exit {
   opacity: 1;
 }
 
-.fade-exit.fade-exit-active {
+.homePage .fade-exit.fade-exit-active {
   opacity: 0;
   transition: opacity 500ms ease-in;
 }
 
-.welcome-message {
+.homePage .welcome-message {
   position: fixed;
-  top: 20%; /* Adjust as needed */
+  top: 20%;
+  /* Adjust as needed */
   left: 50%;
   transform: translate(-50%, -50%);
-  color: #06c56d; /* Adjust color as needed */
-  font-size: 1.5em; /* Adjust size as needed */
-  z-index: 2; /* Ensure it's above other content */
+  color: #06c56d;
+  /* Adjust color as needed */
+  font-size: 1.5em;
+  /* Adjust size as needed */
+  z-index: 2;
+  /* Ensure it's above other content */
   font-size: 3.3em;
   font-weight: 900;
 }
 
 /* Transition for the welcome message */
-.message-enter {
+.homePage .message-enter {
   opacity: 0;
 }
-.message-enter-active {
+
+.homePage .message-enter-active {
   opacity: 1;
   transition: opacity 500ms ease-in;
 }
-.message-exit {
+
+.homePage .message-exit {
   opacity: 1;
 }
-.message-exit-active {
+
+.homePage .message-exit-active {
   opacity: 0;
   transition: opacity 500ms ease-in;
 }
 
-.form-enter {
+.homePage .form-enter {
   opacity: 0;
   transform: scale(0.9);
 }
-.form-enter-active {
+
+.homePage .form-enter-active {
   opacity: 1;
   transform: scale(1);
   transition: opacity 300ms, transform 300ms;
 }
-.form-exit {
+
+.homePage .form-exit {
   opacity: 1;
 }
-.form-exit-active {
+
+.homePage .form-exit-active {
   opacity: 0;
   transform: scale(0.9);
   transition: opacity 300ms, transform 300ms;
 }
 
-.wrapper {
-  position: fixed; /* Use fixed position */
-  top: 50%; /* Center vertically */
-  left: 50%; /* Center horizontally */
-  transform: translate(-50%, -50%); /* Adjust to exactly center the div */
-  z-index: 80; /* Make sure it's above other elements */
-  text-align: center; /* Align button text to center */
+.homePage .wrapper {
+  position: fixed;
+  /* Use fixed position */
+  top: 50%;
+  /* Center vertically */
+  left: 50%;
+  /* Center horizontally */
+  transform: translate(-50%, -50%);
+  /* Adjust to exactly center the div */
+  z-index: 80;
+  /* Make sure it's above other elements */
+  text-align: center;
+  /* Align button text to center */
 }
 
-.confetti-button {
-  font-size: 1rem; /* Increase the font size */
+.homePage .confetti-button {
+  font-size: 1.75rem;
+  /* Increase the font size */
   color: #c4c3ca;
-  padding: 1em 2em; /* Increase padding for a larger button */
-  border: none; 
-  border-radius: 8px; /* Adjust border-radius as needed */
-  background: linear-gradient(45deg, #b300ff, #00ffb3); /* Gradient background */
+  padding: 1em 2em;
+  /* Increase padding for a larger button */
+  border: none;
+  border-radius: 10px;
+  /* Adjust border-radius as needed */
+  background: linear-gradient(45deg, #b300ff, #00ffb3);
+  /* Gradient background */
   cursor: pointer;
   transition: transform 150ms ease-in;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Optional: Add shadow for better visibility */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  /* Optional: Add shadow for better visibility */
 }
 
-.confetti-button:hover {
-  transform: scale(1.15); /* Slight increase on hover for a nice effect */
+.homePage .confetti-button:hover {
+  transform: scale(1.15);
+  /* Slight increase on hover for a nice effect */
 }
 
-.wrapper canvas { 
-position: absolute;
-top: 50%;
-left: 50%;
-transform: translate (-50%, -50%) ; 
-pointer-events: none;
-z-index: 1000;
+.homePage .wrapper canvas {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate (-50%, -50%);
+  pointer-events: none;
+  z-index: 1000;
 }
 
+.homePage * {
+  box-sizing: border-box;
+}
+
+.homePage .page {
+  display: grid;
+  place-items: center;
+  margin: 0;
+  background: #000000;
+  font-family: "Euclid Circular A", "Poppins";
+  color: #fdfdfd;
+}
+
+.homePage .login-form input.control::placeholder {
+  color: #9f9d9e;
+}
+
+.homePage .control {
+  outline: none;
+  width: 100%;
+  height: 56px;
+  padding: 0 16px;
+  color: inherit;
+  background: #181919;
+  border: 0;
+  border-radius: 6px;
+  margin: 8px 0;
+  font-family: inherit;
+  font-size: 18px;
+  transition: 0.4s;
+}
+
+.homePage button.control {
+  cursor: pointer;
+  width: 100%;
+  height: 56px;
+  padding: 0 16px;
+  background: #0079ea;
+  text-align: center;
+  justify-content: center;
+}
+
+.homePage .btn mt-4 {
+  justify-content: center;
+}
+
+.homePage .bars {
+  margin: 0px 0;
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  gap: 0px;
+  height: 4px;
+  border-radius: 1px;
+  background: #181919;
+}
+
+.homePage .bars div {
+  height: 5px;
+  border-radius: 3px;
+  transition: 0.4s;
+  width: 0%;
+}
+
+.homePage .bars.weak div {
+  background: #e24c71;
+  width: 33.33%;
+}
+
+.homePage .bars.medium div {
+  background: #f39845;
+  width: 66.66%;
+}
+
+.homePage .bars.strong div {
+  background: #57c558;
+  width: 100%;
+}
+
+.homePage .strength {
+  text-align: left;
+  height: 5px;
+  text-transform: capitalize;
+  color: #f9d9eb94;
+  font-weight: 400;
+  font-size: smaller;
+  padding-bottom: 0%;
+}

@@ -16,7 +16,8 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from . import views
-from .views import test_db
+from .views import test_db, CreateUserView, LoginView
+
 
 from django.urls import path, re_path
 from django.views.generic import TemplateView
@@ -25,5 +26,7 @@ urlpatterns = [
     path('', views.index),  # Root URL
     path('admin/', admin.site.urls),
     path('test-db/', test_db, name='test_db'),
-    re_path('.*', TemplateView.as_view(template_name='index.html')),
+    path('register/', CreateUserView.as_view(), name='register'),
+    path('login/', LoginView.as_view(), name='login'),
+    #re_path('.*', TemplateView.as_view(template_name='index.html')),
 ]

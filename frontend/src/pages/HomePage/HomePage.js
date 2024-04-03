@@ -4,6 +4,8 @@ import Loader from '../../components/Loader';
 import { CSSTransition } from 'react-transition-group';
 import confetti from 'canvas-confetti';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import Cookies from 'js-cookie';
 
 function HomePage() {
     const [showLoader, setShowLoader] = useState(true);
@@ -17,6 +19,29 @@ function HomePage() {
     const animationRef = useRef(null);
     const navigate = useNavigate();
 
+    const [passwordStrength, setPasswordStrength] = useState("");
+    const strengthLabels = ["weak", "medium", "medium", "strong"];
+
+
+    const getStrength = (password) => {
+        let strengthIndicator = -1;
+
+        if (/[a-z]/.test(password)) strengthIndicator++;
+        if (/[A-Z]/.test(password)) strengthIndicator++;
+        if (/\d/.test(password)) strengthIndicator++;
+        if (/[^a-zA-Z0-9]/.test(password)) strengthIndicator++;
+
+        if (password.length >= 16) strengthIndicator++;
+
+        return strengthLabels[strengthIndicator];
+    };
+
+    const handlePasswordChange = (event) => {
+        const newPassword = event.target.value;
+        setPasswordStrength(getStrength(newPassword));
+        // Set the password in the form's state or handle it as required
+        // e.g., setPassword(newPassword);
+    };
 
     // Check login status on every render
     useEffect(() => {
@@ -58,12 +83,12 @@ function HomePage() {
         });
         document.body.style.opacity = '0';
         // Navigate after a delay
-    setTimeout(() => {
-        navigate('/learn');
-        document.body.style.opacity = '1';
-    }, 1000); // 1 second delay
+        setTimeout(() => {
+            navigate('/learn');
+            document.body.style.opacity = '1';
+        }, 1000); // 1 second delay
     };
-    
+
 
     useEffect(() => {
         if (!canvasRef.current) return;
@@ -372,19 +397,92 @@ function HomePage() {
         console.log("Updated Show Login Form:", showLoginForm);
     }, [showLoginForm]);
 
+    // Function for handling user registration
+    const handleRegistration = (e) => {
+        e.preventDefault();  // Prevents the default form submission behavior
+        const name = document.getElementById('logname').value;
+        const email = document.getElementById('logemail').value;
+        const password = document.getElementById('logpass').value;
+
+        axios.post('https://buildingbetteralgorithms.com/register/', {
+            name,
+            email,
+            password
+            // other fields like 'preferences' if you have them
+        })
+            .then(response => {
+                // Handle success
+                console.log('Registration Successful', response.data);
+                localStorage.setItem('userName', response.data.name); // Example: storing user name
+                localStorage.setItem('userLoggedIn', 'true');
+                setShowLoginForm(false);
+            })
+            .catch(error => {
+                // Handle errors
+                if (error.response) {
+                    // The request was made and the server responded with a status code
+                    console.error('Registration Error', error.response.data);
+                    // Check if the error response contains a specific message for duplicate email
+                    if (error.response.data && error.response.data.email) {
+                        const errorMessage = error.response.data.email[0];
+                        alert(errorMessage); // Display an alert to the user with the error message
+                    } else {
+                        // Display a generic error message if no specific message is available
+                        alert('Registration failed. Please try again later.');
+                    }
+                } else if (error.request) {
+                    // The request was made but no response was received
+                    console.error('No response received', error.request);
+                } else {
+                    // Something else happened in making the request
+                    console.error('Error occurred', error.message);
+                }
+            });
+    };
+
+
+
+    // Function for handling user login via API
+    const handleUserLogin = (e) => {
+        e.preventDefault();  // Prevents the default form submission behavior
+        const email = document.getElementById('logemail2').value;
+        const password = document.getElementById('logpass2').value;
+        const csrfToken = Cookies.get('csrftoken');
+
+        axios.post('https://buildingbetteralgorithms.com/login/', {
+            email,
+            password
+        }, {
+            headers: {
+                'X-CSRFToken': csrfToken // Include CSRF token in the request header
+            }
+        })
+            .then(response => {
+                // Handle success
+                console.log('Login Successful', response.data);
+                localStorage.setItem('userName', response.data.name); // Example: storing user name
+                localStorage.setItem('userLoggedIn', 'true');
+                setShowLoginForm(false);
+            })
+            .catch(error => {
+                // Handle errors
+                console.error('Login Error', error);
+            });
+    };
+
+
+    // Existing handleLogin function
     const handleLogin = (e) => {
         e.preventDefault();
-        const name = document.getElementById('logname').value;
+        const name = document.getElementById('logemail2').value;
         setUserName(name);
         localStorage.setItem('userName', name); // Store the username
         localStorage.setItem('userLoggedIn', 'true');
         setShowLoginForm(false);
-
         setShowWelcomeMessage(true);
 
         setTimeout(() => {
             setShowWelcomeMessage(false);
-
             setShowWelcomeMessage2(true);
 
             setTimeout(() => {
@@ -393,7 +491,6 @@ function HomePage() {
             }, 3000);
         }, 3000);
     };
-
 
 
     return (
@@ -461,46 +558,92 @@ function HomePage() {
                             <div className="row full-height justify-content-center">
                                 <div className="col-12 text-center align-self-center py-5">
                                     <div className="section pb-5 pt-5 pt-sm-2 text-center">
-                                        <h6 className="mb-0 pb-3"><span>Log In</span><span>Sign Up</span></h6>
                                         <input className="checkbox" type="checkbox" id="reg-log" name="reg-log" />
+                                        <label htmlFor="reg-log">
+                                            <lord-icon
+                                                src="https://cdn.lordicon.com/zleqbfhf.json"
+                                                trigger="click"
+                                                stroke="bold"
+                                                colors="primary:#ffffff"
+                                                style={{ width: '25px', height: '25px' }}>
+                                            </lord-icon>
+                                        </label>
                                         <label htmlFor="reg-log"></label>
                                         <div className="card-3d-wrap mx-auto">
                                             <div className="card-3d-wrapper">
                                                 <div className="card-front">
-                                                    <div className="center-wrap">
-                                                        <div className="section text-center">
-                                                            <h4 className="mb-4 pb-3">Log In</h4>
-                                                            <div className="form-group">
-                                                                <input type="email" name="logemail" className="form-style" placeholder="Your Email" id="logemail" autoComplete="off" />
-                                                                <i className="input-icon uil uil-at"></i>
+                                                    <form onSubmit={handleUserLogin}>
+                                                        <div className="center-wrap">
+                                                            <div className="section text-center">
+                                                                <label htmlFor="reg-log-2">
+                                                                    <lord-icon className="mb-4 pb-3"
+                                                                        src="https://cdn.lordicon.com/auvlcjep.json"
+                                                                        trigger="hover"
+                                                                        stroke="bold"
+                                                                        style={{ width: '50px', height: '50px' }}
+                                                                        colors="primary:#c4c3ca,secondary:#00e6ff">
+                                                                    </lord-icon>
+                                                                </label>
+                                                                <h4 className="mb-4 pb-3">Log In</h4>
+                                                                <div className="form-group">
+                                                                    <input type="email" name="logemail2" className="form-style" placeholder="Your Email" id="logemail2" autoComplete="off" required/>
+                                                                    <i className="input-icon uil uil-at"></i>
+                                                                </div>
+                                                                <div className="form-group mt-2">
+                                                                    <input type="password" name="logpass2" className="form-style" placeholder="Your Password" id="logpass2" autoComplete="off" required/>
+                                                                    <i className="input-icon uil uil-lock-alt"></i>
+                                                                </div>
+                                                                <button type="submit" className="btn mt-4" onSubmit={handleUserLogin}>submit</button>
                                                             </div>
-                                                            <div className="form-group mt-2">
-                                                                <input type="password" name="logpass" className="form-style" placeholder="Your Password" id="logpass" autoComplete="off" />
-                                                                <i className="input-icon uil uil-lock-alt"></i>
-                                                            </div>
-                                                            <button type="submit" className="btn mt-4" onClick={handleLogin}>submit</button>
                                                         </div>
-                                                    </div>
+                                                    </form>
                                                 </div>
                                                 <div className="card-back">
-                                                    <div className="center-wrap">
-                                                        <div className="section text-center">
-                                                            <h4 className="mb-4 pb-3">Sign Up</h4>
-                                                            <div className="form-group">
-                                                                <input type="text" name="logname" className="form-style" placeholder="Your Full Name" id="logname" autoComplete="off" />
-                                                                <i className="input-icon uil uil-user"></i>
+                                                    <form onSubmit={handleRegistration}>
+                                                        <div className="center-wrap">
+                                                            <div className="section text-center">
+                                                                <label htmlFor="reg-log-2">
+                                                                    <lord-icon className="mb-4 pb-3"
+                                                                        src="https://cdn.lordicon.com/ebjjjrhp.json"
+                                                                        trigger="hover"
+                                                                        stroke="bold"
+                                                                        state="hover-spin"
+                                                                        style={{ width: '50px', height: '50px' }}
+                                                                        colors="primary:#c4c3ca,secondary:#00e6ff">
+                                                                    </lord-icon>
+                                                                </label>
+                                                                <h4 className="mb-4 pb-3">Sign Up</h4>
+                                                                <div className="form-group mt-1">
+                                                                    <input type="text" name="logname" className="form-style" placeholder="Your Full Name" id="logname" autoComplete="off" required/>
+                                                                    <i className="input-icon uil uil-user"></i>
+                                                                </div>
+                                                                <div className="form-group mt-2">
+                                                                    <input type="email" name="logemail" className="form-style" placeholder="Your Email" id="logemail" autoComplete="off" required/>
+                                                                    <i className="input-icon uil uil-at"></i>
+                                                                </div>
+                                                                <div className="form-group mt-3">
+                                                                    <input
+                                                                        type="password"
+                                                                        name="logpass"
+                                                                        className="form-style"
+                                                                        placeholder="Your Password"
+                                                                        id="logpass"
+                                                                        autoComplete="off"
+                                                                        required
+                                                                        onChange={handlePasswordChange}
+                                                                    />
+                                                                    <div className={`bars ${passwordStrength}`}>
+                                                                        <div></div>
+                                                                    </div>
+                                                                    <div className="strength">
+                                                                        {passwordStrength && `${passwordStrength} password`}
+                                                                    </div>
+                                                                    <i className="input-icon uil uil-lock-alt"></i>
+                                                                </div>
+                                                                <button type="submit" className="btn mt-4" onSubmit={handleRegistration}>submit</button>
                                                             </div>
-                                                            <div className="form-group mt-2">
-                                                                <input type="email" name="logemail" className="form-style" placeholder="Your Email" id="logemail2" autoComplete="off" />
-                                                                <i className="input-icon uil uil-at"></i>
-                                                            </div>
-                                                            <div className="form-group mt-2">
-                                                                <input type="password" name="logpass" className="form-style" placeholder="Your Password" id="logpass2" autoComplete="off" />
-                                                                <i className="input-icon uil uil-lock-alt"></i>
-                                                            </div>
-                                                            <button type="submit" className="btn mt-4" onClick={handleLogin}>submit</button>
                                                         </div>
-                                                    </div>
+                                                    </form>
                                                 </div>
                                             </div>
                                         </div>
