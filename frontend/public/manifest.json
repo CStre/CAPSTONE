@@ -1,5 +1,5 @@
 {
-  "short_name": "Better Algorithms",
+  "short_name": "BB Algorithms",
   "name": "Building Better Algorithms",
   "icons": [
     {
@@ -8,18 +8,20 @@
       "type": "image/x-icon"
     },
     {
-      "src": "logo192.png",
+      "src": "192x192px.png",
       "type": "image/png",
       "sizes": "192x192"
     },
     {
-      "src": "logo512.png",
+      "src": "512x512px.png",
       "type": "image/png",
       "sizes": "512x512"
     }
   ],
-  "start_url": ".",
+  "start_url": "/",
+  "background_color": "#000000",
   "display": "standalone",
+  "scope": "/",
   "theme_color": "#000000",
-  "background_color": "#ffffff"
+  "description": "An educational site to learn about user-centered ethical algorithms"
 }

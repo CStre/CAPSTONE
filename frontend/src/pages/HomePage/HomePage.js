@@ -1,11 +1,13 @@
 import React, { useEffect, useRef, useState } from 'react';
 import './HomePage.css';
 import Loader from '../../components/Loader';
+import App from '../../App';
 import { CSSTransition } from 'react-transition-group';
 import confetti from 'canvas-confetti';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Cookies from 'js-cookie';
+import { useAuth } from '../../AuthContext';
 
 function HomePage() {
     const [showLoader, setShowLoader] = useState(true);
@@ -15,12 +17,18 @@ function HomePage() {
     const [showWelcomeMessage2, setShowWelcomeMessage2] = useState(false);
     const [showExploreButton, setShowExploreButton] = useState(false);
 
+    const csrfToken = Cookies.get('csrftoken');
+    const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
+
     const canvasRef = useRef(null);
     const animationRef = useRef(null);
     const navigate = useNavigate();
 
     const [passwordStrength, setPasswordStrength] = useState("");
     const strengthLabels = ["weak", "medium", "medium", "strong"];
+
+    const { isAuthenticated, setIsAuthenticated } = useAuth();
+
 
 
     const getStrength = (password) => {
@@ -43,52 +51,72 @@ function HomePage() {
         // e.g., setPassword(newPassword);
     };
 
-    // Check login status on every render
-    useEffect(() => {
-        const isLoggedIn = localStorage.getItem('userLoggedIn');
-        console.log("Initial Check - Is Logged In?:", isLoggedIn);
-
+    // Update the login status and retreive name from API
+    const updateLoginStatus = () => {
+        const isLoggedIn = localStorage.getItem('userLoggedIn') === 'true';
         setShowLoginForm(!isLoggedIn);
-
-        // If the user is logged in, skip directly to showing the explore button
         if (isLoggedIn) {
-            // Set a slight delay before showing the welcome message and explore button
-            setTimeout(() => {
-                setUserName(localStorage.getItem('userName') || 'User'); // Retrieve username or use a default
-                setShowWelcomeMessage(true);
-
-                setTimeout(() => {
-                    setShowWelcomeMessage(false);
-                    setShowWelcomeMessage2(true);
+            console.log("Checking login status...");
+            axios.get(`${API_BASE_URL}/user-info/`)
+                .then(response => {
+                    console.log("Fetch user info successful:", response.data);
+                    // Assuming the response contains the user's name
+                    setUserName(response.data.name);
+                    setShowWelcomeMessage(true);
 
                     setTimeout(() => {
-                        setShowWelcomeMessage2(false);
-                        setShowExploreButton(true);
-                    }, 3000); // Time until WelcomeMessage2 disappears
-                }, 3000); // Time until WelcomeMessage disappears
-            }, 500); // Time before showing the WelcomeMessage
-        }
-    }, []); // Ensures this runs only on initial render
+                        setShowWelcomeMessage(false);
+                        setShowWelcomeMessage2(true);
 
-    useEffect(() => {
-        console.log("showLoginForm State Updated:", showLoginForm);
-    }, [showLoginForm]); // Log when showLoginForm updates
+                        setTimeout(() => {
+                            setShowWelcomeMessage2(false);
+                            setShowExploreButton(true);
+                        }, 3000);
+                    }, 3000);
+                })
+                .catch(error => {
+                    console.error('Error fetching user info', error);
+                    // Handle error (e.g., by redirecting to a login page or showing a message)
+                });
+        } else {
+            console.log("Not logged in");
+        }
+    };
+
+
+    // useEffect(() => {
+    //     updateLoginStatus();
+    //     console.log("showLoginForm State Updated:", showLoginForm);
+    // }, [isAuthenticated]); // Log when showLoginForm updates
 
     // Function to trigger confetti
     const triggerConfetti = () => {
         confetti({
-            particleCount: 500,
-            spread: 160,
-            zIndex: 9999 // Ensure confetti is above ther elements
+            particleCount: 1000,
+            spread: 360,
+            zIndex: 9999 // Ensure confetti is above their elements
         });
-        document.body.style.opacity = '0';
         // Navigate after a delay
         setTimeout(() => {
             navigate('/learn');
-            document.body.style.opacity = '1';
-        }, 1000); // 1 second delay
+            //document.body.style.opacity = '1';
+        }, 1500); // 1.5 second delay
     };
 
+    useEffect(() => {
+        setShowLoginForm(!isAuthenticated);
+        if (!isAuthenticated) {
+            // User is not authenticated
+            console.log("showLoginForm State Updated:");
+            setUserName('');
+            setShowWelcomeMessage(false);
+            setShowWelcomeMessage2(false);
+            setShowExploreButton(false);
+        } else {
+            // User is authenticated, handle accordingly
+            // For example, fetching user info if needed
+        }
+    }, [isAuthenticated]);
 
     useEffect(() => {
         if (!canvasRef.current) return;
@@ -399,98 +427,120 @@ function HomePage() {
 
     // Function for handling user registration
     const handleRegistration = (e) => {
-        e.preventDefault();  // Prevents the default form submission behavior
+        e.preventDefault();
         const name = document.getElementById('logname').value;
-        const email = document.getElementById('logemail').value;
+        const username = document.getElementById('logemail').value;
         const password = document.getElementById('logpass').value;
-
-        axios.post('https://buildingbetteralgorithms.com/register/', {
-            name,
-            email,
-            password
-            // other fields like 'preferences' if you have them
+    
+        axios.post(`${API_BASE_URL}/register/`, { 
+            name, 
+            username, 
+            password 
         })
-            .then(response => {
-                // Handle success
-                console.log('Registration Successful', response.data);
-                localStorage.setItem('userName', response.data.name); // Example: storing user name
-                localStorage.setItem('userLoggedIn', 'true');
-                setShowLoginForm(false);
-            })
-            .catch(error => {
-                // Handle errors
-                if (error.response) {
-                    // The request was made and the server responded with a status code
-                    console.error('Registration Error', error.response.data);
-                    // Check if the error response contains a specific message for duplicate email
-                    if (error.response.data && error.response.data.email) {
-                        const errorMessage = error.response.data.email[0];
-                        alert(errorMessage); // Display an alert to the user with the error message
-                    } else {
-                        // Display a generic error message if no specific message is available
-                        alert('Registration failed. Please try again later.');
-                    }
-                } else if (error.request) {
-                    // The request was made but no response was received
-                    console.error('No response received', error.request);
-                } else {
-                    // Something else happened in making the request
-                    console.error('Error occurred', error.message);
-                }
+        .then(response => {
+            console.log('Registration Successful', response.data);
+            // After successful registration, attempt to log in
+            return axios.post(`${API_BASE_URL}/login/`, {
+                username,
+                password
+            }, {
+                headers: { 'X-CSRFToken': csrfToken }
             });
+        })
+        .then(response => {
+                console.log("Login successful after registration:", response.data);
+                localStorage.setItem('userLoggedIn', 'true');
+                setIsAuthenticated(true);
+                // Fetch user information after successful login
+                return axios.get(`${API_BASE_URL}/user-info/`);
+        })
+        .then(response => {
+            // Assuming the response contains the user's name
+            setUserName(response.data.name);
+        
+            // Immediately update login-related states
+            setShowLoginForm(false);
+            setShowWelcomeMessage(true);
+        
+            // Set a delay to hide the first message and show the second message
+            setTimeout(() => {
+                setShowWelcomeMessage(false); // Hide first welcome message after 3 seconds
+        
+                setTimeout(() => {
+                    setShowWelcomeMessage2(true); // Show second welcome message
+        
+                    setTimeout(() => {
+                        setShowWelcomeMessage2(false); // Hide second welcome message after 3 seconds
+                        setShowExploreButton(true); // Show explore button
+                    }, 3000); // Adjust timing as needed
+                }, 500); // Short delay before showing the second message
+            }, 3000); // Time until first WelcomeMessage disappears
+        })
+        .catch(error => {
+            // Handle errors for registration or login
+            if (error.response) {
+                console.error('Error', error.response.data);
+                // Display appropriate error message
+                const errorMessage = error.response.data.username 
+                    ? error.response.data.username[0]
+                    : 'Registration failed. Please try again later.';
+                alert(errorMessage);
+            } else {
+                console.error('Error occurred', error.message);
+            }
+        });
     };
+    
 
 
 
-    // Function for handling user login via API
     const handleUserLogin = (e) => {
-        e.preventDefault();  // Prevents the default form submission behavior
-        const email = document.getElementById('logemail2').value;
+        e.preventDefault();
+        const username = document.getElementById('logemail2').value;
         const password = document.getElementById('logpass2').value;
-        const csrfToken = Cookies.get('csrftoken');
-
-        axios.post('https://buildingbetteralgorithms.com/login/', {
-            email,
+    
+        axios.post(`${API_BASE_URL}/login/`, {
+            username,
             password
         }, {
-            headers: {
-                'X-CSRFToken': csrfToken // Include CSRF token in the request header
-            }
+            headers: { 'X-CSRFToken': csrfToken }
         })
-            .then(response => {
-                // Handle success
-                console.log('Login Successful', response.data);
-                localStorage.setItem('userName', response.data.name); // Example: storing user name
-                localStorage.setItem('userLoggedIn', 'true');
-                setShowLoginForm(false);
-            })
-            .catch(error => {
-                // Handle errors
-                console.error('Login Error', error);
-            });
-    };
-
-
-    // Existing handleLogin function
-    const handleLogin = (e) => {
-        e.preventDefault();
-        const name = document.getElementById('logemail2').value;
-        setUserName(name);
-        localStorage.setItem('userName', name); // Store the username
-        localStorage.setItem('userLoggedIn', 'true');
-        setShowLoginForm(false);
-        setShowWelcomeMessage(true);
-
-        setTimeout(() => {
-            setShowWelcomeMessage(false);
-            setShowWelcomeMessage2(true);
-
+        .then(response => {
+            console.log("Login successful:", response.data);
+            localStorage.setItem('userLoggedIn', 'true');
+            setIsAuthenticated(true);
+            
+            // Fetch user information after successful login
+            return axios.get(`${API_BASE_URL}/user-info/`);
+        })
+        .then(response => {
+            // Assuming the response contains the user's name
+            setUserName(response.data.name);
+    
+            // Immediately update login-related states
+            setShowLoginForm(false);
+            setShowWelcomeMessage(true);
+    
+            // Set a delay to hide the first message and show the second message
             setTimeout(() => {
-                setShowWelcomeMessage2(false);
-                setShowExploreButton(true); // Ensure this is set here
-            }, 3000);
-        }, 3000);
+                setShowWelcomeMessage(false); // Hide first welcome message after 3 seconds
+    
+                setTimeout(() => {
+                    setShowWelcomeMessage2(true); // Show second welcome message
+    
+                    setTimeout(() => {
+                        setShowWelcomeMessage2(false); // Hide second welcome message after 3 seconds
+                        setShowExploreButton(true); // Show explore button
+                    }, 3000); // Adjust timing as needed
+                }, 500); // Short delay before showing the second message
+            }, 3000); // Time until first WelcomeMessage disappears
+        })
+        .catch(error => {
+            console.error('Login Error', error);
+        });
     };
+    
+
 
 
     return (
@@ -526,9 +576,18 @@ function HomePage() {
                 unmountOnExit
             >
                 <div className="welcome-message">
-                    Welcome {userName}!
+                    <lord-icon
+                        src="https://cdn.lordicon.com/betpsixk.json"
+                        trigger="in"
+                        delay="0"
+                        stroke="bold"
+                        state="in-reveal"
+                        style={{ width: '100px', height: '100px' }}> {/* Style as object */}
+                    </lord-icon>
+                    <div>Hello {userName}!</div> {/* Text in a new line */}
                 </div>
             </CSSTransition>
+
 
             {/* Welcome Message 2 and the Button */}
             {showWelcomeMessage2 && (
@@ -539,14 +598,30 @@ function HomePage() {
                     unmountOnExit
                 >
                     <div className="welcome-message">
-                        Click on Explore when ready!
+                        <lord-icon
+                            src="https://cdn.lordicon.com/tycjpwlg.json"
+                            trigger="in"
+                            delay="0"
+                            state="in-reveal"
+                            style={{ width: '100px', height: '100px' }}> {/* Style as object */}
+                        </lord-icon>
+                        <div>Click on Explore when ready.</div> {/* Text in a new line */}
                     </div>
                 </CSSTransition>
             )}
 
             {showExploreButton && (
                 <div className="wrapper">
-                    <button className="confetti-button" onClick={triggerConfetti}>Explore</button>
+                    <button className="confetti-button" onClick={triggerConfetti}>
+                        <lord-icon
+                            src="https://cdn.lordicon.com/pbbsmkso.json"
+                            trigger="hover"
+                            stroke="bold"
+                            state="hover-rotate-up-to-down"
+                            colors="primary:#ffffff,secondary:#ffffff"
+                            style={{ width: '100px', height: '100px' }}>
+                        </lord-icon>
+                    </button>
                 </div>
             )}
 
@@ -586,11 +661,11 @@ function HomePage() {
                                                                 </label>
                                                                 <h4 className="mb-4 pb-3">Log In</h4>
                                                                 <div className="form-group">
-                                                                    <input type="email" name="logemail2" className="form-style" placeholder="Your Email" id="logemail2" autoComplete="off" required/>
+                                                                    <input type="username" name="logemail2" className="form-style" placeholder="Your Email" id="logemail2" autoComplete="off" required />
                                                                     <i className="input-icon uil uil-at"></i>
                                                                 </div>
                                                                 <div className="form-group mt-2">
-                                                                    <input type="password" name="logpass2" className="form-style" placeholder="Your Password" id="logpass2" autoComplete="off" required/>
+                                                                    <input type="password" name="logpass2" className="form-style" placeholder="Your Password" id="logpass2" autoComplete="off" required />
                                                                     <i className="input-icon uil uil-lock-alt"></i>
                                                                 </div>
                                                                 <button type="submit" className="btn mt-4" onSubmit={handleUserLogin}>submit</button>
@@ -614,11 +689,11 @@ function HomePage() {
                                                                 </label>
                                                                 <h4 className="mb-4 pb-3">Sign Up</h4>
                                                                 <div className="form-group mt-1">
-                                                                    <input type="text" name="logname" className="form-style" placeholder="Your Full Name" id="logname" autoComplete="off" required/>
+                                                                    <input type="text" name="logname" className="form-style" placeholder="Your Full Name" id="logname" autoComplete="off" required />
                                                                     <i className="input-icon uil uil-user"></i>
                                                                 </div>
                                                                 <div className="form-group mt-2">
-                                                                    <input type="email" name="logemail" className="form-style" placeholder="Your Email" id="logemail" autoComplete="off" required/>
+                                                                    <input type="username" name="logemail" className="form-style" placeholder="Your Email" id="logemail" autoComplete="off" required />
                                                                     <i className="input-icon uil uil-at"></i>
                                                                 </div>
                                                                 <div className="form-group mt-3">

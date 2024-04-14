@@ -1,21 +1,46 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import axios from 'axios';
+import Cookies from 'js-cookie';
 import './Header.css'; // Import your CSS file
+import { useAuth } from '../AuthContext';
+
 
 function Header() {
     const location = useLocation();
     const [activeTab, setActiveTab] = useState('');
+    const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
+    const { setIsAuthenticated } = useAuth();
 
+    const handleLogout = () => {
+        // Retrieve CSRF token from cookies; assuming you are using js-cookie
+        const csrfToken = Cookies.get('csrftoken')
+    
+        axios.post(`${API_BASE_URL}/logout/`, {}, {
+            headers: {
+                'X-CSRFToken': csrfToken
+            }
+        })
+        .then(response => {
+            console.log('Logout Successful', response.data);
+            setIsAuthenticated(false);
+            localStorage.removeItem('userName');
+            localStorage.removeItem('userLoggedIn');
+            // Redirect to login page or home page
+        })
+        .catch(error => {
+            console.error('Logout Error', error);
+        });
+    };
+    
     useEffect(() => {
         setActiveTab(location.pathname);
     }, [location]);
 
     return (
+        <div className='header'>
         <nav>
-            <Link
-                className="item"
-                to="/learn"
-            >
+            <Link className="item" to="/learn">
                 <lord-icon
                     className="item-icon"
                     src="https://cdn.lordicon.com/mrikdaqa.json"
@@ -98,7 +123,7 @@ function Header() {
                             ></lord-icon>
                             Preferences
                         </Link>
-                        <Link className="logout" to="/logout">
+                        <Link className="logout" to="/" onClick={handleLogout}>
                             <lord-icon
                                 src="https://cdn.lordicon.com/lbjtvqiv.json"
                                 trigger="hover"
@@ -112,6 +137,7 @@ function Header() {
                 </div>
             </div>
         </nav>
+        </div>
     );
 }
 

@@ -1,11 +1,11 @@
-body {
+body, html {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  cursor: url('./logos/cursor.png'), default;
+  background-color:#0b1623 ;
 }
 
 code {
@@ -13,19 +13,31 @@ code {
     monospace;
 }
 
-a, button, input[type="button"], [role="button"] {
-  cursor: url('./logos/cursor-larger.png'), pointer; /* Replace 'expanded_cursor.png' with your expanded cursor image */
+body {
+  --sb-track-color: #0b1623;
+  --sb-thumb-color: #393c3a;
+  --sb-size: 8px;
 }
 
-/* Optionally, any other elements you've designated as clickable */
-.clickable {
-  cursor: url('./logos/cursor-larger.png'), pointer;
+body::-webkit-scrollbar {
+  width: var(--sb-size)
 }
 
-input[type="checkbox"] {
-  cursor: pointer !important;
+body::-webkit-scrollbar-track {
+  background: var(--sb-track-color);
+  border-radius: 8px;
 }
 
-input, textarea, select {
-  cursor: url('./logos/cursor-larger.png'), pointer;
+body::-webkit-scrollbar-thumb {
+  background: var(--sb-thumb-color);
+  border-radius: 8px;
+  
 }
+
+@supports not selector(::-webkit-scrollbar) {
+  body {
+    scrollbar-color: var(--sb-thumb-color)
+                     var(--sb-track-color);
+  }
+}
+

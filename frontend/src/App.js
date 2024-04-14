@@ -22,17 +22,31 @@ import NotFoundPage from "./pages/NotFoundPage/NotFoundPage";
 defineElement(lottie.loadAnimation);
 
 function App() {
-  const [setData] = useState('');
+
+  const [showTopBtn, setShowTopBtn] = useState(false);
 
   useEffect(() => {
-    axios.get(`${BASE_URL}/api/test`)
-      .then(response => {
-        setData(response.data);
-      })
-      .catch(error => {
-        console.error('There was an error!', error);
-      });
+    const handleScroll = () => {
+      if (window.pageYOffset > 300) {
+        setShowTopBtn(true);
+      } else {
+        setShowTopBtn(false);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
   }, []);
+
+  const scrollToTop = () => {
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
+  };
 
   return (
     <BrowserRouter>
@@ -46,6 +60,20 @@ function App() {
         <Route path="/preferences" element={<Preferences />} />
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
+      {showTopBtn && (
+        <button
+          className={`back-to-top ${showTopBtn ? 'visible' : ''}`}
+          onClick={scrollToTop}
+        >
+          <lord-icon
+              src="https://cdn.lordicon.com/ufkabwzu.json"
+              trigger="hover"
+              stroke="bold"
+              colors="primary:#ffffff"
+              style={{ width: '25px', height: '25px' }}>
+          </lord-icon>
+        </button>
+      )}
     </BrowserRouter>
   );
 }

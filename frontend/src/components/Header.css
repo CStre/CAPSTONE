@@ -1,34 +1,39 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@200;300;400;500;600;700;800;900&display=swap');
 
-* {
+.header {
+  max-width: 100%;
+}
+
+.header * {
   box-sizing: border-box;
 }
 
-:root {
+.header :root {
   --color-primary: #06c56d;
 }
 
-body {
+.header body {
   font-family: 'Poppins', sans-serif;
   background: #ffffff;
   color: #06c56d;
   font: bold;
   margin: 0;
   place-items: center;
-  cursor: url('../logos/cursor.png'), default;
-  overflow: visible;
+  width: 100%;
 }
 
-nav {
+.header nav {
   position: relative;
-  background: #111111;
+  background: #0b1623;
   font-weight: 600;
   display: flex;
-  width: 100vw;
-  cursor: url('../logos/cursor.png'), default;
+  width: 100%;
+  padding-left: 25%;
+  padding-right: 25%;
+  overflow: visible; /* Allow dropdown to overflow */
 }
 
-nav .item {
+.header nav .item {
     font-size: 1rem;
     display: flex;        /* Changed from inline-block to flex */
     flex-direction: column; /* Align children (icon and text) in a column */
@@ -41,7 +46,6 @@ nav .item {
     min-width: 25%;
     height: auto;        /* Changed from fixed height to auto */
     text-align: center;
-    cursor: url('../logos/cursor.png'), default;
     font-family: 'Poppins', sans-serif;
     color: #06c56d;
     font: bold;
@@ -52,22 +56,23 @@ nav .item {
 
   
 
-.dropdown {
-  overflow: hidden;
+  .header .dropdown {
+  overflow:hidden;
   list-style: none;
   position: absolute;
   padding: 0;
-  width: 60%;
+  width: 100%;
   top: 65px;
   z-index: 100;
 }
-.dropdown > div {
+
+.header .dropdown > div {
   transform: translate(0, -100%);
   transition: all 0.5s 0.1s;
   position: relative;
 }
 
-.dropdown a {
+.header .dropdown a {
     display: flex;         /* Use flex layout */
     align-items:start;   /* Align items vertically in the center */
     padding: 10px;         /* Adjust padding as needed */
@@ -80,21 +85,20 @@ nav .item {
   }
   
   /* Additional style for the lord-icon inside the dropdown links */
-.dropdown a lord-icon {
+.header.header .dropdown a lord-icon {
     margin-right: 10px;    /* Add some space between the icon and text */
   }
   
 
-.dropdown a:hover {
+.header .dropdown a:hover {
   background: #999999;
 }
 
-.logout {
+.header .logout {
     color: red;
 }
 
-
-.underline {
+.header .underline {
   height: 6px;
   background: var(--color-primary);
   position: absolute;
@@ -106,38 +110,26 @@ nav .item {
   opacity: 0; /* Hide the underline by default */
 }
 
-.active-underline {
+.header .active-underline {
   opacity: 1; /* Show the underline when active */
 }
 
-nav .item:hover > .dropdown > div {
+.header nav .item:hover > .dropdown > div {
   transform: translate(0);
 }
 
-nav .item:nth-child(1):hover ~ .underline {
+.header nav .item:nth-child(1):hover ~ .underline {
   transform: translate(0, 0);
 }
 
-nav .item:nth-child(2):hover ~ .underline {
+.header nav .item:nth-child(2):hover ~ .underline {
   transform: translate(100%, 0);
 }
 
-nav .item:nth-child(3):hover ~ .underline {
+.header nav .item:nth-child(3):hover ~ .underline {
   transform: translate(200%, 0);
 }
 
-nav .item:nth-child(4):hover ~ .underline {
+.header nav .item:nth-child(4):hover ~ .underline {
   transform: translate(300%, 0);
-}
-
-body, nav, nav .item, .dropdown a {
-  cursor: url('../logos/cursor.png'), default;
-}
-
-nav a:hover, 
-button:hover, 
-input[type="button"]:hover, 
-[role="button"]:hover, 
-nav .clickable:hover {
-  cursor: url('../logos/cursor-larger.png'), pointer;
 }

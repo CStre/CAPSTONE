@@ -1,32 +1,21 @@
-"""backend URL Configuration
-
-The `urlpatterns` list routes URLs to views. For more information please see:
-    https://docs.djangoproject.com/en/2.2/topics/http/urls/
-Examples:
-Function views
-    1. Add an import:  from my_app import views
-    2. Add a URL to urlpatterns:  path('', views.home, name='home')
-Class-based views
-    1. Add an import:  from other_app.views import Home
-    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
-Including another URLconf
-    1. Import the include() function: from django.urls import include, path
-    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
-"""
 from django.contrib import admin
 from django.urls import path
 from . import views
-from .views import test_db, CreateUserView, LoginView
+from .views import CreateUserView, LoginView, logout_view, UserDetailView
 
 
 from django.urls import path, re_path
 from django.views.generic import TemplateView
 
 urlpatterns = [
-    path('', views.index),  # Root URL
-    path('admin/', admin.site.urls),
-    path('test-db/', test_db, name='test_db'),
-    path('register/', CreateUserView.as_view(), name='register'),
-    path('login/', LoginView.as_view(), name='login'),
-    #re_path('.*', TemplateView.as_view(template_name='index.html')),
+    path('', views.index),  #Root URL for REACT
+    path('admin/', admin.site.urls), #For the Django Administrator Backend
+    path('register/', CreateUserView.as_view(), name='register'), #For API Register Request
+    path('login/', LoginView.as_view(), name='login'), #For API Login Request
+     path('user-info/', UserDetailView.as_view(), name='user-info'), #For API Username and Name Fetch
+    path('logout/', logout_view, name='logout'), #For API Logout Request
+
+    # Catch-all pattern for 404 page
+    # This needs to be the last pattern in the urlpatterns list
+    re_path(r'^.*$', TemplateView.as_view(template_name='index.html')),
 ]
