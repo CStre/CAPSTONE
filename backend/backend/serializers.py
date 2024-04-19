@@ -3,6 +3,7 @@ from django.contrib.auth import authenticate
 from .models import CustomUser
 
 
+
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
@@ -15,6 +16,18 @@ class UserSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError('This email is already in use.')
         
         return CustomUser.objects.create_user(**validated_data)
+
+    def update(self, instance, validated_data):
+        # Manually handle the password update to ensure it's hashed
+        password = validated_data.pop('password', None)
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        
+        if password:
+            instance.set_password(password)
+        
+        instance.save()
+        return instance
 
 class LoginSerializer(serializers.Serializer):
     username = serializers.EmailField()

@@ -1,0 +1,1049 @@
+.accountPage {
+    display: flex;
+    flex-direction: column;
+    height: 100vh; /* Use the full height of the viewport */
+    background: #0b1623;
+}
+
+.accountPage .section {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    width: 100%;              /* Take full width to center content */
+  }
+
+.accountPage .contentBox {
+    flex-grow: 1; /* Make the box expand to fill the container */
+    margin: 10%; /* Space from the edges */
+    border-radius: 20px; /* Rounded corners */
+    background-color: #f0f0f0; /* Background color for the box */
+    padding: 20px; /* Padding inside the box */
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1); /* Optional: adds shadow for depth */
+}
+
+.accountPage .icon-text-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .accountPage .section.full-height {
+    display: -webkit-flex;
+    display: flex;
+    -webkit-justify-content: center;
+    justify-content: center;
+    -webkit-align-items: center;
+    align-items: center;
+    height: 100vh;
+  }
+  .accountPage .form-section {
+    width: 100%;
+    text-align: center;
+  }
+
+
+
+
+  .accountPage label[for="reg-log-2"] lord-icon {
+    position: center;
+    width: 100%;
+    justify-content: center;
+    align-items: center;
+    top: 50%;
+    left: 50%;
+    z-index: 20;
+    display: block;
+  }
+
+  .accountPage .mb-0 .pb-3 {
+    position: center;
+    justify-content: center;
+  }
+
+  .accountPage .form-group.mt-1 {
+    position: relative;
+    display: block;
+    margin: 0;
+    padding-bottom: 0%;
+  }
+  
+  .accountPage .form-group {
+    display: flex;
+    align-items: center; /* Aligns items vertically centered */
+    justify-content: space-between; /* Distributes space between and around content items */
+    width: 100%; /* Ensures the group takes full width */
+    margin-top: 10px; /* Adds a little space on top for separation */
+  }
+
+  .accountPage.form-style, .form-group-bar {
+    width: 100%; /* Ensure the input and the bar take full width of their container */
+    margin-bottom: 0px; /* Spacing between elements */
+    padding-right: 43%;
+}
+
+  .accountPage .form-group-bar-label {
+    display: flex;
+    align-items: center; /* Aligns items vertically centered */
+    width: 50%; /* Ensures the group takes full width */
+    margin-top: 0%; /* Adds a little space on top for separation */
+  }
+  
+  .accountPage .form-group.mt-2 {
+    position: relative;
+    display: block;
+    margin: 0;
+    padding-bottom: .5%;
+  }
+  
+  .accountPage .form-group.mt-3 {
+    position: relative;
+    display: block;
+    margin: 0;
+    padding-top: 1.3%;
+  }
+
+  .accountPage .input-icon {
+    position: center;
+    top: 0;
+    height: 48px;
+    font-size: 24px;
+    line-height: 48px;
+    text-align: left;
+    color: #c4c3ca;
+    -webkit-transition: all 200ms linear;
+    transition: all 200ms linear;
+  }
+
+  .accountPage .bars {
+    margin: 0px 0;
+    flex: 1 1 auto;
+    display: flex;
+    align-items: center;
+    gap: 0px;
+    height: 4px;
+    border-radius: 1px;
+    background: #0b1623;
+  }
+  
+  .accountPage .bars div {
+    height: 5px;
+    border-radius: 3px;
+    transition: 0.4s;
+    width: 0%;
+  }
+  
+  .accountPage .bars.weak div {
+    background: #e24c71;
+    width: 33.33%;
+  }
+  
+  .accountPage .bars.medium div {
+    background: #f39845;
+    width: 66.66%;
+  }
+  
+  .accountPage .bars.strong div {
+    background: #57c558;
+    width: 100%;
+  }
+  
+  .accountPage .strength {
+    text-align: left;
+    height: 5px;
+    text-transform: capitalize;
+    color: #f9d9eb94;
+    font-weight: 400;
+    font-size: smaller;
+    padding-bottom: 0%;
+  }
+
+  .accountPage button.control {
+    cursor: pointer;
+    width: 100%;
+    height: 56px;
+    padding: 0 16px;
+    background: #0079ea;
+    text-align: center;
+    justify-content: center;
+  }
+  
+  .accountPage .btn mt-4 {
+    justify-content: center;
+  }
+
+  @import url('https://fonts.googleapis.com/css?family=Poppins:400,500,600,700,800,900');
+
+.accountPage {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 300;
+  font-size: 15px;
+  line-height: 1.7;
+  color: #c4c3ca;
+  background: #0b1623;
+  overflow-x: hidden;
+  overflow-y: hidden;
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+}
+
+.accountPage home-body,
+.accountPage home-html {
+  margin: 0px;
+  padding: 0px;
+  position: fixed;
+  background: rgb(0, 0, 0);
+  -webkit-transition: opacity 0.5s ease-in-out;
+  transition: opacity 0.5s ease-in-out;
+  overflow-x: hidden;
+}
+
+.accountPage home-#canvas {
+  z-index: 1;
+}
+
+.accountPage .loaderOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 1000;
+  display: -webkit-flex;
+  display: flex;
+  -webkit-justify-content: center;
+  justify-content: center;
+  -webkit-align-items: center;
+  align-items: center;
+}
+
+.accountPage .loaderOverlay.hidden {
+  display: none;
+}
+
+.accountPage .form-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(35, 35, 35, 0.5);
+  z-index: 10;
+  display: -webkit-flex;
+  display: flex;
+  -webkit-justify-content: center;
+  justify-content: center;
+  -webkit-align-items: center;
+  align-items: center;
+}
+
+.accountPage body {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 300;
+  font-size: 15px;
+  line-height: 1.7;
+  color: #c4c3ca;
+  background-color: #111111;
+  overflow-x: hidden;
+}
+
+.accountPage a {
+  cursor: pointer;
+  -webkit-transition: all 200ms linear;
+  transition: all 200ms linear;
+}
+
+.accountPage a:hover {
+  text-decoration: none;
+}
+
+.accountPage .link {
+  color: #c4c3ca;
+}
+
+.accountPage .link:hover {
+  color: #ffeba7;
+}
+
+.accountPage p {
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+
+
+.accountPage h4 {
+  font-weight: 700;
+  display: -webkit-flex;
+  display: flex;
+  -webkit-justify-content: center;
+  justify-content: center;
+  -webkit-align-items: center;
+  align-items: center;
+  margin: 0;
+  width: 100%;
+  font-size: x-large;
+  padding-bottom: 10px;
+  padding-top: 10px;
+  color: #06c56d;
+}
+
+.accountPage h5 {
+    font-weight: 700;
+    display: -webkit-flex;
+    display: flex;
+    -webkit-justify-content: center;
+    justify-content: center;
+    -webkit-align-items: center;
+    align-items: center;
+    margin: 0;
+    width: 100%;
+    font-size:1.4cap;
+    padding-bottom: 30px;
+    padding-top: 0px;
+    color:#c4c3ca;
+  }
+
+  .accountPage h7 {
+    font-weight: 700;
+    display: -webkit-flex;
+    display: flex;
+    -webkit-justify-content: center;
+    justify-content: center;
+    -webkit-align-items: center;
+    align-items: center;
+    margin: 0;
+    width: 100%;
+    font-size:1.2cap;
+    padding-bottom: 0px;
+    padding-top: 30px;
+    color:#c4c3ca;
+  }
+
+.accountPage .span-link {
+    cursor: pointer;
+    text-decoration: underline;
+    margin-left: 5px; /* Adds space to the left of 'here' */
+}
+
+.accountPage .modal-content strong {
+  color: #000; /* Or any darker color you prefer */
+  font-weight: bold; /* Optional if you want it bolder */
+}
+
+
+.accountPage h6 span {
+  padding: 20px 20px;
+  text-transform: uppercase;
+  font-weight: 700;
+  -webkit-justify-content: center;
+  justify-content: center;
+  position: center;
+  -webkit-align-items: center;
+  align-items: center;
+  color: #06c56d;
+}
+
+.accountPage h6 {
+  display: -webkit-flex;
+  display: flex;
+  -webkit-justify-content: center;
+  justify-content: center;
+  -webkit-align-items: center;
+  align-items: center;
+  margin: 0;
+  width: 100%;
+  font-size: large;
+  color: #06c56d;
+}
+
+
+
+.accountPage .section.full-height {
+  display: -webkit-flex;
+  display: flex;
+  -webkit-justify-content: center;
+  justify-content: center;
+  -webkit-align-items: center;
+  align-items: center;
+  height: 100vh;
+}
+
+/* Position and style the Lordicon icon */
+.accountPage label[for="reg-log-2"] lord-icon {
+  top: 50%;
+  left: 50%;
+  padding-top: 10%;
+  -webkit-transform: translate(-50%, -50%) rotate(0deg);
+  transform: translate(-50%, -50%) rotate(0deg);
+  transition: transform 0.5s ease;
+  z-index: 25;
+}
+
+/* Animate the icon when checkbox is checked */
+.accountPage .checkbox:checked+label lord-icon {
+  -webkit-transform: translate(28px, -50%) rotate(180deg);
+  transform: translate(28px, -50%) rotate(180deg);
+  cursor: pointer;
+}
+
+.accountPage [type="checkbox"]:checked,
+.accountPage [type="checkbox"]:not(:checked) {
+  position: absolute;
+  left: -9999px;
+  cursor: pointer;
+}
+
+.accountPage .checkbox:checked+label,
+.accountPage .checkbox:not(:checked)+label {
+  position: relative;
+  display: block;
+  text-align: center;
+  width: 60px;
+  height: 16px;
+  border-radius: 8px;
+  padding: 0;
+  margin: 10px auto;
+  cursor: pointer;
+  background-color: #c4c3ca;
+}
+
+.accountPage .checkbox:checked+label:before,
+.accountPage .checkbox:not(:checked)+label:before {
+  position: absolute;
+  display: block;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  color: #c4c3ca;
+  background-color: #c4c3ca;
+  font-family: 'unicons';
+  content: '\eb4f';
+  z-index: 20;
+  top: -10px;
+  left: -10px;
+  line-height: 36px;
+  text-align: center;
+  font-size: 24px;
+  transition: all 0.5s ease;
+}
+
+.accountPage .checkbox:checked+label:before {
+  -webkit-transform: translateX(44px) rotate(-270deg);
+  transform: translateX(44px) rotate(-270deg);
+}
+
+
+.accountPage .card-3d-wrap {
+  position: center;
+  width: 400px;
+  height: 400px;
+  -webkit-transform-style: preserve-3d;
+  transform-style: preserve-3d;
+  -webkit-perspective: 1500px; /* Added -webkit prefix */
+  perspective: 1500px;
+  margin: 50px auto;
+  overflow: visible;
+}
+
+.accountPage .card-3d-wrapper {
+  position: absolute;
+  top: 60px;
+  bottom: 60px;
+  width: 100%;
+  height: 100%;
+  -webkit-transform-style: preserve-3d;
+  transform-style: preserve-3d;
+  -webkit-perspective: 800px; /* Added -webkit prefix */
+  perspective: 800px;
+  margin: auto;
+  overflow: visible;
+  transition: all 600ms ease-out;
+}
+
+.container {
+    background-color: #000000; /* White background for the form */
+    width: 75%; /* Adjust the width as needed */
+    max-width: 600px; /* Maximum width */
+    min-width: 300px; /* Minimum width */
+    min-height: 500px;
+    padding: 80px;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow: hidden; /* Ensures no overflow */
+    justify-content: center;
+    padding-bottom: 4%;
+    padding-top: 4%;
+    padding-left: 4%;
+    padding-right: 4%;
+
+
+  }
+
+.accountPage .card-front {
+  width: 100%;
+  height: 100%;
+  background-color: #000000;
+  background-position: bottom center;
+  background-repeat: no-repeat;
+  background-size: 300%;
+  position: absolute;
+  border-radius: 15px;
+  left: 0;
+  top: 0;
+  -webkit-transform-style: preserve-3d;
+  transform-style: preserve-3d;
+  -webkit-backface-visibility: hidden;
+  -moz-backface-visibility: hidden;
+  -o-backface-visibility: hidden;
+  backface-visibility: hidden; 
+  justify-content: center;
+}
+
+.accountPage .card-back {
+  width: 100%;
+  height: 100%;
+  background-color: #000000;
+  background-position: bottom center;
+  background-repeat: no-repeat;
+  background-size: 300%;
+  position: absolute;
+  border-radius: 15px;
+  left: 0;
+  top: 0;
+  -webkit-transform-style: preserve-3d;
+  transform-style: preserve-3d;
+  -webkit-backface-visibility: hidden;
+  -moz-backface-visibility: hidden;
+  -o-backface-visibility: hidden;
+  backface-visibility: hidden; 
+  justify-content: center;
+}
+
+.accountPage .card-back {
+  transform: rotateY(180deg);
+}
+
+.accountPage .checkbox:checked~.card-3d-wrap .card-3d-wrapper {
+  transform: rotateY(180deg);
+}
+
+.accountPage .modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: #00000080;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.accountPage .modal-content {
+    position: relative; /* Required for absolute positioning of children */
+    padding: 20px;
+    border-radius: 8px;
+    background-color: #fff;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    width: auto; /* or specific width */
+    max-width: 800px; /* Adjust as necessary */
+    justify-content: center;
+}
+
+.accountPage .modal-close-icon {
+  justify-content: center;
+  padding-left: 94%;
+}
+
+.accountPage .modal-icon {
+  justify-content: center;
+  padding-left: 40%;
+}
+
+
+
+
+
+
+.accountPage .center-wrap {
+  position: absolute;
+  width: 100%;
+  padding: 0 35px;
+  top: 50%;
+  left: 0;
+  -webkit-transform: translate3d(0, -50%, 35px) perspective(100px); /* Added -webkit prefix */
+  transform: translate3d(0, -50%, 35px) perspective(100px);
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.accountPage label[for="reg-log-2"] lord-icon {
+  position: center;
+  width: 100%;
+  justify-content: center;
+  align-items: center;
+  top: 50%;
+  left: 50%;
+  z-index: 20;
+  display: block;
+}
+
+.accountPage .form-section {
+  width: 100%;
+  text-align: center;
+}
+
+.accountPage .form-group.mt-1 {
+  position: relative;
+  display: block;
+  margin: 0;
+  padding-bottom: 0%;
+}
+
+.accountPage .form-group {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.accountPage .form-group.mt-2 {
+  position: relative;
+  display: block;
+  margin: 0;
+  padding-bottom: .5%;
+}
+
+.accountPage .form-group.mt-3 {
+  position: relative;
+  display: block;
+  margin: 0;
+  padding-top: 1.3%;
+  padding-bottom: 1.3%;
+}
+
+.accountPage .form-style {
+  padding: 20px 20px;
+  padding-left: 30px;
+  height: 48px;
+  width: 100%;
+  font-weight: 500;
+  border-radius: 4px;
+  font-size: 14px;
+  line-height: 22px;
+  letter-spacing: 0.5px;
+  outline: none;
+  flex-grow: 1; /* Allows input to take up the available space */
+  margin-right: 10px; /* Adds spacing between input and button */
+  color: #c4c3ca;
+  background-color: #1f2029;
+  border: none;
+  -webkit-transition: all 200ms linear;
+  transition: all 200ms linear;
+  box-shadow: 0 4px 8px 0 rgba(21, 21, 21, .2);
+}
+
+.accountPage .form-style:focus,
+.accountPage .form-style:active {
+  border: none;
+  outline: none;
+  box-shadow: 0 4px 8px 0 rgba(21, 21, 21, .2);
+}
+
+.accountPage .input-icon {
+  position: center;
+  top: 0;
+  left: 18px;
+  height: 48px;
+  font-size: 24px;
+  line-height: 48px;
+  text-align: left;
+  color: #c4c3ca;
+  -webkit-transition: all 200ms linear;
+  transition: all 200ms linear;
+}
+
+.accountPage .container-2 {
+    background-color: #ffffff; /* White background for the form */
+    width: 75%; /* Adjust the width as needed */
+    max-width: 70%; /* Maximum width */
+    min-width: 300px; /* Minimum width */
+    min-height: 500px;
+    padding: 50px;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow: hidden; /* Ensures no overflow */
+    justify-content: center;
+    padding-bottom: 3%;
+    padding-top: 3%;
+    padding-left: 3%;
+    padding-right: 3%;
+}
+
+.accountPage .icon-text-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.accountPage .form-group input:-ms-input-placeholder {
+  color: #c4c3ca;
+  opacity: 0.7;
+  -webkit-transition: all 200ms linear;
+  transition: all 200ms linear;
+}
+
+.accountPage .form-group input::-moz-placeholder {
+  color: #c4c3ca;
+  opacity: 0.7;
+  -webkit-transition: all 200ms linear;
+  transition: all 200ms linear;
+}
+
+.accountPage .form-group input:-moz-placeholder {
+  color: #c4c3ca;
+  opacity: 0.7;
+  -webkit-transition: all 200ms linear;
+  transition: all 200ms linear;
+}
+
+.accountPage .form-group input::-webkit-input-placeholder {
+  color: #c4c3ca;
+  opacity: 0.7;
+  -webkit-transition: all 200ms linear;
+  transition: all 200ms linear;
+}
+
+.accountPage .form-group input:focus:-ms-input-placeholder {
+  opacity: 0;
+  -webkit-transition: all 200ms linear;
+  transition: all 200ms linear;
+}
+
+.accountPage .form-group input:focus::-moz-placeholder {
+  opacity: 0;
+  -webkit-transition: all 200ms linear;
+  transition: all 200ms linear;
+}
+
+.accountPage .form-group input:focus:-moz-placeholder {
+  opacity: 0;
+  -webkit-transition: all 200ms linear;
+  transition: all 200ms linear;
+}
+
+.accountPage .form-group input:focus::-webkit-input-placeholder {
+  opacity: 0;
+  -webkit-transition: all 200ms linear;
+  transition: all 200ms linear;
+}
+
+.accountPage .btn {
+  border-radius: 4px;
+  height: 44px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  -webkit-transition: all 200ms linear;
+  transition: all 200ms linear;
+  padding: 20px;
+  letter-spacing: 1px;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  -webkit-align-items: center;
+  -moz-align-items: center;
+  -ms-align-items: center;
+  align-items: center;
+  -webkit-justify-content: center;
+  -moz-justify-content: center;
+  -ms-justify-content: center;
+  justify-content: center;
+  -ms-flex-pack: center;
+  text-align: center;
+  border: none;
+  background-color: #c4c3ca;
+  color: #111111;
+  box-shadow: 0 8px 24px 0 rgba(255, 235, 167, .2);
+  margin-top: 0px;
+  position: center;
+  width:300px;
+}
+
+.accountPage .btn:active,
+.accountPage .btn:focus {
+  background-color: #111111;
+  color: #c4c3ca;
+  box-shadow: 0 8px 24px 0 rgba(16, 39, 112, .2);
+  align-items: center;
+}
+
+.accountPage .btn:hover {
+  background-color: #111111;
+  color: #c4c3ca;
+  box-shadow: 0 8px 24px 0 rgba(16, 39, 112, .2);
+  align-items: center;
+}
+
+.accountPage .logo {
+  position: absolute;
+  top: 30px;
+  right: 30px;
+  display: block;
+  z-index: 100;
+  transition: all 250ms linear;
+}
+
+.accountPage .logo img {
+  height: 26px;
+  width: auto;
+  display: block;
+}
+
+.accountPage .mb-0 .pb-3 {
+  position: center;
+  justify-content: center;
+}
+
+/* Add this to your HomePage.css */
+.accountPage .fade-enter {
+  opacity: 0;
+  z-index: 1;
+}
+
+.accountPage .fade-enter.fade-enter-active {
+  opacity: 1;
+  transition: opacity 500ms ease-in;
+}
+
+.accountPage .fade-exit {
+  opacity: 1;
+}
+
+.accountPage .fade-exit.fade-exit-active {
+  opacity: 0;
+  transition: opacity 500ms ease-in;
+}
+
+.accountPage .welcome-message {
+  position: fixed;
+  top: 40%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #06c56d;
+  font-size: 2em; /* Default size */
+  font-weight: 900;
+  text-align: center; /* Align text to the center */
+  z-index: 2;
+  display: flex;
+  flex-direction: column; /* Stack items vertically */
+  align-items: center; /* Center items horizontally */
+  justify-content: center; /* Center items vertically */
+}
+
+/* Smaller screens: adjust font size */
+@media (max-width: 600px) {
+  .accountPage .welcome-message {
+      font-size: 1.5em;
+  }
+}
+
+/* Larger screens: adjust font size */
+@media (min-width: 601px) {
+  .accountPage .welcome-message {
+      font-size: 3em;
+  }
+}
+
+/* Transition for the welcome message */
+.accountPage .message-enter {
+  opacity: 0;
+}
+
+.accountPage .message-enter-active {
+  opacity: 1;
+  transition: opacity 500ms ease-in;
+}
+
+.accountPage .message-exit {
+  opacity: 1;
+}
+
+.accountPage .message-exit-active {
+  opacity: 0;
+  transition: opacity 500ms ease-in;
+}
+
+.accountPage .form-enter {
+  opacity: 0;
+  transform: scale(0.9);
+}
+
+.accountPage .form-enter-active {
+  opacity: 1;
+  transform: scale(1);
+  transition: opacity 300ms, transform 300ms;
+}
+
+.accountPage .form-exit {
+  opacity: 1;
+}
+
+.accountPage .form-exit-active {
+  opacity: 0;
+  transform: scale(0.9);
+  transition: opacity 300ms, transform 300ms;
+}
+
+.accountPage .wrapper {
+  position: fixed;
+  /* Use fixed position */
+  top: 50%;
+  /* Center vertically */
+  left: 50%;
+  /* Center horizontally */
+  transform: translate(-50%, -50%);
+  /* Adjust to exactly center the div */
+  z-index: 80;
+  /* Make sure it's above other elements */
+  text-align: center;
+  /* Align button text to center */
+}
+
+.accountPage .confetti-button {
+  font-size: 1.5rem;
+  /* Increase the font size */
+  color: #ffffff;
+  padding: 1em 2em;
+  /* Increase padding for a larger button */
+  border: none;
+  border-radius: 100px;
+  /* Adjust border-radius as needed */
+  background: linear-gradient(45deg, #b300ff, #00ffb3);
+  /* Gradient background */
+  cursor: pointer;
+  -webkit-transition: -webkit-transform 500ms ease-in; /* Safari */
+  transition: transform 500ms ease-in;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  /* Optional: Add shadow for better visibility */
+}
+
+.accountPage .confetti-button:hover {
+  transform: scale(1.15);
+  /* Slight increase on hover for a nice effect */
+}
+
+.accountPage .wrapper canvas {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate (-50%, -50%);
+  pointer-events: none;
+  z-index: 1000;
+}
+
+.accountPage * {
+  box-sizing: border-box;
+}
+
+.accountPage .page {
+  display: grid;
+  place-items: center;
+  margin: 0;
+  background: #000000;
+  font-family: "Euclid Circular A", "Poppins";
+  color: #fdfdfd;
+}
+
+.accountPage .login-form input.control::placeholder {
+  color: #9f9d9e;
+  opacity: 0.7; /* Safari */
+}
+
+.accountPage .control {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
+    Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif; /* Safari */
+  outline: none;
+  width: 100%;
+  height: 56px;
+  padding: 0 16px;
+  color: inherit;
+  background: #181919;
+  border: 0;
+  border-radius: 6px;
+  margin: 8px 0;
+  font-family: inherit;
+  font-size: 18px;
+  transition: 0.4s;
+}
+
+.accountPage button.control {
+  cursor: pointer;
+  width: 100%;
+  height: 56px;
+  padding: 0 16px;
+  background: #0079ea;
+  text-align: center;
+  justify-content: center;
+}
+
+.accountPage .btn mt-4 {
+  justify-content: center;
+}
+
+.accountPage .bars {
+  margin: 0px 0;
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  gap: 0px;
+  height: 4px;
+  border-radius: 1px;
+  background: #181919;
+}
+
+.accountPage .bars div {
+  height: 5px;
+  border-radius: 3px;
+  transition: 0.4s;
+  width: 0%;
+}
+
+.accountPage .bars.weak div {
+  background: #e24c71;
+  width: 33.33%;
+}
+
+.accountPage .bars.medium div {
+  background: #f39845;
+  width: 66.66%;
+}
+
+.accountPage .bars.strong div {
+  background: #57c558;
+  width: 100%;
+}
+
+.accountPage .strength {
+  text-align: left;
+  height: 5px;
+  text-transform: capitalize;
+  color: #f9d9eb94;
+  font-weight: 400;
+  font-size: smaller;
+  padding-bottom: 0%;
+}

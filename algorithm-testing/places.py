@@ -139,7 +139,7 @@ def read_photo_history(location_name):
     except FileNotFoundError:
         return []
 
-def run_process(times=9):
+def run_process(times=100):
     api_key = os.getenv('KEY')
     probabilities = [1] * len(locations)
     for _ in range(times):
@@ -152,6 +152,3 @@ def run_process(times=9):
 
 if __name__ == '__main__':
     run_process()
-
-
-

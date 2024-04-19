@@ -92,7 +92,7 @@ function Header() {
                 Account
                 <div className="dropdown">
                     <div>
-                        <Link to="/dashboard">
+                        <Link to="/account">
                             <lord-icon
                                 src="https://cdn.lordicon.com/eaexqthn.json"
                                 trigger="hover"

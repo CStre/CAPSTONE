@@ -12,6 +12,7 @@ filelock==3.13.3
 googlemaps==4.10.0
 idna==3.6
 mongoengine==0.28.2
+numpy==1.26.4
 pipdeptree==2.16.2
 platformdirs==4.2.0
 pymongo==4.6.3

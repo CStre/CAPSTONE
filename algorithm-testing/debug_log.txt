@@ -62,3 +62,77 @@
 2024-04-14 01:35:59,473 - Total failures for Rio de Janeiro, Brazil: 0
 2024-04-14 01:35:59,473 - Total failures for Sydney, Australia: 0
 2024-04-14 01:35:59,473 - Total failures for Auckland, New Zealand: 0
+
+2024-04-14 16:24:17,867 - Total failures for Helsinki, Finland: 1
+2024-04-14 16:24:17,868 - Total failures for Oslo, Norway: 0
+2024-04-14 16:24:17,868 - Total failures for Rome, Italy: 1
+2024-04-14 16:24:17,868 - Total failures for Reykjavik, Iceland: 1
+2024-04-14 16:24:17,868 - Total failures for New York City, US: 1
+2024-04-14 16:24:17,868 - Total failures for Vancouver, Canada: 1
+2024-04-14 16:24:17,868 - Total failures for Cairo, Egypt: 0
+2024-04-14 16:24:17,868 - Total failures for Hong Kong, China: 2
+2024-04-14 16:24:17,868 - Total failures for Singapore: 0
+2024-04-14 16:24:17,868 - Total failures for Rio de Janeiro, Brazil: 0
+2024-04-14 16:24:17,868 - Total failures for Sydney, Australia: 2
+2024-04-14 16:24:17,869 - Total failures for Auckland, New Zealand: 0
+
+2024-04-14 16:26:45,421 - Total failures for Helsinki, Finland: 0
+2024-04-14 16:26:45,421 - Total failures for Oslo, Norway: 0
+2024-04-14 16:26:45,421 - Total failures for Rome, Italy: 0
+2024-04-14 16:26:45,421 - Total failures for Reykjavik, Iceland: 0
+2024-04-14 16:26:45,421 - Total failures for New York City, US: 0
+2024-04-14 16:26:45,421 - Total failures for Vancouver, Canada: 0
+2024-04-14 16:26:45,421 - Total failures for Cairo, Egypt: 0
+2024-04-14 16:26:45,421 - Total failures for Hong Kong, China: 0
+2024-04-14 16:26:45,421 - Total failures for Singapore: 0
+2024-04-14 16:26:45,421 - Total failures for Rio de Janeiro, Brazil: 0
+2024-04-14 16:26:45,421 - Total failures for Sydney, Australia: 0
+2024-04-14 16:26:45,421 - Total failures for Auckland, New Zealand: 0
+2024-04-14 17:30:59,544 - Total failures for Helsinki, Finland: 0
+2024-04-14 17:30:59,544 - Total failures for Oslo, Norway: 0
+2024-04-14 17:30:59,544 - Total failures for Rome, Italy: 0
+2024-04-14 17:30:59,544 - Total failures for Reykjavik, Iceland: 0
+2024-04-14 17:30:59,544 - Total failures for New York City, US: 0
+2024-04-14 17:30:59,544 - Total failures for Vancouver, Canada: 0
+2024-04-14 17:30:59,544 - Total failures for Cairo, Egypt: 0
+2024-04-14 17:30:59,544 - Total failures for Hong Kong, China: 0
+2024-04-14 17:30:59,544 - Total failures for Singapore: 0
+2024-04-14 17:30:59,544 - Total failures for Rio de Janeiro, Brazil: 0
+2024-04-14 17:30:59,544 - Total failures for Sydney, Australia: 0
+2024-04-14 17:30:59,544 - Total failures for Auckland, New Zealand: 0
+2024-04-15 16:26:13,783 - Total failures for Helsinki, Finland: 0
+2024-04-15 16:26:13,783 - Total failures for Oslo, Norway: 0
+2024-04-15 16:26:13,783 - Total failures for Rome, Italy: 0
+2024-04-15 16:26:13,783 - Total failures for Reykjavik, Iceland: 0
+2024-04-15 16:26:13,783 - Total failures for New York City, US: 0
+2024-04-15 16:26:13,783 - Total failures for Vancouver, Canada: 0
+2024-04-15 16:26:13,784 - Total failures for Cairo, Egypt: 0
+2024-04-15 16:26:13,784 - Total failures for Hong Kong, China: 0
+2024-04-15 16:26:13,784 - Total failures for Singapore: 0
+2024-04-15 16:26:13,784 - Total failures for Rio de Janeiro, Brazil: 0
+2024-04-15 16:26:13,784 - Total failures for Sydney, Australia: 0
+2024-04-15 16:26:13,784 - Total failures for Auckland, New Zealand: 0
+2024-04-15 16:33:23,619 - Total failures for Helsinki, Finland: 0
+2024-04-15 16:33:23,619 - Total failures for Oslo, Norway: 0
+2024-04-15 16:33:23,619 - Total failures for Rome, Italy: 0
+2024-04-15 16:33:23,619 - Total failures for Reykjavik, Iceland: 0
+2024-04-15 16:33:23,619 - Total failures for New York City, US: 0
+2024-04-15 16:33:23,619 - Total failures for Vancouver, Canada: 0
+2024-04-15 16:33:23,620 - Total failures for Cairo, Egypt: 0
+2024-04-15 16:33:23,620 - Total failures for Hong Kong, China: 0
+2024-04-15 16:33:23,620 - Total failures for Singapore: 0
+2024-04-15 16:33:23,620 - Total failures for Rio de Janeiro, Brazil: 0
+2024-04-15 16:33:23,620 - Total failures for Sydney, Australia: 0
+2024-04-15 16:33:23,620 - Total failures for Auckland, New Zealand: 0
+2024-04-15 16:57:56,666 - Total failures for Helsinki, Finland: 0
+2024-04-15 16:57:56,666 - Total failures for Oslo, Norway: 0
+2024-04-15 16:57:56,666 - Total failures for Rome, Italy: 0
+2024-04-15 16:57:56,666 - Total failures for Reykjavik, Iceland: 0
+2024-04-15 16:57:56,667 - Total failures for New York City, US: 0
+2024-04-15 16:57:56,667 - Total failures for Vancouver, Canada: 0
+2024-04-15 16:57:56,667 - Total failures for Cairo, Egypt: 0
+2024-04-15 16:57:56,667 - Total failures for Hong Kong, China: 0
+2024-04-15 16:57:56,667 - Total failures for Singapore: 0
+2024-04-15 16:57:56,667 - Total failures for Rio de Janeiro, Brazil: 0
+2024-04-15 16:57:56,667 - Total failures for Sydney, Australia: 0
+2024-04-15 16:57:56,667 - Total failures for Auckland, New Zealand: 0
