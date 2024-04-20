@@ -1,7 +1,7 @@
 @import url('https://fonts.googleapis.com/css?family=Poppins:400,500,600,700,800,900');
 
 .homePage {
-  font-family: 'Poppins', sans-serif;
+  font-family: 'Poppins';
   font-weight: 300;
   font-size: 15px;
   line-height: 1.7;
@@ -676,7 +676,7 @@
   place-items: center;
   margin: 0;
   background: #000000;
-  font-family: "Euclid Circular A", "Poppins";
+  font-family: 'Poppins';
   color: #fdfdfd;
 }
 

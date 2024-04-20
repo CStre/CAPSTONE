@@ -4,14 +4,18 @@ import './AccountPage.css';
 import Cookies from 'js-cookie';
 import { useAuth } from '../../AuthContext';
 import Header from '../../components/Header';
+import { useNavigate } from 'react-router-dom';
+import Loader from '../../components/Loader';
 
 function AccountPage() {
     const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
     const [passwordStrength, setPasswordStrength] = useState("");
     const { setIsAuthenticated } = useAuth();
+    const navigate = useNavigate();
 
 
     const [showModal, setShowModal] = useState(false);
+    const [loading, setLoading] = useState(true); 
 
     const handleShowModal = () => setShowModal(true);
     const handleCloseModal = () => setShowModal(false);
@@ -74,13 +78,16 @@ function AccountPage() {
 
     useEffect(() => {
         axios.get(`${API_BASE_URL}/user-info/`, {
-            headers: { 'Authorization': `Bearer ${getToken()}` }
+            headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
         }).then(response => {
+            console.log("User:", response.data)
             setUser(response.data);
+            setLoading(false);
         }).catch(error => {
             console.error('Failed to fetch user info:', error);
+            setLoading(false); 
         });
-    }, [API_BASE_URL, getToken]);
+    }, [API_BASE_URL]);
 
     const handleLogout = async () => {
         const csrfToken = Cookies.get('csrftoken');
@@ -147,99 +154,131 @@ function AccountPage() {
         }
     };
 
+    const handleSelectPreferences = () => {
+        navigate('/');
+    };
 
+    if (loading) {
+        return <Loader />;
+    }
 
-    return (
-        <div className="accountPage">
-            <Header />
-            <div className="section">
-                <div className="container">
-                    <div className="section.text-center">
-                        <label htmlFor="reg-log-2">
-                            <lord-icon className="mb-4 pb-3"
-                                src="https://cdn.lordicon.com/pwpcutcz.json"
-                                trigger="hover"
-                                stroke="bold"
-                                style={{ width: '100px', height: '100px' }}
-                                colors="primary:#c4c3ca,secondary:#00e6ff">
-                            </lord-icon>
-                            <h4 className="mb-4 pb-3">Account Details</h4>
-                            <h5 className="mb-4 pb-3">You will have to log back in after changing for security</h5>
-                        </label>
-                        <div className="userInfo">
-                            <div className="form-group">
-                                <input
-                                    type="text"
-                                    className="form-style"
-                                    placeholder="Change name"
-                                    name="name"
-                                    id="name"
-                                    defaultValue=""
-                                />
-                                <button className="btn" onClick={() => handleUpdate('name', document.getElementById('name').value)}>Update Name</button>
-                            </div>
-                            <div className="form-group">
-                                <input
-                                    type="email"
-                                    className="form-style"
-                                    placeholder="Change email"
-                                    name="username"
-                                    id="username"
-                                    defaultValue=""
-                                />
-                                <button className="btn" onClick={() => handleUpdate('username', document.getElementById('username').value)}>Update Email</button>
-                            </div>
-                            <div className="form-group">
-                                <input
-                                    type="password"
-                                    className="form-style"
-                                    placeholder="Change password"
-                                    name="password"
-                                    id="password"
-                                    defaultValue=""
-                                    onChange={handlePasswordChange}
-                                />
-                                <button className="btn" onClick={() => handleUpdate('password', document.getElementById('password').value)}>Update Password</button>
-                            </div>
-                            <div className="form-group-bar">
-                                <div className={`bars ${passwordStrength}`}>
-                                    <div></div>
-                                </div>
-                            </div>
-                            <div className="form-group-bar">
-                                <div className="strength">
-                                    {passwordStrength && `${passwordStrength} password`}
-                                </div>
-                                <i className="input-icon uil uil-lock-alt"></i>
-                            </div>
+    if (user.name === '') {
+        return (
+            <div>
+                <Header />
+                <div className="dashboard">
+                    <div className="no-preferences">
+                        <lord-icon
+                            src="https://cdn.lordicon.com/usownftb.json"
+                            trigger="in"
+                            stroke="bold"
+                            state="in-reveal"
+                            colors="primary:#ffffff,secondary:#c71f16"
+                            style={{ width: '150px', height: '150px' }}>
+                        </lord-icon>
+                        <div className='no-pref-mess'>
+                            <p>You must login before viewing the accounts page.</p>
                         </div>
+                        <button onClick={handleSelectPreferences} className="route-button">Login</button>
                     </div>
-                    <div className="form-group">
-                        <button className="btn btn-danger" onClick={handleDeleteAccount}>Delete Account</button>
-                    </div>
-                    <h7 className="mb-4 pb-3">
-                        You can learn more about the security features<span onClick={handleShowModal} className="span-link">here</span>.
-                    </h7>
-                    {showModal && (
-                        <Modal show={showModal} onClose={handleCloseModal}>
-                            <div className="modal-icon">
-                                <lord-icon
-                                    src="https://cdn.lordicon.com/eaexqthn.json"
-                                    trigger="hover"
-                                    colors="primary:#545454,secondary:#e83a30"
-                                    style={{ width: '150px', height: '150px' }}>
-                                </lord-icon>
-                            </div>
-                            <p><strong>Password Encryption:</strong> We use SHA-256, a secure hash algorithm, for password hashing. SHA-256 is part of the SHA-2 family of cryptographic hash functions designed by the National Security Agency (NSA). This method produces a unique 256-bit (32-byte) signature for each password. When you create a password, it is immediately hashed using this algorithm before it is stored in our database. This means that your actual password is never stored or viewed by anyone, enhancing the security of your personal information.</p>
-                            <p><strong>How This Protects You:</strong> Hashing passwords with SHA-256 ensures that even in the unlikely event of a data breach, the actual passwords remain encrypted and inaccessible. Attackers cannot reverse-engineer these hashes due to the cryptographic strength of SHA-256, providing an additional layer of security for your data.</p>
-                            <p><strong>Continual Security Updates:</strong> We continuously monitor and update our security protocols to ensure the integrity and confidentiality of your data. We adhere to industry best practices and guidelines to prevent unauthorized access and potential security threats.</p>
-                        </Modal>
-
-                    )}
                 </div>
             </div>
-        </div>
-    );
-}
+        );
+    }
+
+
+        return (
+            <div className="accountPage">
+                <Header />
+                <div className="section">
+                    <div className="container">
+                        <div className="section.text-center">
+                            <label htmlFor="reg-log-2">
+                                <lord-icon className="mb-4 pb-3"
+                                    src="https://cdn.lordicon.com/pwpcutcz.json"
+                                    trigger="hover"
+                                    stroke="bold"
+                                    style={{ width: '100px', height: '100px' }}
+                                    colors="primary:#c4c3ca,secondary:#00e6ff">
+                                </lord-icon>
+                                <h4 className="mb-4 pb-3">Account Details</h4>
+                                <h5 className="mb-4 pb-3">You will have to log back in after changing for security</h5>
+                            </label>
+                            <div className="userInfo">
+                                <div className="form-group">
+                                    <input
+                                        type="text"
+                                        className="form-style"
+                                        placeholder="Change name"
+                                        name="name"
+                                        id="name"
+                                        defaultValue=""
+                                    />
+                                    <button className="btn" onClick={() => handleUpdate('name', document.getElementById('name').value)}>Update Name</button>
+                                </div>
+                                <div className="form-group">
+                                    <input
+                                        type="email"
+                                        className="form-style"
+                                        placeholder="Change email"
+                                        name="username"
+                                        id="username"
+                                        defaultValue=""
+                                    />
+                                    <button className="btn" onClick={() => handleUpdate('username', document.getElementById('username').value)}>Update Email</button>
+                                </div>
+                                <div className="form-group">
+                                    <input
+                                        type="password"
+                                        className="form-style"
+                                        placeholder="Change password"
+                                        name="password"
+                                        id="password"
+                                        defaultValue=""
+                                        onChange={handlePasswordChange}
+                                    />
+                                    <button className="btn" onClick={() => handleUpdate('password', document.getElementById('password').value)}>Update Password</button>
+                                </div>
+                                <div className="form-group-bar">
+                                    <div className={`bars ${passwordStrength}`}>
+                                        <div></div>
+                                    </div>
+                                </div>
+                                <div className="form-group-bar">
+                                    <div className="strength">
+                                        {passwordStrength && `${passwordStrength} password`}
+                                    </div>
+                                    <i className="input-icon uil uil-lock-alt"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="form-group">
+                            <button className="btn btn-danger" onClick={handleDeleteAccount}>Delete Account</button>
+                        </div>
+                        <h7 className="mb-4 pb-3">
+                            You can learn more about the security features<span onClick={handleShowModal} className="span-link">here</span>.
+                        </h7>
+                        {showModal && (
+                            <Modal show={showModal} onClose={handleCloseModal}>
+                                <div className="modal-icon">
+                                    <lord-icon
+                                        src="https://cdn.lordicon.com/eaexqthn.json"
+                                        trigger="hover"
+                                        colors="primary:#545454,secondary:#e83a30"
+                                        style={{ width: '150px', height: '150px' }}>
+                                    </lord-icon>
+                                </div>
+                                <p><strong>Password Encryption:</strong> We use SHA-256, a secure hash algorithm, for password hashing. SHA-256 is part of the SHA-2 family of cryptographic hash functions designed by the National Security Agency (NSA). This method produces a unique 256-bit (32-byte) signature for each password. When you create a password, it is immediately hashed using this algorithm before it is stored in our database. This means that your actual password is never stored or viewed by anyone, enhancing the security of your personal information.</p>
+                                <p><strong>How This Protects You:</strong> Hashing passwords with SHA-256 ensures that even in the unlikely event of a data breach, the actual passwords remain encrypted and inaccessible. Attackers cannot reverse-engineer these hashes due to the cryptographic strength of SHA-256, providing an additional layer of security for your data.</p>
+                                <p><strong>Continual Security Updates:</strong> We continuously monitor and update our security protocols to ensure the integrity and confidentiality of your data. We adhere to industry best practices and guidelines to prevent unauthorized access and potential security threats.</p>
+                            </Modal>
+
+                        )}
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
 
 export default AccountPage;

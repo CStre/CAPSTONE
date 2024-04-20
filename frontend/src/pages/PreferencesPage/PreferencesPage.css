@@ -3,7 +3,8 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@200;300;400;500;600;700;800;900&display=swap');
 
 
-.preferencesPage html,body {
+.preferencesPage html,
+body {
     overflow-x: hidden;
     /* Hide horizontal overflow */
     max-width: 100%;
@@ -25,6 +26,46 @@
     justify-content: center;
     align-items: center;
     overflow-x: hidden;
+    flex-direction: column;
+}
+
+/* Default style for the selection button */
+.preferencesPage .container .custom-card .custom-content a {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 10px 20px;
+    background-color: #808080; 
+    color: white; 
+    text-decoration: none;
+    font-weight: bold; 
+    border-radius: 5px; 
+    transition: background-color 0.3s, transform 0.3s; 
+    cursor: pointer; 
+}
+
+/* Hover effect for all states */
+.preferencesPage .container .custom-card .custom-content a:hover {
+    background-color: #666; 
+}
+
+/* Active states for like and dislike - circle appearance */
+.preferencesPage .container .custom-card .custom-content a.like,
+.preferencesPage .container .custom-card .custom-content a.dislike {
+    width: 50px; 
+    height: 50px; 
+    border-radius: 25px; 
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    padding: 0;
+    padding-top: 1.6%;
+}
+
+.preferencesPage .container .custom-card .custom-content a.like lord-icon,
+.preferencesPage .container .custom-card .custom-content a.dislike lord-icon {
+    width: 100%; /* Takes full width of the container */
+    height: 100%; /* Takes full height of the container */
 }
 
 .preferencesPage * {
@@ -35,18 +76,25 @@
 
 }
 
+.preferencesPage .container .custom-card .custom-content a.like:hover,
+.preferencesPage .container .custom-card .custom-content a.dislike:hover {
+    transform: scale(1.2); /* Slightly increase size on hover */
+    opacity: 0.9; /* Slightly reduce opacity on hover */
+}
+
 
 .preferencesPage .row {
     display: flex;
     /* Enables flexbox */
     justify-content: center;
     /* Centers the cards horizontally */
-    align-items: center;
+    align-items: flex-start;
     /* Aligns the cards vertically in the middle */
     flex-wrap: wrap;
     /* Allows cards to wrap to the next line on smaller screens */
     gap: 20px;
     /* Space between cards */
+    margin: 0 auto;
 }
 
 
@@ -69,6 +117,7 @@
     padding: 100px 50px;
     width: 100%;
     min-width: 100%;
+    flex-direction: column;
     background: #0b1623;
 }
 
@@ -172,14 +221,15 @@
 }
 
 .preferencesPage .error-message {
-    color: red;
+    color: rgb(194, 194, 194);
     /* Error message in red */
-    font-size: 1rem;
+    font-size: 15pt;
     /* Appropriate font size */
     text-align: center;
     /* Center the message */
     margin-top: -5%;
     /* Space above the error message */
+    font-family: 'Poppins';
 }
 
 
@@ -288,7 +338,7 @@
     }
 }
 
-.preferencesPage .preferences-map img {
+.preferences-map img {
     width: 100%;
     /* Makes the image fill the width of the container */
     height: auto;
@@ -297,11 +347,20 @@
     /* Removes any extra space below the image */
 }
 
-.preferencesPage .message {
+.preferences-message {
     text-align: center;
-    font-size: 80pt;
-    color: aqua;
-    font-family: 'Dancing Script', cursive;
+    font-size: 50pt;
+    color: rgb(194, 194, 194);
+    font-family: 'Poppins';
     /* Adds Dancing Script as the primary font, with cursive as a fallback */
     margin-top: 20px;
+}
+
+.preferences-message .note {
+    text-align: center;
+    font-size: 15pt;
+    color: rgb(194, 194, 194);
+    font-family: 'Poppins';
+    /* Adds Dancing Script as the primary font, with cursive as a fallback */
+    margin-top: 0px;
 }

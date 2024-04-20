@@ -13,7 +13,7 @@
 }
 
 .header body {
-  font-family: 'Poppins', sans-serif;
+  font-family: 'Poppins';
   background: #ffffff;
   color: #06c56d;
   font: bold;
@@ -46,7 +46,7 @@
     min-width: 25%;
     height: auto;        /* Changed from fixed height to auto */
     text-align: center;
-    font-family: 'Poppins', sans-serif;
+    font-family: 'Poppins';
     color: #06c56d;
     font: bold;
     margin: 0;

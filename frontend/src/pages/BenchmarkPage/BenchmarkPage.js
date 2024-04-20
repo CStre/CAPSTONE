@@ -10,12 +10,16 @@ import image2 from '../../images/2.png';
 import axios from 'axios';
 import Cookies from 'js-cookie';
 import { useAuth } from '../../AuthContext';
+import { useNavigate } from 'react-router-dom';
+import Loader from '../../components/Loader';
 
 function BenchmarkPage() {
     const [boxImages, setBoxImages] = useState([]);
     const [userPreferences, setUserPreferences] = useState([]);
-
-    const [loading, setLoading] = useState(false);
+    const navigate = useNavigate();
+    const [fetchCount, setFetchCount] = useState(0);
+    const [loading, setLoading] = useState(true);
+    const [user, setUser] = useState({ name: '' });
 
     const totalImages = 30; // Assuming there are 30 images
     const imagesPerBatch = 8; // Number of images to display per batch
@@ -30,6 +34,8 @@ function BenchmarkPage() {
     const initBoxStates = (numImages) => Array(numImages).fill(2); // 2 signifies unclicked
     const [currentMessage, setCurrentMessage] = useState(0);
     const [showMessage, setShowMessage] = useState(false);
+
+    const [selections, setSelections] = useState(0);
 
     const [showFirstArrow, setShowFirstArrow] = useState(false);
     const [showSecondArrow, setShowSecondArrow] = useState(false);
@@ -64,15 +70,21 @@ function BenchmarkPage() {
             if (response.data.preferences) {
                 const preferencesArray = response.data.preferences.split(',').map(item => parseInt(item, 10)).filter(item => !isNaN(item));
                 setUserPreferences(preferencesArray);
+                setUser({ name: response.data.name });
                 console.log('User preferences fetched:', preferencesArray);
-                fetchImages(preferencesArray);
+                if (fetchCount < 4) {
+                    fetchImages(preferencesArray);
+                }
+                setLoading(false);
             } else {
                 console.error('No preferences found.');
                 setErrorMessage('Navigate to the user preferences page before continuing.');
+                setLoading(false);
             }
         }).catch(error => {
             console.error('Failed to fetch user details:', error);
             setErrorMessage('Failed to fetch preferences. Please refresh the page.');
+            setLoading(false);
         });
     }, [API_BASE_URL]);
 
@@ -80,36 +92,43 @@ function BenchmarkPage() {
 
 
     const fetchImages = useCallback(async (preferences) => {
-        console.log('Fetching images with:', preferences);
-        const csrfToken = Cookies.get('csrftoken');
-        try {
-            const response = await axios.post(`${API_BASE_URL}/api/get-images/`, { preferences }, {
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`,
-                    'X-CSRFToken': csrfToken
-                }
-            });
-            console.log('API response for images:', response.data);
-            if (response.data && response.data.images) {
-                const validImages = response.data.images.filter(image => typeof image === 'string' && image.includes(':'));
-                const parsedImages = validImages.map(image => {
-                    const [index, ...restOfUrl] = image.split(':');
-                    const imageUrl = restOfUrl.join(':');
-                    return { index: parseInt(index, 10), imageUrl };
-                });
-                setBoxImages(parsedImages);
-                setBoxStates(Array(parsedImages.length).fill(2)); // Reset states to 2 whenever new images are fetched
-                setLoading(false);
-            } else {
-                console.log('No images or invalid data format received:', response.data);
-                setLoading(false);
-            }
-        } catch (error) {
-            console.error('Failed to fetch images:', error);
-            setErrorMessage('Failed to load new images. Please try again.');
-            setLoading(false);
+        if (fetchCount >= 4) {
+            alert('Usage limit reached.');
+            return;
         }
-    }, []);
+        else {
+            console.log('Current Limit:', fetchCount);
+            console.log('Fetching images with:', preferences);
+            const csrfToken = Cookies.get('csrftoken');
+            try {
+                const response = await axios.post(`${API_BASE_URL}/api/get-images/`, { preferences }, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                        'X-CSRFToken': csrfToken
+                    }
+                });
+                console.log('API response for images:', response.data);
+                if (response.data && response.data.images) {
+                    const validImages = response.data.images.filter(image => typeof image === 'string' && image.includes(':'));
+                    const parsedImages = validImages.map(image => {
+                        const [index, ...restOfUrl] = image.split(':');
+                        const imageUrl = restOfUrl.join(':');
+                        return { index: parseInt(index, 10), imageUrl };
+                    });
+                    setBoxImages(parsedImages);
+                    setBoxStates(Array(parsedImages.length).fill(2)); // Reset states to 2 whenever new images are fetched   
+                } else {
+                    console.log('No images or invalid data format received:', response.data); 
+                }
+            } catch (error) {
+                console.error('Failed to fetch images:', error);
+                setErrorMessage('Failed to load new images. Please try again.');
+            } finally {
+                console.log('Incrementing count');
+                setFetchCount(prevCount => prevCount + 1);
+        }
+        }
+    }, [API_BASE_URL, fetchCount]);
 
 
 
@@ -387,6 +406,40 @@ function BenchmarkPage() {
         }
     }, [currentMessage]);
 
+    const handleSelectPreferences = () => {
+        navigate('/');
+    };
+
+    if (loading) {
+        return <Loader />;
+    }
+ 
+    if (user.name === '' || userPreferences.length === 0 || fetchCount >= 4) {
+        return (
+            <div>
+                <Header />
+                <div className="dashboard">
+                    <div className="no-preferences">
+                        <lord-icon
+                            src="https://cdn.lordicon.com/usownftb.json"
+                            trigger="in"
+                            stroke="bold"
+                            state="in-reveal"
+                            colors="primary:#ffffff,secondary:#c71f16"
+                            style={{ width: '150px', height: '150px' }}>
+                        </lord-icon>
+                        <div className='no-pref-mess'>
+                            <p>To access this page you need to:</p>
+                            <p>1: Make sure you are logged in</p>
+                            <p>2: Have selected your preferences</p>
+                            <p>3: Not exceeded the usage limits of 32 images</p>
+                        </div>
+                        <button onClick={handleSelectPreferences} className="route-button">Select</button>
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <>
@@ -454,7 +507,7 @@ function BenchmarkPage() {
                 </section>
                 {currentIndex < totalImages && (
                     <button onClick={handleSubmit} className="next-button" style={{ margin: '20px auto', display: 'block' }}>
-                        Next
+                        Next Images
                     </button>
                 )}
             </div>

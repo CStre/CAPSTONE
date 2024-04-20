@@ -153,3 +153,52 @@
 .benchmarkPage .welcome-icons {
     padding-bottom: 20px;
 }
+
+.benchmarkPage .next-button {
+    border-radius: 4px;
+    height: 40px;
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    -webkit-transition: all 200ms linear;
+    transition: all 200ms linear;
+    padding-top: 20px;
+    padding-bottom: 35px;
+    padding-left: 40px;
+    padding-right: 40px;
+    letter-spacing: 1px;
+    display: -webkit-inline-flex;
+    display: -ms-inline-flexbox;
+    display: inline-flex;
+    -webkit-align-items: center;
+    -moz-align-items: center;
+    -ms-align-items: center;
+    align-items: center;
+    -webkit-justify-content: center;
+    -moz-justify-content: center;
+    -ms-justify-content: center;
+    justify-content: center;
+    -ms-flex-pack: center;
+    text-align: center;
+    border: none;
+    background-color: #c4c3ca;
+    color: #111111;
+    box-shadow: 0 8px 24px 0 rgba(255, 235, 167, .2);
+    margin-top: 20px;
+    position: center;
+}
+
+.benchmarkPage .next-button:active,
+.benchmarkPage .next-button:focus {
+    background-color: #111111;
+    color: #c4c3ca;
+    box-shadow: 0 8px 24px 0 rgba(16, 39, 112, .2);
+    align-items: center;
+}
+
+.benchmarkPage .next-button:hover {
+    background-color: #111111;
+    color: #c4c3ca;
+    box-shadow: 0 8px 24px 0 rgba(16, 39, 112, .2);
+    align-items: center;
+}
