@@ -464,7 +464,7 @@
   transition: all 600ms ease-out;
 }
 
-.container {
+.accountPage .container {
     background-color: #000000; /* White background for the form */
     width: 75%; /* Adjust the width as needed */
     max-width: 600px; /* Maximum width */

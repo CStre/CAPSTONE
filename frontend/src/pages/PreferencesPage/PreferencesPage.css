@@ -3,8 +3,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@200;300;400;500;600;700;800;900&display=swap');
 
 
-.preferencesPage html,
-body {
+.preferencesPage html,body {
     overflow-x: hidden;
     /* Hide horizontal overflow */
     max-width: 100%;
@@ -289,7 +288,7 @@ body {
     }
 }
 
-.preferences-map img {
+.preferencesPage .preferences-map img {
     width: 100%;
     /* Makes the image fill the width of the container */
     height: auto;
@@ -298,7 +297,7 @@ body {
     /* Removes any extra space below the image */
 }
 
-.message {
+.preferencesPage .message {
     text-align: center;
     font-size: 80pt;
     color: aqua;

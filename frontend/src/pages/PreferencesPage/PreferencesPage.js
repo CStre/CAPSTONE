@@ -62,7 +62,14 @@ function PreferencesPage() {
 
     const handleSubmit = async () => {
         if (!preferencesExist && selections.every(state => state !== null)) {
-            const preferenceArray = selections.map(state => state === 1 ? 1 : 0);
+            // Map selections to the new preference values: 50 for like and 5 for dislike
+            console.log("Selections:", selections);
+            const preferenceArray = selections.map(state => {
+                if (state === 1) return 50; // Liked
+                if (state === 2) return 5;  // Disliked
+                return 0;                  // Handle the case where state may be null or undefined
+            });
+            console.log("Array to send:", preferenceArray);
             try {
                 const csrfToken = Cookies.get('csrftoken');
                 const response = await axios.patch('/user-info/', {
@@ -73,6 +80,7 @@ function PreferencesPage() {
                     }
                 });
                 alert('Preferences updated successfully!');
+                setPreferencesExist(true); // Update state to reflect that preferences are now set
             } catch (error) {
                 console.error('Failed to update preferences:', error);
                 setErrorMessage('Failed to update preferences. Please try again.');
@@ -81,6 +89,8 @@ function PreferencesPage() {
             setErrorMessage('Please make a selection for each location before submitting.');
         }
     };
+    
+    
     
 
 
