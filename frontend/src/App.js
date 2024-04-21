@@ -58,7 +58,7 @@ function App() {
         <Route path="/account" element={<Account />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/preferences" element={<Preferences />} />
-        {/* <Route path="*" element={<NotFoundPage />} /> */}
+        <Route path="*" element={<NotFoundPage />} />
       </Routes>
       {showTopBtn && (
         <button

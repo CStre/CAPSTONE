@@ -14,14 +14,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.environ.get('SECRET_KEY') # Commented for security
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 # This is where my website can be accessed through Django!
 ALLOWED_HOSTS = [os.environ.get('HOST_1'),
                  os.environ.get('HOST_2'),
                  os.environ.get('HOST_3'),
                  os.environ.get('HOST_4'),
-                 os.environ.get('HOST_5'),
                  ]
 
 # Application definitions
@@ -50,20 +49,9 @@ MIDDLEWARE = [
 
 AUTHENTICATION_BACKENDS = ['django.contrib.auth.backends.ModelBackend'] # This overrides Djangos typical backend authenticator
 
-SESSION_COOKIE_HTTPONLY = True
-SESSION_COOKIE_SAMESITE = 'None'  # Use 'Lax' or 'Strict' if not cross-domain
-SESSION_COOKIE_SECURE = True  # Set to False if not using HTTPS
-CSRF_COOKIE_SECURE = True     # Send CSRF cookie only over HTTPS.
-
 ROOT_URLCONF = 'backend.urls'
 
-CORS_ALLOW_ALL_ORIGINS = True  # For development only
-
 CORS_ALLOW_CREDENTIALS = True # This is used for authentication allowence
-CORS_ORIGIN_WHITELIST = [
-    'http://localhost:3000', # For Django backend
-    'https://buildingbetteralgorithms.com' # For registered domain in deployment
-]
 
 # Added the path to the React app's build folder
 REACT_APP_DIR = os.path.join(BASE_DIR, 'build')
@@ -154,27 +142,27 @@ STATICFILES_DIRS = [  # Added this for React
 
 # This is used for development and testing and will eventually be removed
 
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'handlers': {
-        'file': {
-            'level': 'DEBUG',
-            'class': 'logging.FileHandler',
-            'filename': 'debug.log',
-        },
-    },
-    'loggers': {
-        'django': {
-            'handlers': ['file'],
-            'level': 'DEBUG',
-            'propagate': True,
-        },
-        'myapp': {
-            'handlers': ['file'],
-            'level': 'DEBUG',
-            'propagate': True,
-        },
-    },
-}
+# LOGGING = {
+#     'version': 1,
+#     'disable_existing_loggers': False,
+#     'handlers': {
+#         'file': {
+#             'level': 'DEBUG',
+#             'class': 'logging.FileHandler',
+#             'filename': 'debug.log',
+#         },
+#     },
+#     'loggers': {
+#         'django': {
+#             'handlers': ['file'],
+#             'level': 'DEBUG',
+#             'propagate': True,
+#         },
+#         'myapp': {
+#             'handlers': ['file'],
+#             'level': 'DEBUG',
+#             'propagate': True,
+#         },
+#     },
+# }
 
