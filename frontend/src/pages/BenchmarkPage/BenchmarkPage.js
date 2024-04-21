@@ -5,8 +5,8 @@ import { Helmet } from 'react-helmet';
 import ScrollTrigger from "gsap/ScrollTrigger";
 import App from '../../App';
 import './BenchmarkPage.css';
-import image1 from '../../images/1.png';
-import image2 from '../../images/2.png';
+import image1 from '../../images/image-1.svg';
+import image2 from '../../images/image-2.svg';
 import axios from 'axios';
 import Cookies from 'js-cookie';
 import { useAuth } from '../../AuthContext';
@@ -118,7 +118,7 @@ function BenchmarkPage() {
                     setBoxImages(parsedImages);
                     setBoxStates(Array(parsedImages.length).fill(2)); // Reset states to 2 whenever new images are fetched   
                 } else {
-                    console.log('No images or invalid data format received:', response.data); 
+                    console.log('No images or invalid data format received:', response.data);
                 }
             } catch (error) {
                 console.error('Failed to fetch images:', error);
@@ -126,7 +126,7 @@ function BenchmarkPage() {
             } finally {
                 console.log('Incrementing count');
                 setFetchCount(prevCount => prevCount + 1);
-        }
+            }
         }
     }, [API_BASE_URL, fetchCount]);
 
@@ -168,8 +168,8 @@ function BenchmarkPage() {
             return newStates;
         });
     };
-    
-    
+
+
 
     const addMoreBoxes = () => {
         // Only add more boxes if all current boxes have been clicked at least once
@@ -182,37 +182,37 @@ function BenchmarkPage() {
 
     const handleSubmit = async () => {
         console.log('Current User Preferences before submission:', userPreferences);
-    
+
         const feedbackData = boxStates.map((state, index) => {
             if (state === 0 || state === 1) { // Only consider liked (1) or disliked (0) states
                 return `${state}:${boxImages[index].index}`;
             }
             return null;
         }).filter(entry => entry != null);
-    
+
         console.log('Formatted Feedback Data from user interactions:', feedbackData);
-    
+
         if (feedbackData.length === 0) {
             console.error('No valid interactions to submit');
             return; // Prevents submission if no valid interactions
         }
-    
+
         const formattedUserPreferences = userPreferences.map(pref => pref.toString());
         const combinedPreferences = [...formattedUserPreferences, ...feedbackData];
         console.log('Combined preferences to be sent:', combinedPreferences);
-    
+
         const csrfToken = Cookies.get('csrftoken');
-    
+
         try {
             const response = await axios.post(`${API_BASE_URL}/api/process-interactions/`, { preferences: combinedPreferences }, {
-                headers: { 
+                headers: {
                     'Authorization': `Bearer ${localStorage.getItem('token')}`,
                     'X-CSRFToken': csrfToken
                 }
             });
             const updatedPreferences = response.data.updated_preferences;
             console.log('Retrieved Updated Preferences from Backend:', updatedPreferences);
-    
+
             // Handle different types of responses
             const newPreferences = updatedPreferences.map(pref => {
                 if (typeof pref === 'string' && pref.includes(':')) {
@@ -220,7 +220,7 @@ function BenchmarkPage() {
                 }
                 return parseFloat(pref); // Handle direct number format
             });
-    
+
             setUserPreferences(newPreferences);
 
             // Update user preferences to database
@@ -235,26 +235,26 @@ function BenchmarkPage() {
             setErrorMessage('Failed to update preferences. Please try again.');
         }
     };
-    
-   const updatePreferencesInDatabase = async (preferences) => {
-    try {
-        const csrfToken = Cookies.get('csrftoken');
-        const preferencesString = preferences.join(','); // Convert array to comma-separated string
-        const response = await axios.patch(`${API_BASE_URL}/user-info/`, {
-            preferences: preferencesString // Send this string in the request
-        }, {
-            headers: {
-                'Authorization': `Bearer ${localStorage.getItem('token')}`,
-                'X-CSRFToken': csrfToken
-            }
-        });
 
-        console.log('Database updated successfully:', response.data);
-    } catch (error) {
-        console.error('Failed to update preferences in the database:', error);
-        throw new Error('Failed to update preferences in the database');
-    }
-};
+    const updatePreferencesInDatabase = async (preferences) => {
+        try {
+            const csrfToken = Cookies.get('csrftoken');
+            const preferencesString = preferences.join(','); // Convert array to comma-separated string
+            const response = await axios.patch(`${API_BASE_URL}/user-info/`, {
+                preferences: preferencesString // Send this string in the request
+            }, {
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                    'X-CSRFToken': csrfToken
+                }
+            });
+
+            console.log('Database updated successfully:', response.data);
+        } catch (error) {
+            console.error('Failed to update preferences in the database:', error);
+            throw new Error('Failed to update preferences in the database');
+        }
+    };
 
 
 
@@ -309,7 +309,7 @@ function BenchmarkPage() {
             } else if (boxStates[index] === 0) {
                 boxClass = 'red'; // Disliked
             } // No class for unclicked (state 2), or you can add a specific class if needed
-    
+
             return (
                 <div key={index} className={`box ${boxClass}`}
                     style={{ backgroundImage: `url('${boxImage.imageUrl}')` }}
@@ -328,7 +328,7 @@ function BenchmarkPage() {
             );
         });
     };
-    
+
 
 
     useEffect(() => {
@@ -407,13 +407,17 @@ function BenchmarkPage() {
     }, [currentMessage]);
 
     const handleSelectPreferences = () => {
+        navigate('/preferences');
+    };
+
+    const handleSelectLogin = () => {
         navigate('/');
     };
 
     if (loading) {
         return <Loader />;
     }
- 
+
     if (user.name === '' || userPreferences.length === 0 || fetchCount >= 4) {
         return (
             <div>
@@ -428,13 +432,17 @@ function BenchmarkPage() {
                             colors="primary:#ffffff,secondary:#c71f16"
                             style={{ width: '150px', height: '150px' }}>
                         </lord-icon>
-                        <div className='no-pref-mess'>
+                        <div className='no-pref-mess-or'>
                             <p>To access this page you need to:</p>
+                        </div>
+                        <div className='no-pref-mess-list'>
                             <p>1: Make sure you are logged in</p>
                             <p>2: Have selected your preferences</p>
                             <p>3: Not exceeded the usage limits of 32 images</p>
                         </div>
-                        <button onClick={handleSelectPreferences} className="route-button">Select</button>
+                        <div className='no-pref-mess-or'>
+                        <button onClick={handleSelectPreferences} className="route-button">Select Preferences</button> <p>OR</p> <button onClick={handleSelectLogin} className="route-button">Login</button>
+                        </div>
                     </div>
                 </div>
             </div>

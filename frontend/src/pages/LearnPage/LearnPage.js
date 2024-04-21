@@ -2,19 +2,23 @@ import React, { useEffect, useRef, useState } from 'react';
 // Include all necessary imports from both components
 import './LearnPage.css'; // Assuming HomePage.css contains styles from both components
 import Header from '../../components/Header';
-import html from "./html.png";
-import css from "./css.png";
-import react from "./react.png";
-import logo from "./logo.png";
-import api from "./api.png";
-import aws from "./aws.png";
-import django from "./django.png";
-import eb from "./eb.png";
-import ec2 from "./ec2.png";
-import js from "./js.png";
-import python from "./python.png";
-import rdb from "./rdb.png";
-import node from "./node.png";
+import html from "../../images/learn/html.svg";
+import css from "../../images/learn/CSS.svg";
+import react from "../../images/learn/React.svg";
+import logo from "../../images/learn/Logo.svg";
+import api from "../../images/learn/PlacesAPI.svg";
+import aws from "../../images/learn/AWS.svg";
+import django from "../../images/learn/Django.svg";
+import eb from "../../images/learn/AWS_EB.svg";
+import ec2 from "../../images/learn/AWS_EC2.svg";
+import js from "../../images/learn/JavaScript.svg";
+import python from "../../images/learn/Python.svg";
+import rdb from "../../images/learn/RDB.svg";
+import node from "../../images/learn/Node.svg";
+import Website from "../../images/learn/Website.svg";
+import GitHub from "../../images/learn/GitHub.svg";
+import LinkedIn from "../../images/learn/LinkedIn.svg";
+import profile from "../../images/learn/profile.svg";
 
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/all";
@@ -93,7 +97,7 @@ function LearnPage() {
 
                 <div ref={containerRef} className="container">
                     <section className="panel">
-                        <img className="logo-img" src={logo} style={{ width: '1400px', height: '1400px' }} />
+                        <img className="logo-img" src={logo} style={{ width: '400px', height: '400px' }} />
                     </section>
                     <section className="panel">
                         <lord-icon
@@ -106,12 +110,12 @@ function LearnPage() {
                         </lord-icon>
                         <h2>What is this project?</h2>
                         <p>
-                        This website is designed to serve as a comprehensive resource for exploring the applications of 
-                        algorithms, with a particular emphasis on recommendation algorithms. It aims to provide a thorough 
-                        examination of their benefits, potential adverse effects, and the possibilities for practical and 
-                        beneficial implementations of what is termed "Ethical Algorithms." By delving into these topics, 
-                        the site seeks to enlighten users about the nuanced interplay between algorithmic design and ethical 
-                        considerations in modern computing environments.
+                            This website is designed to serve as a comprehensive resource for exploring the applications of
+                            algorithms, with a particular emphasis on recommendation algorithms. It aims to provide a thorough
+                            examination of their benefits, potential adverse effects, and the possibilities for practical and
+                            beneficial implementations of what is termed "Ethical Algorithms." By delving into these topics,
+                            the site seeks to enlighten users about the nuanced interplay between algorithmic design and ethical
+                            considerations in modern computing environments.
                         </p>
                     </section>
                     <section className="panel">
@@ -152,16 +156,16 @@ function LearnPage() {
                         </lord-icon>
                         <h2>The Duality of User-Focused</h2>
                         <p>
-                        Many may perceive recommendation algorithms as quintessentially user-centric 
-                        technologies; however, a distinction must be made between being user-focused 
-                        and user-centered. Although these algorithms often provide a highly personalized 
-                        experience, this should not be misconstrued as synonymous with user-centeredness. 
-                        <br></br><br></br>
-                        Upon closer examination, it becomes apparent that many of these algorithms are 
-                        primarily designed to align with the interests of manufacturers, thereby prioritizing 
-                        corporate objectives over optimizing user benefits. This misalignment can inadvertently 
-                        lead to a misleading sense of security among users regarding the true intent and 
-                        functionality of these algorithms.
+                            Many may perceive recommendation algorithms as quintessentially user-centric
+                            technologies; however, a distinction must be made between being user-focused
+                            and user-centered. Although these algorithms often provide a highly personalized
+                            experience, this should not be misconstrued as synonymous with user-centeredness.
+                            <br></br><br></br>
+                            Upon closer examination, it becomes apparent that many of these algorithms are
+                            primarily designed to align with the interests of manufacturers, thereby prioritizing
+                            corporate objectives over optimizing user benefits. This misalignment can inadvertently
+                            lead to a misleading sense of security among users regarding the true intent and
+                            functionality of these algorithms.
                         </p>
                     </section>
                     <section className="panel">
@@ -175,13 +179,13 @@ function LearnPage() {
                         </lord-icon>
                         <h2>Why we must Consult Ethics</h2>
                         <p>
-                            In numerous domains, the development of products that incorporate personalized 
-                            recommendation algorithms necessitates a rigorous evaluation of the ethical 
-                            implications and potential unintended consequences that these technologies may 
-                            exert on users. This consideration is particularly critical given the substantial 
-                            amount of time individuals spend interacting with social media platforms daily. 
-                            Such an assessment ensures that the deployment of these sophisticated algorithms 
-                            aligns with ethical standards and mitigates adverse effects on user behavior and 
+                            In numerous domains, the development of products that incorporate personalized
+                            recommendation algorithms necessitates a rigorous evaluation of the ethical
+                            implications and potential unintended consequences that these technologies may
+                            exert on users. This consideration is particularly critical given the substantial
+                            amount of time individuals spend interacting with social media platforms daily.
+                            Such an assessment ensures that the deployment of these sophisticated algorithms
+                            aligns with ethical standards and mitigates adverse effects on user behavior and
                             societal norms.
                         </p>
                     </section>
@@ -352,8 +356,15 @@ function LearnPage() {
 
                     </section>
                 </div>
-                <section className="footer">
-                    <img className="logo-img" src={logo} style={{ width: '1400px', height: '1400px' }} />
+                <section className="panel">
+                    <lord-icon
+                        src="https://cdn.lordicon.com/jdalicnn.json"
+                        trigger="in"
+                        state="in-reveal"
+                        stroke="bold"
+                        colors="primary:#c2c2c2 ,secondary:#00ff66"
+                        style={{ width: '200px', height: '200px' }}>
+                    </lord-icon>
                     <h2>Technology Stack</h2>
                     <p>
                         This project represents a six-month endeavor designed to demonstrate my comprehensive capabilities in Full-Stack Development,
@@ -414,16 +425,32 @@ function LearnPage() {
                         <h2>Nodejs</h2>
                     </section>
                 </div>
-                <section className="footer">
-                    <h2>Contact</h2>
-                    <form>
-                        <input type="text" placeholder="Your email" />
-
-                        <textarea rows={6} placeholder="Message" />
-                        <button>SUBMIT</button>
-                    </form>
+                <section className="end-panel">
+                    <h1>About the Creator</h1>
+                    <img src={profile} alt="Collin Streitman" style={{ width: '300px', height: '300px' }} />
+                    <h2>Collin Streitman</h2>
+                    <p>
+                        Hi, I'm Collin Streitman. I'm a curious and passionate individual with interests in design,
+                        user experience, travel, photography, leadership, freedom, and full-stack development.
+                        My hobbies include backpacking and skiing.
+                    </p>
+                    <div className="connect">
+                        <h2>Connect with me:</h2>
+                        <div className="social-links">
+                            <a href="https://github.com/CStre" target="_blank" rel="noopener noreferrer">
+                                <img src={GitHub} alt="GitHub" style={{ width: '75px', height: '75px' }} />
+                            </a>
+                            <a href="https://www.linkedin.com/in/collin.streitman" target="_blank" rel="noopener noreferrer">
+                                <img src={LinkedIn} alt="LinkedIn" style={{ width: '75px', height: '75px' }} />
+                            </a>
+                            <a href="https://collin-streitman.com" target="_blank" rel="noopener noreferrer">
+                                <img src={Website} alt="Website" style={{ width: '75px', height: '75px' }} />
+                            </a>
+                        </div>
+                    </div>
                 </section>
             </div>
+
         </>
     );
 }

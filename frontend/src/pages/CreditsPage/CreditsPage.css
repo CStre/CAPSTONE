@@ -1,0 +1,80 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@200;300;400;500;600;700;800;900&display=swap');
+
+/* CreditsPage.css */
+
+.credits {
+    margin-top: 150px;
+    margin-bottom: -285px;
+}
+
+.credits .source {
+    font-family: 'Poppins';
+    transition: opacity 0.5s, transform 0.5s;
+    transform: scale(0.75); /* Start smaller */
+    opacity: 0;
+    color: rgb(194, 194, 194);
+    padding-bottom: 60px;
+    padding-left: 20%;
+    padding-right: 20%;
+    text-align: center;
+    font-weight: 700;
+}
+
+.fixed {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1000;
+    background: #0b1623;
+}
+
+.credits .source.visible {
+    opacity: 1;
+    transform: scale(1); /* Scale up when in view */
+}
+
+.credits .source a {
+    text-decoration: underline !important;
+    color: inherit !important;
+}
+
+.credits .source a:hover {
+    color: inherit !important;
+}
+
+.credits h1, .credits h2, .credits h3 {
+    text-align: center;
+    color: rgb(194, 194, 194);
+    font-family: 'Poppins';
+}
+
+.credits .title h1 {
+    font-size: 60pt;
+    margin-top: 10%;
+}
+
+.credits .title h2 {
+    font-size: 30pt;
+    margin-top: 10%;
+    margin-bottom: 20%;
+}
+
+.credits .section-title h2 {
+    font-size: 30pt;
+    margin-top: 10%;
+    margin-bottom: 5%;
+}
+
+.credits .sources h2 {
+    font-size: 40pt;
+    margin-bottom: 5%;
+}
+
+.credits .sources h3 {
+    font-size: 15pt;
+    margin-top: -2%;
+    margin-bottom: 20%;
+    margin-left: 10%;
+    margin-right: 10%;
+}

@@ -102,7 +102,7 @@
   flex-direction: row;
   text-align: left;
   gap: 30px;
-  background: url("./header.png");
+  background: url("../../images/learn/header.svg");
   background-size: cover;
   background-position: center;
   color: #0b1623;
@@ -218,6 +218,39 @@
 .learnPage .panel {
   background-color: #0b1623;
   width: 100vw;
+}
+
+.learnPage .end-panel {
+  background-color: #ffffff;
+  width: 100vw;
+}
+
+.learnPage .end-panel h1 {
+  text-align: center;
+  color: rgb(76, 76, 76);
+  font-family: 'Poppins';
+  font-size: 30pt;
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+.learnPage .end-panel h2 {
+  text-align: center;
+  color: rgb(76, 76, 76);
+  font-family: 'Poppins';
+  font-size: 20pt;
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+.learnPage .end-panel p {
+  text-align: center;
+  color: rgb(104, 104, 104);
+  font-family: 'Poppins';
+  font-size: 17pt;
+  font-weight: 500;
+  margin-top: 1;
+  margin-bottom: 1;
 }
 
 .learnPage .panel h2 {

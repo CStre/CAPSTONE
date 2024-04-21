@@ -8,20 +8,20 @@ import Loader from '../../components/Loader';
 import { useNavigate } from 'react-router-dom';
 
 // Import all images individually
-import image1 from '../../images/image-1.png';
-import image2 from '../../images/image-2.png';
-import image3 from '../../images/image-3.png';
-import image4 from '../../images/image-4.png';
-import image5 from '../../images/image-5.png';
-import image6 from '../../images/image-6.png';
-import image7 from '../../images/image-7.png';
-import image8 from '../../images/image-8.png';
-import image9 from '../../images/image-9.png';
-import image10 from '../../images/image-10.png';
-import image11 from '../../images/image-11.png';
-import image12 from '../../images/image-12.png';
+import image1 from '../../images/1.svg';
+import image2 from '../../images/2.svg';
+import image3 from '../../images/3.svg';
+import image4 from '../../images/4.svg';
+import image5 from '../../images/5.svg';
+import image6 from '../../images/6.svg';
+import image7 from '../../images/7.svg';
+import image8 from '../../images/8.svg';
+import image9 from '../../images/9.svg';
+import image10 from '../../images/10.svg';
+import image11 from '../../images/11.svg';
+import image12 from '../../images/12.svg';
 
-import map from '../../images/header.svg';
+import map from '../../images/image-2.svg';
 
 const images = [image1, image2, image3, image4, image5, image6, image7, image8, image9, image10, image11, image12];
 const countries = ["Finland", "Norway", "Italy", "Iceland", "USA", "Canada", "Egypt", "China", "Singapore", "Brazil", "Australia", "New Zealand"];

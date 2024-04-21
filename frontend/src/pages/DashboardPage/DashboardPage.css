@@ -108,6 +108,20 @@
     margin-right: 50%;
 }
 
+.dashboard .no-pref-mess-list {
+    color: rgb(194, 194, 194);
+    font-family: 'Poppins';
+    font-size:15pt;
+    text-align: left;
+}
+
+.dashboard .no-pref-mess-or {
+    color: rgb(194, 194, 194);
+    font-family: 'Poppins';
+    font-size:15pt;
+    text-align: center;
+}
+
 .dashboard .no-pref-mess {
     color: rgb(194, 194, 194);
     font-family: 'Poppins';
