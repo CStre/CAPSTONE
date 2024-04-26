@@ -1,3 +1,15 @@
+/**
+ * @fileoverview This is the componenet for modifying account information
+ * @author Collin Streitman
+ * @created 01.24.2024
+ * @lastModified By Collin Streitman on 04.26.2024
+ *
+ * This is a dynamically displaying component based on if the user logged in or not. Each time
+ * the user modifies any details, they are automatically logged out to log back in so that the
+ * cookie tokenizing is preserved. This is also an informational pop-out regarding password data
+ * management in Django and bit hashing
+ */
+
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './AccountPage.css';

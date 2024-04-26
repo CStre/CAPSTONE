@@ -1,3 +1,13 @@
+/**
+ * @fileoverview This is the componenet for the dashbaord page. 
+ * @author Collin Streitman
+ * @created 01.24.2024
+ * @lastModified By Collin Streitman on 04.26.2024
+ *
+ * This is another dynamically displaying page and uses the preferences array to display this
+ * information to the user through charts from Googles Charts implementation.
+ */
+
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './DashboardPage.css';
@@ -76,10 +86,6 @@ function DashboardPage() {
         ["Australia", preferences[10] || 0, "#00f9f1"],
         ["New Zealand", preferences[11] || 0, "#00ffff"],
     ];
-
-
-
-
 
     useEffect(() => {
         setTimeout(() => {

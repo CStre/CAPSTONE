@@ -1,3 +1,13 @@
+/**
+ * @fileoverview This is the componenet for the loading icon that dynamically appears and disappears
+ * @author Collin Streitman
+ * @created 01.24.2024
+ * @lastModified By Collin Streitman on 04.26.2024
+ *
+ * This component was largely sourced from an public GitHub repositiory and is properly sourced
+ * in the credits component
+ */
+
 import './Loader.css';
 import React from 'react';
 

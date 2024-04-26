@@ -1,7 +1,17 @@
+/**
+ * @fileoverview This is the componenet for the landing page after login. This is the learn page
+ * @author Collin Streitman
+ * @created 01.24.2024
+ * @lastModified By Collin Streitman on 04.26.2024
+ *
+ * This component includes Parallax fucntionality and various images and icons. This is the
+ * longest page of the project.
+ */
+
 import React, { useEffect, useRef, useState } from 'react';
-// Include all necessary imports from both components
-import './LearnPage.css'; // Assuming HomePage.css contains styles from both components
+import './LearnPage.css';
 import Header from '../../components/Header';
+
 import html from "../../images/learn/html.svg";
 import css from "../../images/learn/CSS.svg";
 import react from "../../images/learn/React.svg";

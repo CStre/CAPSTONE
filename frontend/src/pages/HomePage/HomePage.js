@@ -1,3 +1,13 @@
+/**
+ * @fileoverview This is the componenet for the login page.
+ * @author Collin Streitman
+ * @created 01.24.2024
+ * @lastModified By Collin Streitman on 04.26.2024
+ *
+ * This is the most dynamic page on the site that includes all logic for sign up and login
+ * as well as the Mostero Electrico display and the welcome messages. 
+ */
+
 import React, { useEffect, useRef, useState } from 'react';
 import './HomePage.css';
 import Loader from '../../components/Loader';

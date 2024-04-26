@@ -1,3 +1,13 @@
+/**
+ * @fileoverview This is the componenet for the preferences page that users define their preferecnes array
+ * @author Collin Streitman
+ * @created 01.24.2024
+ * @lastModified By Collin Streitman on 04.26.2024
+ *
+ * This component has many dynamically scaleing and display content based on the current users
+ * preferecnes nd settings 
+ */
+
 import React, { useState, useEffect } from 'react';
 import './PreferencesPage.css';
 import Header from '../../components/Header';

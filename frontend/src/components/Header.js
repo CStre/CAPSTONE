@@ -1,3 +1,13 @@
+/**
+ * @fileoverview This is the componenet for the navigation bar at the top of each page
+ * @author Collin Streitman
+ * @created 01.24.2024
+ * @lastModified By Collin Streitman on 04.26.2024
+ *
+ * This component also includes the logout functionality since that is not an
+ * entire page on its own. Also it includes the drop down. 
+ */
+
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import axios from 'axios';

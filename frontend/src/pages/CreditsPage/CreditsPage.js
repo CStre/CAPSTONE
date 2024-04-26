@@ -1,3 +1,12 @@
+/**
+ * @fileoverview This is the component for the credits page where all sources are listed
+ * @author Collin Streitman
+ * @created 01.24.2024
+ * @lastModified By Collin Streitman on 04.26.2024
+ *
+ * This component also includes a AI usages discliamer and dynamical links to every source. 
+ */
+
 import React, { useEffect } from 'react';
 import './CreditsPage.css';
 import Header from '../../components/Header';
@@ -20,27 +29,9 @@ const CreditsPage = () => {
         window.addEventListener('scroll', handleScroll);
         handleScroll(); // Initial sizing
 
-        // Custom slow auto-scroll
-        let startAutoScroll = () => {
-            let maxScroll = document.body.scrollHeight - window.innerHeight;
-            let scrolled = window.scrollY;
-            let step = 1; // How many pixels to scroll each interval, adjust for faster or slower scrolling
-
-            let scrollInterval = setInterval(() => {
-                if (scrolled < maxScroll) {
-                    window.scrollBy(0, step);
-                    scrolled += step;
-                } else {
-                    clearInterval(scrollInterval);
-                }
-            }, 10); // Interval in milliseconds, adjust for faster or slower scrolling
-        };
-
-        // Delay starting the auto-scroll
-        setTimeout(startAutoScroll, 2000);
-
         return () => {
             window.removeEventListener('scroll', handleScroll);
+            console.log("Cleanup executed: scroll listener removed.");
         };
     }, []);
 

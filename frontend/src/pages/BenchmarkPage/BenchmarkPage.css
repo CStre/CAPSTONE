@@ -51,8 +51,8 @@
     width: 100%; /* Full width of the viewport */
     height: auto; /* Full height of the viewport */
     display: block;
-    margin-top: -10px;
-    margin-bottom: 80%;
+    margin-top: -10%;
+    margin-bottom: 10%;
 }
 
 .benchmarkPage * {

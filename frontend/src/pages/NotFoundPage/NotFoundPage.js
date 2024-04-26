@@ -1,3 +1,12 @@
+/**
+ * @fileoverview This is the component for the 404 Error page.
+ * @author Collin Streitman
+ * @created 01.24.2024
+ * @lastModified By Collin Streitman on 04.26.2024
+ *
+ * This page displays when the user tries to go to a route not listed
+ */
+
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './NotFoundPage.css';

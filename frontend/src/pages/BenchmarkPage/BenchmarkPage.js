@@ -1,15 +1,22 @@
+/**
+ * @fileoverview This is the component for the travel page that utilizes Places.py and Algorithm.py
+ * @author Collin Streitman
+ * @created 01.24.2024
+ * @lastModified By Collin Streitman on 04.26.2024
+ *
+ * This component reads and updates the user preferences array as well as dynamically utliizes Google 
+ * Places API to display images, fetch new images, and gather user prefernces onSubmit. It also includes 
+ * instructional messages that display sequentially. 
+ */
+
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Header from '../../components/Header';
-import gsap from "gsap";
 import { Helmet } from 'react-helmet';
-import ScrollTrigger from "gsap/ScrollTrigger";
-import App from '../../App';
 import './BenchmarkPage.css';
 import image1 from '../../images/image-1.svg';
-import image2 from '../../images/image-2.svg';
+import image2 from '../../images/image-3.svg';
 import axios from 'axios';
 import Cookies from 'js-cookie';
-import { useAuth } from '../../AuthContext';
 import { useNavigate } from 'react-router-dom';
 import Loader from '../../components/Loader';
 
@@ -20,31 +27,20 @@ function BenchmarkPage() {
     const [fetchCount, setFetchCount] = useState(0);
     const [loading, setLoading] = useState(true);
     const [user, setUser] = useState({ name: '' });
-
     const totalImages = 30; // Assuming there are 30 images
-    const imagesPerBatch = 8; // Number of images to display per batch
-
     const [boxCount, setBoxCount] = useState(8);
     const [boxStates, setBoxStates] = useState(Array(totalImages).fill(0)); // Track the state of each box
-    const [isManualScroll, setIsManualScroll] = useState(false);  // State variable
     const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
-    const [errorMessage, setErrorMessage] = useState('');
 
     const [currentIndex, setCurrentIndex] = useState(0); // Track the index of the current image batch
     const initBoxStates = (numImages) => Array(numImages).fill(2); // 2 signifies unclicked
-    const [currentMessage, setCurrentMessage] = useState(0);
-    const [showMessage, setShowMessage] = useState(false);
-
-    const [selections, setSelections] = useState(0);
-
-    const [showFirstArrow, setShowFirstArrow] = useState(false);
-    const [showSecondArrow, setShowSecondArrow] = useState(false);
-
-    const [image2Visible, setImage2Visible] = useState(false);
-
-    const image1Ref = useRef(null);
-    const image2Ref = useRef(null);
+    const [showMessage, setShowMessage] = useState(true);
     const boxesRef = useRef(null);
+
+    const [currentMessage, setCurrentMessage] = useState(0);
+    const [isIntersecting, setIsIntersecting] = useState(false);
+    const messageRef = useRef(null);
+    const intervalRef = useRef(null);
 
     const messages = [
         "Welcome to Travel.",
@@ -63,6 +59,13 @@ function BenchmarkPage() {
     ];
 
     useEffect(() => {
+        intervalRef.current = setInterval(() => {
+            cycleMessages();
+        }, 3000);
+        return () => clearInterval(intervalRef.current);
+    }, []);
+    
+    useEffect(() => {
         console.log('Checking for existing user preferences...');
         axios.get(`${API_BASE_URL}/user-info/`, {
             headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
@@ -78,18 +81,14 @@ function BenchmarkPage() {
                 setLoading(false);
             } else {
                 console.error('No preferences found.');
-                setErrorMessage('Navigate to the user preferences page before continuing.');
                 setLoading(false);
             }
         }).catch(error => {
             console.error('Failed to fetch user details:', error);
-            setErrorMessage('Failed to fetch preferences. Please refresh the page.');
             setLoading(false);
         });
+
     }, [API_BASE_URL]);
-
-
-
 
     const fetchImages = useCallback(async (preferences) => {
         if (fetchCount >= 4) {
@@ -122,39 +121,12 @@ function BenchmarkPage() {
                 }
             } catch (error) {
                 console.error('Failed to fetch images:', error);
-                setErrorMessage('Failed to load new images. Please try again.');
             } finally {
                 console.log('Incrementing count');
                 setFetchCount(prevCount => prevCount + 1);
             }
         }
     }, [API_BASE_URL, fetchCount]);
-
-
-
-
-
-
-
-    const scrollToElement = (ref, offset = 0) => {
-        const topPosition = ref.current.getBoundingClientRect().top + window.pageYOffset - offset;
-        window.scrollTo({ top: topPosition, behavior: 'smooth' });
-    };
-
-    // Scroll functions for icons
-    const scrollToImage2 = () => {
-        setImage2Visible(true); // Set the image2Visible state to true
-        scrollToElement(image2Ref, -150);
-    };
-
-    const scrollToBoxes = () => scrollToElement(boxesRef, 0);
-
-    const disableObserverAndScroll = (ref, offset) => {
-        setIsManualScroll(true);
-        const topPosition = ref.current.getBoundingClientRect().top + window.pageYOffset - offset;
-        window.scrollTo({ top: topPosition, behavior: 'smooth' });
-        setTimeout(() => setIsManualScroll(false), 1000); // Re-enable after 1 second
-    };
 
     // Function to toggle the state of a box
     const toggleBoxState = (index) => {
@@ -168,17 +140,6 @@ function BenchmarkPage() {
             return newStates;
         });
     };
-
-
-
-    const addMoreBoxes = () => {
-        // Only add more boxes if all current boxes have been clicked at least once
-        const allClickedAtLeastOnce = boxStates.slice(0, boxCount).every(state => state > 0);
-
-        if (allClickedAtLeastOnce && window.innerHeight + window.scrollY >= document.body.offsetHeight - 100) {
-            setBoxCount(prevCount => Math.min(prevCount + 8, boxImages.length));  // Increase box count but do not exceed the number of available images
-        }
-    }
 
     const handleSubmit = async () => {
         console.log('Current User Preferences before submission:', userPreferences);
@@ -232,7 +193,6 @@ function BenchmarkPage() {
             fetchImages(newPreferences);
         } catch (error) {
             console.error('Failed to submit interactions:', error);
-            setErrorMessage('Failed to update preferences. Please try again.');
         }
     };
 
@@ -256,51 +216,8 @@ function BenchmarkPage() {
         }
     };
 
-
-
-
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            setShowFirstArrow(true);
-        }, 3000); // 3 seconds after initial scroll
-
-        return () => clearTimeout(timer);
-    }, []);
-
-    useEffect(() => {
-        const predefinedScrollPoint = image1Ref;
-        const offset = -250; // Set your desired offset here
-
-        // Adding a slight delay to ensure the DOM is fully loaded
-        setTimeout(() => {
-            scrollToElement(predefinedScrollPoint, offset);
-        }, 100); // Delay of 100 milliseconds
-    }, []);
-
-    useEffect(() => {
-        // Check if it's not the last message
-        if (currentMessage < messages.length - 1 && image2Visible == true) {
-            setShowSecondArrow(false); // Ensure the second arrow is not shown prematurely
-            setShowMessage(true); // Show current message
-            const timer = setTimeout(() => {
-                setShowMessage(false); // Hide the message after 3 seconds
-                const timeout = setTimeout(() => {
-                    setCurrentMessage(currentMessage + 1); // Set next message
-                }, 500); // Short delay before updating to the next message
-                return () => clearTimeout(timeout);
-            }, 3000);
-            return () => clearTimeout(timer);
-        } else if (currentMessage === messages.length - 1) {
-            // This is the last message
-            setShowMessage(true); // Always show the last message
-            setShowSecondArrow(true); // Indicate that we are at the last message and show the arrow
-        }
-    }, [currentMessage, messages.length, image2Visible]);
-
-
     // Rendering boxes with images
     const renderBoxes = () => {
-        console.log('Rendering boxes with images:', boxImages);
         return boxImages.map((boxImage, index) => {
             // Determine the class based on the state
             let boxClass = '';
@@ -329,82 +246,9 @@ function BenchmarkPage() {
         });
     };
 
-
-
-    useEffect(() => {
-        gsap.registerPlugin(ScrollTrigger);
-
-        // Initialize the intersection observers
-        const optionsForImage1 = {
-            root: null,
-            rootMargin: '0px 0px 0px 0px', // Adjusts the trigger point lower
-            threshold: 0.9
-        };
-
-        const optionsForImage2 = {
-            root: null,
-            rootMargin: '0px 0px 0px 0px', // Adjusts the trigger point lower
-            threshold: 0.9
-        };
-
-        // Observer for the first image
-        const observer1 = new IntersectionObserver(entries => {
-            const [entry] = entries;
-            if (!isManualScroll && entry.intersectionRatio > 0 && entry.intersectionRatio < 1) {
-                disableObserverAndScroll(image1Ref, 250); // Adjust this offset as needed
-            }
-        }, optionsForImage1);
-
-        // Observer for the second image
-        const observer2 = new IntersectionObserver(entries => {
-            const [entry] = entries;
-            if (entry.isIntersecting && showFirstArrow) {
-                if (currentMessage >= messages.length || currentMessage === 0) { // Check if messages have finished displaying or haven't started
-                    setCurrentMessage(0); // Restart the messages
-                }
-            } else if (!entry.isIntersecting && currentMessage <= messages.length) {
-                setCurrentMessage(0); // Optionally, set currentMessage to messages.length when not intersecting to prevent re-triggering mid-cycle
-            }
-        }, optionsForImage2);
-
-
-        // Observe the images
-        if (image1Ref.current) observer1.observe(image1Ref.current);
-        if (image2Ref.current) observer2.observe(image2Ref.current);
-
-        // Initialize GSAP animations
-        const initAnimations = () => {
-            ScrollTrigger.batch("section > div", {
-                interval: 0.1,
-                batchMax: 3,
-                onEnter: (batch) => gsap.to(batch, { autoAlpha: 1, stagger: 0.15, overwrite: true }),
-                onLeave: (batch) => gsap.set(batch, { autoAlpha: 0, overwrite: true }),
-                onEnterBack: (batch) => gsap.to(batch, { autoAlpha: 1, stagger: 0.15, overwrite: true }),
-                onLeaveBack: (batch) => gsap.set(batch, { autoAlpha: 0, overwrite: true }),
-            });
-        };
-
-        initAnimations();
-        ScrollTrigger.refresh();
-
-        // Event listener to add more boxes on scroll
-        window.addEventListener('scroll', addMoreBoxes);
-
-        // Cleanup function
-        return () => {
-            window.removeEventListener('scroll', addMoreBoxes);
-            ScrollTrigger.clearMatchMedia();
-            observer1.disconnect();
-            observer2.disconnect();
-        };
-    }, [boxCount, boxStates]); // Dependencies
-
-    useEffect(() => {
-        // Check if all messages have been cycled through
-        if (currentMessage >= messages.length) {
-            setShowSecondArrow(true);
-        }
-    }, [currentMessage]);
+    const cycleMessages = () => {
+        setCurrentMessage((prev) => (prev + 1) % messages.length);
+    };
 
     const handleSelectPreferences = () => {
         navigate('/preferences');
@@ -456,28 +300,13 @@ function BenchmarkPage() {
             </Helmet>
             <div>
                 <Header />
-                {errorMessage && <p className="error">{errorMessage}</p>}
             </div>
             <div className="benchmarkPage">
-                <div ref={image1Ref} className="image-container">
-                    <img src={image1} alt=" " className="full-screen1" id="image1" />
-                    <div className="scroll-icon">
-                        <lord-icon onClick={() => {
-                            scrollToImage2();
-                            setCurrentMessage(0); // Start messages when arrow is clicked
-                        }}
-                            src="https://cdn.lordicon.com/byeqoddv.json"
-                            trigger="in"
-                            delay="1500"
-                            stroke="bold"
-                            state="in-reveal"
-                            colors="primary:#ffffff"
-                            style={{ width: '75px', height: '75px' }}>
-                        </lord-icon>
-                    </div>
+                <div className="image-container">
+                    <img src={image1} alt="Travel 1" className="full-screen1" id="image1" />
                 </div>
-                <div ref={image2Ref} className="image-container">
-                    <img src={image2} alt=" " className="full-screen2" id="image2" />
+                <div className="image-container" ref={messageRef}>
+                    <img src={image2} alt="Travel 2" className="full-screen2" id="image2" />
                     {showMessage && currentMessage < messages.length && (
                         <div className="welcome-message">
                             <div className="welcome-icons">
@@ -493,18 +322,6 @@ function BenchmarkPage() {
                             {messages[currentMessage].split('\n').map((line, index) => (
                                 <p className='message-line' key={index}>{line}</p>
                             ))}
-                        </div>
-                    )}
-                    {showSecondArrow && (
-                        <div className="scroll-icon2">
-                            <lord-icon onClick={scrollToBoxes}
-                                src="https://cdn.lordicon.com/byeqoddv.json"
-                                trigger="hover"
-                                stroke="bold"
-                                state="hover-slide"
-                                colors="primary:#ffffff"
-                                style={{ width: '75px', height: '75px' }}>
-                            </lord-icon>
                         </div>
                     )}
                 </div>

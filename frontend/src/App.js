@@ -18,7 +18,6 @@ import Preferences from "./pages/PreferencesPage/PreferencesPage";
 
 import NotFoundPage from "./pages/NotFoundPage/NotFoundPage";
 
-// Define "lord-icon" custom element with default properties
 defineElement(lottie.loadAnimation);
 
 function App() {
