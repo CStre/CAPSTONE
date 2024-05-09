@@ -453,7 +453,7 @@ function LearnPage() {
                             <a href="https://www.linkedin.com/in/collin.streitman" target="_blank" rel="noopener noreferrer">
                                 <img src={LinkedIn} alt="LinkedIn" style={{ width: '75px', height: '75px' }} />
                             </a>
-                            <a href="https://collin-streitman.com" target="_blank" rel="noopener noreferrer">
+                            <a href="https://www.collinstreitman.com" target="_blank" rel="noopener noreferrer">
                                 <img src={Website} alt="Website" style={{ width: '75px', height: '75px' }} />
                             </a>
                         </div>
