@@ -1,1 +1,4 @@
 *.env
+
+# Local working notes — not committed
+CLAUDE.md
