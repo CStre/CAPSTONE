@@ -5,7 +5,8 @@ An educational full-stack capstone project that teaches how a simple
 Users rate travel photos from around the world, and a feedback loop adjusts their
 country preferences — visualized live on a dashboard.
 
-- **Live domain:** `buildingbetteralgorithms.com` (AWS Elastic Beanstalk deployment)
+- **Domain:** `buildingbetteralgorithms.com` — v1 was deployed on AWS Elastic
+  Beanstalk; the site is **not currently live** and the domain registration has lapsed.
 - **Status:** v1 complete — currently being refactored (see [Roadmap](#roadmap)).
 
 ---
@@ -163,9 +164,9 @@ All endpoints are served by Django. Auth is session-based (cookie + CSRF).
 
 ---
 
-## Deployment (current)
+## Deployment (v1 — no longer running)
 
-Deployed to **AWS Elastic Beanstalk** on the Python platform:
+v1 was deployed to **AWS Elastic Beanstalk** on the Python platform:
 
 - `backend/.ebextensions/django.config` — sets the WSGI path and static file routing.
 - `backend/.ebextensions/db-migrate.config` — runs `manage.py migrate` on deploy
@@ -208,7 +209,7 @@ The project is being refactored with these goals:
 - Move to a **free-tier database** (DynamoDB).
 - Redesign preferences as a **keyed per-country map** (replacing the brittle
   positional array) — seeded neutral and learned from Travel feedback.
-- Replace the broken auth with **AWS Cognito** — SMS + authenticator-app MFA.
+- Replace the broken auth with **AWS Cognito** — authenticator-app (TOTP) MFA.
 - Add a **CI/CD pipeline** (GitHub Actions) with a full security-scanning suite
   (SAST, DAST, dependency/container/IaC scanning, SBOM) across DEV / QA / production.
 - Clean up dependencies and split frontend/backend hosting.
