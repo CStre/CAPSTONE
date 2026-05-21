@@ -65,38 +65,29 @@ within Google Places API quota.
 
 ## Repository Structure
 
+The refactor is underway — the v1 codebase is archived under `legacy/` (still the
+reference for app behavior) while the new TypeScript stack is built in `frontend/`,
+`backend/`, and `infra/`. See the [Roadmap](#roadmap).
+
 ```
 CAPSTONE/
-├── frontend/                 # React single-page app (Create React App)
-│   └── src/
-│       ├── App.js            # Router + routes
-│       ├── AuthContext.js    # In-memory auth state (isAuthenticated)
-│       ├── config.js         # Hardcoded API base URL (legacy)
-│       ├── components/       # Header (nav), Loader
-│       └── pages/            # HomePage, LearnPage, BenchmarkPage (Travel),
-│                             # DashboardPage, PreferencesPage, AccountPage,
-│                             # CreditsPage, NotFoundPage
-│
-├── backend/                  # Django project
-│   ├── manage.py
-│   ├── requirements.txt
-│   ├── .ebextensions/        # Elastic Beanstalk deploy config (migrate, collectstatic)
-│   └── backend/              # Django app + project module
-│       ├── settings.py       # Django settings (env-driven)
-│       ├── urls.py           # URL routes
-│       ├── views.py          # REST endpoints (DRF)
-│       ├── models.py         # CustomUser model
-│       ├── serializers.py    # User + Login serializers
-│       ├── algorithm.py      # Preference-update logic
-│       ├── places.py         # Google Places image fetching
-│       └── migrations/
-│
-└── algorithm-testing/        # Standalone algorithm prototypes (not deployed)
+├── frontend/        # NEW — Vite + React + TypeScript SPA (built in Phase 2)
+├── backend/         # NEW — Node.js + TypeScript GraphQL Lambda (built in Phase 1)
+├── infra/           # NEW — Terraform infrastructure (built in Phase 3)
+├── legacy/          # Archived v1 — reference only, removed after the refactor
+│   ├── backend/             # v1 Django REST API
+│   ├── frontend/            # v1 Create React App SPA
+│   └── algorithm-testing/   # v1 algorithm prototypes
+├── README.md
+└── LICENSE.md
 ```
 
 ---
 
 ## Local Development
+
+> The instructions below are for the **archived v1 app**, now under `legacy/`.
+> Setup for the new TypeScript stack will be documented as it is built (Phases 1–3).
 
 ### Prerequisites
 
@@ -108,7 +99,7 @@ CAPSTONE/
 ### Backend
 
 ```bash
-cd backend
+cd legacy/backend
 python -m venv venv
 source venv/bin/activate            # Windows: venv\Scripts\activate
 pip install -r requirements.txt
@@ -135,7 +126,7 @@ KEY=your_google_places_api_key
 ### Frontend
 
 ```bash
-cd frontend
+cd legacy/frontend
 npm install
 npm start                            # http://localhost:3000
 npm run build                        # production build into frontend/build/
