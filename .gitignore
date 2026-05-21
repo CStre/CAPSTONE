@@ -1,1 +1,48 @@
+# === Local working notes (not committed) ===
+CLAUDE.md
+
+# === Secrets / environment ===
+.env
+.env.*
 *.env
+!.env.example
+!.env.*.example
+
+# === Node / TypeScript ===
+node_modules/
+dist/
+build/
+coverage/
+*.tsbuildinfo
+.eslintcache
+.vite/
+
+# === Python (legacy/) ===
+__pycache__/
+*.py[cod]
+*.sqlite3
+.venv/
+venv/
+
+# === Terraform ===
+.terraform/
+.terraform.lock.hcl
+*.tfstate
+*.tfstate.*
+*.tfplan
+*.tfvars
+!*.tfvars.example
+crash.log
+
+# === Docker ===
+docker-compose.override.yml
+
+# === Logs ===
+*.log
+
+# === OS / editor ===
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
