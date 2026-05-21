@@ -1,0 +1,9 @@
+# DynamoDB Local for development.
+#   docker compose up -d      then      npm run dev
+services:
+  dynamodb:
+    image: amazon/dynamodb-local:latest
+    container_name: bba-dynamodb-local
+    ports:
+      - '8000:8000'
+    command: '-jar DynamoDBLocal.jar -inMemory -sharedDb'

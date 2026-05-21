@@ -5,8 +5,8 @@ An educational full-stack capstone project that teaches how a simple
 Users rate travel photos from around the world, and a feedback loop adjusts their
 country preferences — visualized live on a dashboard.
 
-- **Domain:** `buildingbetteralgorithms.com` — v1 was deployed on AWS Elastic
-  Beanstalk; the site is **not currently live** and the domain registration has lapsed.
+- **Domain:** `buildbetteralgorithms.com` — registered for the rebuild. (v1 ran on
+  the now-lapsed `buildingbetteralgorithms.com`.)
 - **Status:** v1 complete — currently being refactored (see [Roadmap](#roadmap)).
 
 ---
