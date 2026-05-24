@@ -24,6 +24,7 @@ concurrency:
   cancel-in-progress: false  # queue; never cancel a prod deploy in flight
 
 env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
   AWS_ACCOUNT_ID: "958941188378"
   AWS_REGION: us-east-1
   ENVIRONMENT: prod
@@ -98,9 +99,11 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
       - uses: aws-actions/amazon-ecr-login@v2
       - name: Build image
-        run: docker build --platform linux/amd64 -t bba-prod-graphql:${{ github.sha }} backend/
+        env:
+          IMAGE_TAG: ${{ github.sha }}
+        run: docker build --platform linux/amd64 -t bba-prod-graphql:$IMAGE_TAG backend/
       - name: Scan image — Trivy (hard gate for prod)
-        uses: aquasecurity/trivy-action@0.24.0
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           image-ref: bba-prod-graphql:${{ github.sha }}
           format: table
@@ -111,12 +114,14 @@ jobs:
         id: push
         env:
           ECR_URL: ${{ needs.terraform.outputs.ecr_repository_url }}
+          IMAGE_TAG: ${{ github.sha }}
+          REF_NAME: ${{ github.ref_name }}
         run: |
-          docker tag bba-prod-graphql:${{ github.sha }} $ECR_URL:${{ github.ref_name }}
-          docker tag bba-prod-graphql:${{ github.sha }} $ECR_URL:latest
-          docker push $ECR_URL:${{ github.ref_name }}
+          docker tag bba-prod-graphql:$IMAGE_TAG $ECR_URL:$REF_NAME
+          docker tag bba-prod-graphql:$IMAGE_TAG $ECR_URL:latest
+          docker push $ECR_URL:$REF_NAME
           docker push $ECR_URL:latest
-          echo "image-uri=$ECR_URL:${{ github.ref_name }}" >> $GITHUB_OUTPUT
+          echo "image-uri=$ECR_URL:$REF_NAME" >> $GITHUB_OUTPUT
 
   build-frontend:
     name: Frontend — Build

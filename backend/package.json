@@ -10,8 +10,8 @@
     "printschema": "tsx scripts/print-schema.ts",
     "typecheck": "tsc --noEmit",
     "test": "jest",
-    "lint": "eslint . && prettier --check .",
-    "format": "prettier --write ."
+    "lint": "eslint . && node_modules/.bin/tsx node_modules/prettier/bin/prettier.cjs --check .",
+    "format": "node_modules/.bin/tsx node_modules/prettier/bin/prettier.cjs --write ."
   },
   "engines": {
     "node": ">=24"

@@ -32,6 +32,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
   AWS_ACCOUNT_ID: "958941188378"
   AWS_REGION: us-east-1
   ENVIRONMENT: dev
@@ -118,7 +119,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: aquasecurity/trivy-action@0.24.0
+      - uses: aquasecurity/trivy-action@v0.36.0
         with:
           scan-type: fs
           scan-ref: .
@@ -263,13 +264,15 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
       - uses: aws-actions/amazon-ecr-login@v2
       - name: Build image
+        env:
+          IMAGE_TAG: ${{ github.sha }}
         run: |
           docker build \
             --platform linux/amd64 \
-            -t bba-dev-graphql:${{ github.sha }} \
+            -t bba-dev-graphql:$IMAGE_TAG \
             backend/
       - name: Scan image — Trivy
-        uses: aquasecurity/trivy-action@0.24.0
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           image-ref: bba-dev-graphql:${{ github.sha }}
           format: table
@@ -280,12 +283,13 @@ jobs:
         id: push
         env:
           ECR_URL: ${{ needs.terraform.outputs.ecr_repository_url }}
+          IMAGE_TAG: ${{ github.sha }}
         run: |
-          docker tag bba-dev-graphql:${{ github.sha }} $ECR_URL:${{ github.sha }}
-          docker tag bba-dev-graphql:${{ github.sha }} $ECR_URL:latest
-          docker push $ECR_URL:${{ github.sha }}
+          docker tag bba-dev-graphql:$IMAGE_TAG $ECR_URL:$IMAGE_TAG
+          docker tag bba-dev-graphql:$IMAGE_TAG $ECR_URL:latest
+          docker push $ECR_URL:$IMAGE_TAG
           docker push $ECR_URL:latest
-          echo "image-uri=$ECR_URL:${{ github.sha }}" >> $GITHUB_OUTPUT
+          echo "image-uri=$ECR_URL:$IMAGE_TAG" >> $GITHUB_OUTPUT
 
   # ---------------------------------------------------------------------------
   # Phase 3 — Build frontend (needs Terraform outputs for VITE env vars)

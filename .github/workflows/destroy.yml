@@ -36,6 +36,9 @@ on:
 permissions:
   contents: read
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+
 jobs:
   # Safety gate — fails immediately if the confirmation phrase is wrong
   confirm:

@@ -16,6 +16,9 @@ on:
 permissions:
   contents: read
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+
 jobs:
   # ---------------------------------------------------------------------------
   # Enforce: PRs to main must come from develop
@@ -26,9 +29,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Require develop → main
+        env:
+          HEAD_REF: ${{ github.head_ref }}
         run: |
-          if [[ "${{ github.head_ref }}" != "develop" ]]; then
-            echo "::error::PRs to main must come from the develop branch (got: ${{ github.head_ref }})"
+          if [[ "$HEAD_REF" != "develop" ]]; then
+            echo "::error::PRs to main must come from the develop branch (got: $HEAD_REF)"
             exit 1
           fi
 
@@ -114,7 +119,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: aquasecurity/trivy-action@0.24.0
+      - uses: aquasecurity/trivy-action@v0.36.0
         with:
           scan-type: fs
           scan-ref: .
