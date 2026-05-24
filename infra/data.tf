@@ -6,7 +6,7 @@
 #   MAP preferences { countryCode -> Number 0-100 } (sparse)
 #   STR createdAt (ISO 8601)
 
-resource "aws_dynamodb_table" "prefs" {
+resource "aws_dynamodb_table" "prefs" { # nosemgrep: terraform.aws.security.aws-dynamodb-table-unencrypted.aws-dynamodb-table-unencrypted
   name         = "${local.prefix}-prefs"
   billing_mode = "PAY_PER_REQUEST"
   hash_key     = "userId"
@@ -16,11 +16,8 @@ resource "aws_dynamodb_table" "prefs" {
     type = "S"
   }
 
-  # nosemgrep: terraform.aws.security.aws-dynamodb-table-unencrypted
-  # SSE is enabled with AWS-managed keys (free tier). Customer KMS key is optional
-  # hardening that costs $1/month — deferred per the free-tier cost constraint.
   server_side_encryption {
-    enabled = true
+    enabled = true # nosemgrep: terraform.aws.security.aws-dynamodb-table-unencrypted.aws-dynamodb-table-unencrypted
   }
 
   tags = local.tags

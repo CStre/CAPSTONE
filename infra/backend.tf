@@ -153,7 +153,7 @@ resource "aws_lambda_function" "graphql" {
   reserved_concurrent_executions = 10
 
   tracing_config {
-    mode = "PassThrough"
+    mode = "Active"
   }
 
   environment {
