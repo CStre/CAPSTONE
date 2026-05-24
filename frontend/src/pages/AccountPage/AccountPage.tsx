@@ -1,17 +1,18 @@
 /**
- * @fileoverview Account page — profile and account management.
+ * @fileoverview Account page — profile and account management, all in one card.
  *
- * Identity (name, email, password, MFA) lives in Cognito, so display-name and
- * password changes go through Amplify Auth. Deleting the account runs the
- * `deleteAccount` mutation, which removes both the DynamoDB record and the
- * Cognito user; the local session is then cleared.
+ * Email/TOTP changes open a shared glass popup that reuses the same CodeForm
+ * and TotpSetupForm components from the auth flow. Account deletion uses a
+ * separate danger-styled confirmation modal.
  */
-import { useState, useEffect, useRef } from 'react';
-import type { ReactElement, SyntheticEvent } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import type { ReactElement, ReactNode, SyntheticEvent } from 'react';
 import { Navigate, useNavigate } from 'react-router';
 import { useMutation } from 'urql';
 import {
+  confirmUserAttribute,
   fetchMFAPreference,
+  sendUserAttributeVerificationCode,
   setUpTOTP,
   updatePassword,
   updateUserAttributes,
@@ -23,24 +24,72 @@ import { useTheme } from '../../lib/ThemeContext';
 import { useCanvasAnimation } from '../../components/CanvasAnimation/useCanvasAnimation';
 import { Loader } from '../../components/Loader/Loader';
 import { LordIcon, ICONS } from '../../components/LordIcon/LordIcon';
+import { useCardTilt } from '../../components/GlassIsland/useCardTilt';
+import '../../components/SecurityInfo/SecurityInfo.css';
 import { PasswordStrength } from '../../components/PasswordStrength/PasswordStrength';
 import { SecurityInfo } from '../../components/SecurityInfo/SecurityInfo';
+import { CodeForm } from '../../auth/CodeForm';
 import { TotpSetupForm } from '../../auth/TotpSetupForm';
 import './AccountPage.css';
 
-/** Remove the user's stored data and Cognito account. */
 const DeleteAccountMutation = graphql(`
   mutation DeleteAccount {
     deleteAccount
   }
 `);
 
-/** Outcome of a form action, shown inline beneath the form. */
 type Status = { tone: 'ok' | 'error'; message: string } | null;
+type Popup = 'emailVerify' | 'totp' | 'delete' | null;
 
-/** Pull a human-readable message off an unknown thrown value. */
 function errorMessage(error: unknown): string {
   return error instanceof Error ? error.message : 'Something went wrong. Try again.';
+}
+
+/** Glass popup overlay — matches SecurityInfo exactly, including card tilt. */
+function AccountPopup({
+  onClose,
+  danger,
+  icon,
+  iconTrigger,
+  title,
+  children,
+}: {
+  onClose: () => void;
+  danger?: boolean;
+  icon?: string;
+  iconTrigger?: 'hover' | 'loop' | 'loop-on-hover' | 'click' | 'in';
+  title?: string;
+  children: ReactNode;
+}): ReactElement {
+  const { ref, rx, ry, isHovered } = useCardTilt(4);
+
+  function handleBackdropClick(e: React.MouseEvent<HTMLDivElement>): void {
+    if (e.target === e.currentTarget) onClose();
+  }
+
+  return (
+    <div className="account-popup-overlay" onClick={handleBackdropClick}>
+      <div
+        ref={ref}
+        className={`account-popup-card${danger ? ' account-popup-card--danger' : ''}`}
+        style={{
+          transform: `perspective(900px) rotateX(${rx}deg) rotateY(${ry}deg)`,
+          transition: isHovered ? 'transform 0.12s ease-out' : 'transform 0.5s ease-out',
+        }}
+      >
+        <button type="button" className="si-close" onClick={onClose} aria-label="Close">
+          <LordIcon src={ICONS.securityClose} size={50} trigger="hover" stroke="bold" />
+        </button>
+        {icon && title && (
+          <div className="si-header">
+            <LordIcon src={icon} size={64} trigger={iconTrigger ?? 'hover'} stroke="bold" />
+            <h2 className="si-heading">{title}</h2>
+          </div>
+        )}
+        {children}
+      </div>
+    </div>
+  );
 }
 
 export function AccountPage(): ReactElement {
@@ -51,21 +100,29 @@ export function AccountPage(): ReactElement {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   useCanvasAnimation(canvasRef, theme);
 
+  const [popup, setPopup] = useState<Popup>(null);
+  const [showSecurity, setShowSecurity] = useState(false);
+
+  // ── Display name ─────────────────────────────────────────────────────────
   const [name, setName] = useState('');
   const [nameStatus, setNameStatus] = useState<Status>(null);
   const [savingName, setSavingName] = useState(false);
 
+  // ── Email ─────────────────────────────────────────────────────────────────
+  const [email, setEmail] = useState('');
+  const [emailStatus, setEmailStatus] = useState<Status>(null);
+  const [savingEmail, setSavingEmail] = useState(false);
+  const [emailCodePending, setEmailCodePending] = useState(false);
+  const [emailCodeError, setEmailCodeError] = useState<string | null>(null);
+
+  // ── Password ─────────────────────────────────────────────────────────────
   const [oldPassword, setOldPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [passwordStatus, setPasswordStatus] = useState<Status>(null);
   const [savingPassword, setSavingPassword] = useState(false);
-  const [showSecurity, setShowSecurity] = useState(false);
 
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [deleteError, setDeleteError] = useState<string | null>(null);
-
+  // ── TOTP ──────────────────────────────────────────────────────────────────
   const [totpEnrolled, setTotpEnrolled] = useState<boolean | null>(null);
-  const [showTotpSetup, setShowTotpSetup] = useState(false);
   const [totpSetupDetails, setTotpSetupDetails] = useState<{
     secret: string;
     uri: string;
@@ -73,6 +130,9 @@ export function AccountPage(): ReactElement {
   const [totpPending, setTotpPending] = useState(false);
   const [totpError, setTotpError] = useState<string | null>(null);
   const [totpSuccess, setTotpSuccess] = useState(false);
+
+  // ── Delete ────────────────────────────────────────────────────────────────
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   useEffect(() => {
     void fetchMFAPreference()
@@ -87,7 +147,8 @@ export function AccountPage(): ReactElement {
   if (status === 'loading') return <Loader />;
   if (status === 'unauthenticated' || !user) return <Navigate to="/login" replace />;
 
-  /** Update the Cognito display-name attribute. */
+  // ── Handlers ──────────────────────────────────────────────────────────────
+
   async function saveName(event: SyntheticEvent<HTMLFormElement>): Promise<void> {
     event.preventDefault();
     setSavingName(true);
@@ -104,7 +165,44 @@ export function AccountPage(): ReactElement {
     }
   }
 
-  /** Change the Cognito password. */
+  async function saveEmail(event: SyntheticEvent<HTMLFormElement>): Promise<void> {
+    event.preventDefault();
+    setSavingEmail(true);
+    setEmailStatus(null);
+    try {
+      await updateUserAttributes({ userAttributes: { email } });
+      setPopup('emailVerify');
+    } catch (error) {
+      setEmailStatus({ tone: 'error', message: errorMessage(error) });
+    } finally {
+      setSavingEmail(false);
+    }
+  }
+
+  async function confirmEmail(code: string): Promise<void> {
+    setEmailCodePending(true);
+    setEmailCodeError(null);
+    try {
+      await confirmUserAttribute({ userAttributeKey: 'email', confirmationCode: code });
+      await reload();
+      setEmail('');
+      setPopup(null);
+      setEmailStatus({ tone: 'ok', message: 'Email updated.' });
+    } catch (error) {
+      setEmailCodeError(errorMessage(error));
+    } finally {
+      setEmailCodePending(false);
+    }
+  }
+
+  async function resendEmailCode(): Promise<void> {
+    try {
+      await sendUserAttributeVerificationCode({ userAttributeKey: 'email' });
+    } catch (error) {
+      setEmailCodeError(errorMessage(error));
+    }
+  }
+
   async function savePassword(event: SyntheticEvent<HTMLFormElement>): Promise<void> {
     event.preventDefault();
     setSavingPassword(true);
@@ -121,8 +219,7 @@ export function AccountPage(): ReactElement {
     }
   }
 
-  /** Begin TOTP re-enrollment — fetches a new secret and QR code. */
-  async function startTotpSetup(): Promise<void> {
+  async function openTotpSetup(): Promise<void> {
     if (!user) return;
     setTotpPending(true);
     setTotpError(null);
@@ -132,7 +229,7 @@ export function AccountPage(): ReactElement {
         secret: details.sharedSecret,
         uri: details.getSetupUri('Building Better Algorithms', user.email).toString(),
       });
-      setShowTotpSetup(true);
+      setPopup('totp');
     } catch (err) {
       setTotpError(errorMessage(err));
     } finally {
@@ -140,7 +237,6 @@ export function AccountPage(): ReactElement {
     }
   }
 
-  /** Confirm the TOTP re-enrollment with the 6-digit code. */
   async function confirmTotpSetup(code: string): Promise<void> {
     setTotpPending(true);
     setTotpError(null);
@@ -148,8 +244,8 @@ export function AccountPage(): ReactElement {
       await verifyTOTPSetup({ code });
       setTotpEnrolled(true);
       setTotpSuccess(true);
-      setShowTotpSetup(false);
       setTotpSetupDetails(null);
+      setPopup(null);
     } catch (err) {
       setTotpError(errorMessage(err));
     } finally {
@@ -157,7 +253,6 @@ export function AccountPage(): ReactElement {
     }
   }
 
-  /** Permanently delete the account, then sign out. */
   async function removeAccount(): Promise<void> {
     setDeleteError(null);
     const result = await deleteAccount({});
@@ -167,10 +262,12 @@ export function AccountPage(): ReactElement {
       );
       return;
     }
-    setShowDeleteModal(false);
+    setPopup(null);
     await logout();
     void navigate('/');
   }
+
+  // ── Render ─────────────────────────────────────────────────────────────────
 
   return (
     <div className="account-panel">
@@ -183,113 +280,154 @@ export function AccountPage(): ReactElement {
         </div>
 
         <div className="account-card">
-          <dl className="account-profile">
-            <div>
-              <dt>Name</dt>
-              <dd>{user.name || '—'}</dd>
-            </div>
-            <div>
-              <dt>Email</dt>
-              <dd>{user.email}</dd>
-            </div>
-          </dl>
-          <p className="account-note">
-            Email is managed through Cognito sign-in.{' '}
-            <button
-              type="button"
-              className="account-link"
-              onClick={() => {
-                setShowSecurity(true);
-              }}
-            >
-              How is my data protected?
-            </button>
-          </p>
-        </div>
-
-        <form className="account-card" onSubmit={(e) => void saveName(e)}>
-          <h2>Display name</h2>
-          <label className="account-field">
-            <span>New display name</span>
-            <input
-              type="text"
-              value={name}
-              required
-              autoComplete="name"
-              onChange={(e) => {
-                setName(e.target.value);
-              }}
-            />
-          </label>
-          <button type="submit" className="account-btn" disabled={savingName}>
-            {savingName ? 'Saving…' : 'Update name'}
-          </button>
-          {nameStatus && (
-            <p className={`account-status account-status--${nameStatus.tone}`}>
-              {nameStatus.message}
+          {/* ── Profile ──────────────────────────────────────────────── */}
+          <div className="account-section">
+            <h2>Profile</h2>
+            <dl className="account-profile">
+              <div>
+                <dt>Name</dt>
+                <dd>{user.name || '—'}</dd>
+              </div>
+              <div>
+                <dt>Email</dt>
+                <dd>{user.email}</dd>
+              </div>
+            </dl>
+            <p className="account-note">
+              <button
+                type="button"
+                className="account-link"
+                onClick={() => {
+                  setShowSecurity(true);
+                }}
+              >
+                How is my data protected?
+              </button>
             </p>
-          )}
-        </form>
+          </div>
 
-        <form className="account-card" onSubmit={(e) => void savePassword(e)}>
-          <h2>Password</h2>
-          <label className="account-field">
-            <span>Current password</span>
-            <input
-              type="password"
-              value={oldPassword}
-              required
-              autoComplete="current-password"
-              onChange={(e) => {
-                setOldPassword(e.target.value);
-              }}
-            />
-          </label>
-          <label className="account-field">
-            <span>New password</span>
-            <input
-              type="password"
-              value={newPassword}
-              required
-              autoComplete="new-password"
-              onChange={(e) => {
-                setNewPassword(e.target.value);
-              }}
-            />
-          </label>
-          <PasswordStrength password={newPassword} />
-          <button type="submit" className="account-btn" disabled={savingPassword}>
-            {savingPassword ? 'Saving…' : 'Update password'}
-          </button>
-          {passwordStatus && (
-            <p className={`account-status account-status--${passwordStatus.tone}`}>
-              {passwordStatus.message}
-            </p>
-          )}
-        </form>
+          <hr className="account-divider" />
 
-        <div className="account-card">
-          <h2>Two-factor authentication</h2>
-          {totpEnrolled === null ? (
-            <p className="account-note">Checking 2FA status…</p>
-          ) : (
-            <>
-              <div className="account-totp-status">
+          {/* ── Display name ─────────────────────────────────────────── */}
+          <div className="account-section">
+            <h2>Display name</h2>
+            <form onSubmit={(e) => void saveName(e)}>
+              <label className="account-field">
+                <span>New display name</span>
+                <input
+                  type="text"
+                  value={name}
+                  required
+                  autoComplete="name"
+                  onChange={(e) => {
+                    setName(e.target.value);
+                  }}
+                />
+              </label>
+              <button type="submit" className="account-btn" disabled={savingName}>
+                {savingName ? 'Saving…' : 'Update name'}
+              </button>
+              {nameStatus && (
+                <p className={`account-status account-status--${nameStatus.tone}`}>
+                  {nameStatus.message}
+                </p>
+              )}
+            </form>
+          </div>
+
+          <hr className="account-divider" />
+
+          {/* ── Email ────────────────────────────────────────────────── */}
+          <div className="account-section">
+            <h2>Email address</h2>
+            <form onSubmit={(e) => void saveEmail(e)}>
+              <label className="account-field">
+                <span>New email address</span>
+                <input
+                  type="email"
+                  value={email}
+                  required
+                  autoComplete="email"
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                  }}
+                />
+              </label>
+              <button type="submit" className="account-btn" disabled={savingEmail}>
+                {savingEmail ? 'Sending code…' : 'Update email'}
+              </button>
+              {emailStatus && (
+                <p className={`account-status account-status--${emailStatus.tone}`}>
+                  {emailStatus.message}
+                </p>
+              )}
+            </form>
+          </div>
+
+          <hr className="account-divider" />
+
+          {/* ── Password ─────────────────────────────────────────────── */}
+          <div className="account-section">
+            <h2>Password</h2>
+            <form onSubmit={(e) => void savePassword(e)}>
+              <label className="account-field">
+                <span>Current password</span>
+                <input
+                  type="password"
+                  value={oldPassword}
+                  required
+                  autoComplete="current-password"
+                  onChange={(e) => {
+                    setOldPassword(e.target.value);
+                  }}
+                />
+              </label>
+              <label className="account-field">
+                <span>New password</span>
+                <input
+                  type="password"
+                  value={newPassword}
+                  required
+                  autoComplete="new-password"
+                  onChange={(e) => {
+                    setNewPassword(e.target.value);
+                  }}
+                />
+              </label>
+              <PasswordStrength password={newPassword} />
+              <button type="submit" className="account-btn" disabled={savingPassword}>
+                {savingPassword ? 'Saving…' : 'Update password'}
+              </button>
+              {passwordStatus && (
+                <p className={`account-status account-status--${passwordStatus.tone}`}>
+                  {passwordStatus.message}
+                </p>
+              )}
+            </form>
+          </div>
+
+          <hr className="account-divider" />
+
+          {/* ── Two-factor auth ──────────────────────────────────────── */}
+          <div className="account-section">
+            <h2>Two-factor authentication</h2>
+            {totpEnrolled === null ? (
+              <p className="account-note">Checking status…</p>
+            ) : (
+              <div className="account-totp-row">
                 <span
                   className={`account-totp-badge${totpEnrolled ? ' account-totp-badge--on' : ' account-totp-badge--off'}`}
                 >
-                  {totpEnrolled ? '✓ TOTP enabled' : '✗ TOTP not enrolled'}
+                  {totpEnrolled ? '✓ TOTP enabled' : '✗ Not enrolled'}
                 </span>
                 {totpSuccess && (
                   <span className="account-status account-status--ok">Authenticator updated.</span>
                 )}
-              </div>
-              {!showTotpSetup ? (
                 <button
                   type="button"
                   className="account-btn"
                   disabled={totpPending}
-                  onClick={() => void startTotpSetup()}
+                  onClick={() => void openTotpSetup()}
                 >
                   {totpPending
                     ? 'Loading…'
@@ -297,37 +435,100 @@ export function AccountPage(): ReactElement {
                       ? 'Re-enroll authenticator'
                       : 'Set up authenticator'}
                 </button>
-              ) : totpSetupDetails ? (
-                <TotpSetupForm
-                  secret={totpSetupDetails.secret}
-                  setupUri={totpSetupDetails.uri}
-                  pending={totpPending}
-                  error={totpError}
-                  onSubmit={(code) => void confirmTotpSetup(code)}
-                />
-              ) : null}
-              {totpError && !showTotpSetup && (
-                <p className="account-status account-status--error">{totpError}</p>
-              )}
-            </>
-          )}
-        </div>
+                {totpError && <p className="account-status account-status--error">{totpError}</p>}
+              </div>
+            )}
+          </div>
 
-        <div className="account-card account-card--danger">
-          <h2>Delete account</h2>
-          <p>This erases your preference data and Cognito account for good.</p>
-          <button
-            type="button"
-            className="account-btn account-btn--danger"
-            onClick={() => {
-              setDeleteError(null);
-              setShowDeleteModal(true);
-            }}
-          >
-            Delete my account
-          </button>
+          <hr className="account-divider account-divider--danger" />
+
+          {/* ── Delete account ───────────────────────────────────────── */}
+          <div className="account-section">
+            <h2 className="account-section-title--danger">Delete account</h2>
+            <p className="account-note">
+              Permanently erases your preference data and Cognito account.
+            </p>
+            <button
+              type="button"
+              className="account-btn account-btn--danger"
+              onClick={() => {
+                setDeleteError(null);
+                setPopup('delete');
+              }}
+            >
+              Delete my account
+            </button>
+          </div>
         </div>
       </section>
+
+      {/* ── Email verification popup ──────────────────────────────────────── */}
+      {popup === 'emailVerify' && (
+        <AccountPopup
+          icon={ICONS.emailSend}
+          iconTrigger="in"
+          title="Verify new email"
+          onClose={() => {
+            setPopup(null);
+          }}
+        >
+          <CodeForm
+            description={`Enter the verification code sent to ${email}.`}
+            submitLabel="Confirm email"
+            pending={emailCodePending}
+            error={emailCodeError}
+            onSubmit={(code) => void confirmEmail(code)}
+            onResend={() => void resendEmailCode()}
+          />
+        </AccountPopup>
+      )}
+
+      {/* ── TOTP setup popup ─────────────────────────────────────────────── */}
+      {popup === 'totp' && totpSetupDetails && (
+        <AccountPopup
+          icon={ICONS.qrCode}
+          title="Set up authenticator"
+          onClose={() => {
+            setPopup(null);
+            setTotpError(null);
+          }}
+        >
+          <TotpSetupForm
+            secret={totpSetupDetails.secret}
+            setupUri={totpSetupDetails.uri}
+            pending={totpPending}
+            error={totpError}
+            onSubmit={(code) => void confirmTotpSetup(code)}
+          />
+        </AccountPopup>
+      )}
+
+      {/* ── Delete confirmation popup ─────────────────────────────────────── */}
+      {popup === 'delete' && (
+        <AccountPopup
+          danger
+          onClose={() => {
+            setPopup(null);
+          }}
+        >
+          <div className="auth-form">
+            <h2>Delete account?</h2>
+            <p className="auth-description">
+              This permanently removes your preference data and Cognito account. This action cannot
+              be undone.
+            </p>
+            <button
+              type="button"
+              className="account-btn account-btn--danger"
+              disabled={deletion.fetching}
+              onClick={() => void removeAccount()}
+            >
+              {deletion.fetching ? 'Deleting…' : 'Delete my account'}
+            </button>
+            {deleteError && <p className="auth-error">{deleteError}</p>}
+          </div>
+        </AccountPopup>
+      )}
 
       {showSecurity && (
         <SecurityInfo
@@ -335,48 +536,6 @@ export function AccountPage(): ReactElement {
             setShowSecurity(false);
           }}
         />
-      )}
-
-      {showDeleteModal && (
-        <div
-          className="account-modal-overlay"
-          onClick={() => {
-            setShowDeleteModal(false);
-          }}
-        >
-          <div
-            className="account-modal"
-            onClick={(e) => {
-              e.stopPropagation();
-            }}
-          >
-            <h2>Delete account?</h2>
-            <p>
-              This permanently removes your preference data and Cognito account. This action cannot
-              be undone.
-            </p>
-            <div className="account-modal-actions">
-              <button
-                type="button"
-                className="account-btn"
-                onClick={() => {
-                  setShowDeleteModal(false);
-                }}
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                className="account-btn account-btn--danger"
-                disabled={deletion.fetching}
-                onClick={() => void removeAccount()}
-              >
-                {deletion.fetching ? 'Deleting…' : 'Delete my account'}
-              </button>
-            </div>
-            {deleteError && <p className="account-status account-status--error">{deleteError}</p>}
-          </div>
-        </div>
       )}
     </div>
   );

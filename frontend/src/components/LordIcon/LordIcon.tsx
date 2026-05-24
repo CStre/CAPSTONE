@@ -54,6 +54,9 @@ export const ICONS = {
   authSignIn: '/icons/wired-outline-44-avatar-user-in-circle-hover-looking-around.json',
   authSignUp: '/icons/wired-outline-307-avatar-icon-calm-plus-hover-click.json',
   passwordEye: '/icons/wired-outline-69-eye-hover-blink.json',
+  emailSend: '/icons/wired-outline-177-envelope-send-in-assembly.json',
+  qrCode: '/icons/wired-outline-1335-qr-code-hover-pinch.json',
+  resendCode: '/icons/wired-outline-194-refresh-hover-pinch.json',
 } as const;
 
 interface LordIconProps {

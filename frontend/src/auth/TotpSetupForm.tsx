@@ -4,6 +4,7 @@
 import { useState } from 'react';
 import type { ReactElement, SyntheticEvent } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
+import { useElasticOffset } from '../components/GlassIsland/useElasticOffset';
 
 interface TotpSetupFormProps {
   secret: string;
@@ -11,6 +12,14 @@ interface TotpSetupFormProps {
   pending: boolean;
   error: string | null;
   onSubmit: (code: string) => void;
+}
+
+/** Breaks a secret into space-separated groups of 4 for readability. */
+function formatSecret(secret: string): string {
+  return secret
+    .toUpperCase()
+    .replace(/(.{4})/g, '$1 ')
+    .trim();
 }
 
 /** Presentational TOTP-enrollment form; the parent owns the async work. */
@@ -22,6 +31,8 @@ export function TotpSetupForm({
   onSubmit,
 }: TotpSetupFormProps): ReactElement {
   const [code, setCode] = useState('');
+  const [showKey, setShowKey] = useState(false);
+  const { ref: qrRef, tx, ty } = useElasticOffset(0.12, 220);
 
   function handleSubmit(event: SyntheticEvent<HTMLFormElement>): void {
     event.preventDefault();
@@ -30,21 +41,49 @@ export function TotpSetupForm({
 
   return (
     <form className="auth-form" onSubmit={handleSubmit}>
-      <h2>Set up two-factor auth</h2>
-      <p className="auth-description">
-        Scan this code with an authenticator app (Google Authenticator, 1Password, …), then enter
-        the 6-digit code it shows.
+      <p className="totp-description">
+        Open your authenticator app and scan the QR code below.
+        <span className="totp-description-apps">
+          Works with Google Authenticator, Duo, Okta Verify, 1Password, and more.
+        </span>
       </p>
+
       {setupUri !== '' && (
-        <div style={{ display: 'flex', justifyContent: 'center', margin: '0.5rem 0 0.75rem' }}>
+        <div
+          ref={qrRef}
+          className="totp-qr-box"
+          style={{
+            position: 'relative',
+            left: tx,
+            top: ty,
+            transition: 'left 0.18s ease-out, top 0.18s ease-out',
+          }}
+        >
           <QRCodeSVG value={setupUri} size={180} />
         </div>
       )}
-      <p className="auth-secret">
-        Can’t scan? Enter this key manually: <code>{secret}</code>
-      </p>
+
+      <div className="totp-manual-row">
+        <button
+          type="button"
+          className="auth-link"
+          onClick={() => {
+            setShowKey((v) => !v);
+          }}
+        >
+          {showKey ? 'Hide manual key' : "Can't scan? Show key"}
+        </button>
+      </div>
+
+      {showKey && (
+        <div className="totp-secret-box">
+          <span className="totp-secret-label">Enter this key in your app:</span>
+          <code className="totp-secret">{formatSecret(secret)}</code>
+        </div>
+      )}
+
       <label>
-        Code
+        6-digit code
         <input
           type="text"
           inputMode="numeric"
@@ -58,7 +97,7 @@ export function TotpSetupForm({
       </label>
       {error !== null && <p className="auth-error">{error}</p>}
       <button type="submit" disabled={pending}>
-        {pending ? 'Verifying…' : 'Verify & finish'}
+        {pending ? 'Verifying…' : 'Verify'}
       </button>
     </form>
   );

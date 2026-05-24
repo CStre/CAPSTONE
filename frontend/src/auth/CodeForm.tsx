@@ -3,9 +3,10 @@
  */
 import { useState } from 'react';
 import type { ReactElement, SyntheticEvent } from 'react';
+import { LordIcon, ICONS } from '../components/LordIcon/LordIcon';
 
 interface CodeFormProps {
-  title: string;
+  title?: string;
   description: string;
   submitLabel: string;
   pending: boolean;
@@ -33,30 +34,38 @@ export function CodeForm({
 
   return (
     <form className="auth-form" onSubmit={handleSubmit}>
-      <h2>{title}</h2>
-      <p className="auth-description">{description}</p>
+      {title && <h2>{title}</h2>}
+      <p className="auth-description auth-description--center">{description}</p>
       <label>
         Code
-        <input
-          type="text"
-          inputMode="numeric"
-          autoComplete="one-time-code"
-          required
-          value={code}
-          onChange={(event) => {
-            setCode(event.target.value);
-          }}
-        />
+        <div className="auth-input-wrap">
+          <input
+            type="text"
+            inputMode="numeric"
+            autoComplete="one-time-code"
+            required
+            value={code}
+            onChange={(event) => {
+              setCode(event.target.value);
+            }}
+          />
+          {onResend !== undefined && (
+            <button
+              type="button"
+              className="auth-resend-btn"
+              onClick={onResend}
+              disabled={pending}
+              aria-label="Resend code"
+            >
+              <LordIcon src={ICONS.resendCode} size={26} trigger="hover" stroke="bold" />
+            </button>
+          )}
+        </div>
       </label>
       {error !== null && <p className="auth-error">{error}</p>}
       <button type="submit" disabled={pending}>
         {pending ? 'Working…' : submitLabel}
       </button>
-      {onResend !== undefined && (
-        <button type="button" className="auth-link" onClick={onResend} disabled={pending}>
-          Resend code
-        </button>
-      )}
     </form>
   );
 }

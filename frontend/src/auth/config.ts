@@ -19,7 +19,11 @@ export function configureAuth(userPoolId: string, userPoolClientId: string): voi
       },
     },
   });
+  // secure:true requires HTTPS — on localhost (HTTP) the cookie is silently
+  // rejected, which breaks the sign-in challenge state between signIn and
+  // confirmSignIn.  Production always runs on HTTPS so secure is still enforced.
+  const secure = window.location.protocol === 'https:';
   cognitoUserPoolsTokenProvider.setKeyValueStorage(
-    new CookieStorage({ secure: true, sameSite: 'strict' }),
+    new CookieStorage({ secure, sameSite: 'strict' }),
   );
 }

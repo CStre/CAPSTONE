@@ -25,12 +25,69 @@
   color: var(--color-accent);
 }
 
-/* ── Profile summary (inside a glass card) ──────────────────────────────── */
+/* ── Single glass card ──────────────────────────────────────────────────── */
+
+.account-card {
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  box-shadow:
+    0 12px 40px rgba(0, 0, 0, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.18);
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(18px) saturate(180%);
+  -webkit-backdrop-filter: blur(18px) saturate(180%);
+  overflow: hidden; /* clips sections to the card's rounded corners */
+}
+
+[data-theme='light'] .account-card {
+  border-color: rgba(255, 255, 255, 0.8);
+  box-shadow:
+    0 12px 40px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95),
+    inset 0 -1px 0 rgba(61, 82, 160, 0.08);
+  background: rgba(255, 255, 255, 0.28);
+}
+
+/* ── Sections inside the card ───────────────────────────────────────────── */
+
+.account-section {
+  padding: 1.5rem;
+}
+
+.account-section h2 {
+  margin: 0 0 1rem;
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-extrabold);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-accent);
+}
+
+.account-section-title--danger {
+  color: var(--color-error) !important;
+}
+
+.account-divider {
+  border: none;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  margin: 0;
+}
+
+[data-theme='light'] .account-divider {
+  border-top-color: rgba(61, 82, 160, 0.1);
+}
+
+.account-divider--danger {
+  border-top-color: rgba(255, 80, 80, 0.2);
+}
+
+/* ── Profile dl ─────────────────────────────────────────────────────────── */
 
 .account-profile {
   display: flex;
   flex-wrap: wrap;
-  gap: 1.5rem 3rem;
+  gap: 1rem 3rem;
   margin: 0 0 0.75rem;
 }
 
@@ -43,11 +100,13 @@
 }
 
 .account-profile dd {
-  margin: 0.2rem 0 0;
+  margin: 0.15rem 0 0;
   font-size: var(--fs-base);
   font-weight: var(--fw-medium);
   color: var(--color-text);
 }
+
+/* ── Misc text ──────────────────────────────────────────────────────────── */
 
 .account-note {
   margin: 0;
@@ -64,54 +123,6 @@
   border: none;
   text-decoration: underline;
   cursor: pointer;
-}
-
-/* ── Glass cards ────────────────────────────────────────────────────────── */
-
-.account-card {
-  margin-bottom: 1.25rem;
-  padding: 1.5rem;
-  border-radius: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.22);
-  box-shadow:
-    0 12px 40px rgba(0, 0, 0, 0.25),
-    inset 0 1px 0 rgba(255, 255, 255, 0.4),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.18);
-  background: rgba(255, 255, 255, 0.06);
-  backdrop-filter: blur(18px) saturate(180%);
-  -webkit-backdrop-filter: blur(18px) saturate(180%);
-}
-
-[data-theme='light'] .account-card {
-  border-color: rgba(255, 255, 255, 0.8);
-  box-shadow:
-    0 12px 40px rgba(0, 0, 0, 0.1),
-    inset 0 1px 0 rgba(255, 255, 255, 0.95),
-    inset 0 -1px 0 rgba(61, 82, 160, 0.08);
-  background: rgba(255, 255, 255, 0.28);
-}
-
-.account-card h2 {
-  margin: 0 0 1rem;
-  font-size: var(--fs-md);
-  font-weight: var(--fw-extrabold);
-  color: var(--color-accent);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.account-card--danger {
-  border-color: rgba(255, 80, 80, 0.35);
-}
-
-[data-theme='light'] .account-card--danger {
-  border-color: rgba(200, 40, 40, 0.3);
-}
-
-.account-card--danger p {
-  margin: 0 0 1rem;
-  font-size: var(--fs-sm);
-  color: var(--color-text-muted);
 }
 
 /* ── Form fields ────────────────────────────────────────────────────────── */
@@ -184,9 +195,8 @@
   color: #fff;
 }
 
-.account-btn--danger:hover {
+.account-btn--danger:hover:not(:disabled) {
   background: color-mix(in srgb, var(--color-error) 80%, black);
-  color: #fff;
 }
 
 /* ── Status messages ────────────────────────────────────────────────────── */
@@ -205,20 +215,18 @@
   color: var(--color-error);
 }
 
-/* ── 2FA status badge ────────────────────────────────────────────────────── */
+/* ── 2FA row ─────────────────────────────────────────────────────────────── */
 
-.account-totp-status {
+.account-totp-row {
   display: flex;
-  align-items: center;
-  gap: 1rem;
-  margin-bottom: 1rem;
   flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
 }
 
 .account-totp-badge {
   display: inline-flex;
   align-items: center;
-  gap: 0.3rem;
   padding: 0.3rem 0.8rem;
   border-radius: 99px;
   font-size: var(--fs-xs);
@@ -239,60 +247,50 @@
   border: 1px solid rgba(255, 80, 80, 0.25);
 }
 
-/* ── Delete confirmation modal ──────────────────────────────────────────── */
+/* ── Shared glass popup overlay ─────────────────────────────────────────── */
 
-.account-modal-overlay {
+.account-popup-overlay {
   position: fixed;
   inset: 0;
   z-index: 2000;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 1rem;
-  background: rgba(0, 0, 0, 0.55);
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
+  padding: 5.5rem 1.5rem 2rem;
+  animation: si-fade-in 0.22s ease;
 }
 
-.account-modal {
+.account-popup-card {
+  position: relative;
   width: 100%;
-  max-width: 26rem;
-  padding: 2rem;
-  border-radius: 24px;
-  border: 1px solid rgba(255, 80, 80, 0.35);
+  max-width: 30rem;
+  padding: 2.5rem;
+  border-radius: 30px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
   box-shadow:
-    0 24px 64px rgba(0, 0, 0, 0.5),
-    inset 0 1px 0 rgba(255, 255, 255, 0.35),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.2);
-  background: rgba(30, 20, 20, 0.72);
-  backdrop-filter: blur(28px) saturate(180%);
-  -webkit-backdrop-filter: blur(28px) saturate(180%);
+    0 12px 40px rgba(0, 0, 0, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.18);
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(18px) saturate(180%);
+  -webkit-backdrop-filter: blur(18px) saturate(180%);
+  animation: si-slide-up 0.3s ease;
+  cursor: default;
 }
 
-[data-theme='light'] .account-modal {
-  background: rgba(255, 245, 245, 0.85);
+[data-theme='light'] .account-popup-card {
+  border-color: rgba(255, 255, 255, 0.8);
+  box-shadow:
+    0 12px 40px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95),
+    inset 0 -1px 0 rgba(61, 82, 160, 0.08);
+  background: rgba(255, 255, 255, 0.28);
+}
+
+.account-popup-card--danger {
+  border-color: rgba(255, 80, 80, 0.4);
+}
+
+[data-theme='light'] .account-popup-card--danger {
   border-color: rgba(200, 40, 40, 0.3);
-  box-shadow:
-    0 24px 64px rgba(0, 0, 0, 0.18),
-    inset 0 1px 0 rgba(255, 255, 255, 0.9);
-}
-
-.account-modal h2 {
-  margin: 0 0 0.75rem;
-  font-size: var(--fs-lg);
-  font-weight: var(--fw-extrabold);
-  color: var(--color-error);
-}
-
-.account-modal p {
-  margin: 0 0 1.5rem;
-  font-size: var(--fs-sm);
-  color: var(--color-text-muted);
-  line-height: 1.6;
-}
-
-.account-modal-actions {
-  display: flex;
-  gap: 0.75rem;
-  flex-wrap: wrap;
 }
