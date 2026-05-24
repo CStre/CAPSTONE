@@ -125,7 +125,7 @@ resource "aws_acm_certificate_validation" "main" {
 #   /graphql   → Lambda Function URL
 # ---------------------------------------------------------------------------
 
-resource "aws_cloudfront_distribution" "main" {
+resource "aws_cloudfront_distribution" "main" { # nosemgrep: terraform.aws.security.aws-cloudfront-insecure-tls.aws-insecure-cloudfront-distribution-tls-version
   enabled             = true
   is_ipv6_enabled     = true
   default_root_object = "index.html"

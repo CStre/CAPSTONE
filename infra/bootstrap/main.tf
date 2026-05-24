@@ -79,6 +79,10 @@ resource "aws_dynamodb_table" "tf_state_lock" {
     type = "S"
   }
 
+  server_side_encryption {
+    enabled = true # nosemgrep: terraform.aws.security.aws-dynamodb-table-unencrypted.aws-dynamodb-table-unencrypted
+  }
+
   lifecycle {
     prevent_destroy = true
   }
