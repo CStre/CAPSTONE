@@ -36,9 +36,13 @@ npm install
 npm run dev                 # GraphQL at http://localhost:4000/graphql
 ```
 
-- **Auth** — local dev runs with `AUTH_MODE=dev`, so no Cognito is needed. Override
-  the request identity with `x-dev-user-id` / `x-dev-email` / `x-dev-name` headers.
+- **Auth** — local dev runs with `AUTH_MODE=dev` (default when unset), so no Cognito
+  is needed. Override the request identity with `x-dev-user-id` / `x-dev-email` /
+  `x-dev-name` headers. The deployed Lambda uses `AUTH_MODE=cognito` (set via
+  Terraform) and verifies Cognito ID tokens against the pool's JWKS.
 - **Images** — without `UNSPLASH_ACCESS_KEY` set, placeholder images are returned.
+  The deployed Lambda receives the key as a Lambda environment variable (KMS-encrypted
+  at rest), sourced from the `unsplash_access_key` Terraform variable.
 
 ## Scripts
 

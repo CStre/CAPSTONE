@@ -7,7 +7,7 @@ country preferences — visualized live on a dashboard.
 
 - **Domain:** `buildbetteralgorithms.com` — registered for the rebuild. (v1 ran on
   the now-lapsed `buildingbetteralgorithms.com`.)
-- **Status:** v1 complete — currently being refactored (see [Roadmap](#roadmap)).
+- **Status:** Active refactor — DEV environment deployed; backend (Phase 1) is next.
 
 ---
 
@@ -52,14 +52,20 @@ within Google Places API quota.
 
 ## Tech Stack
 
+The refactored stack (active development):
+
 | Layer        | Technology |
 |--------------|------------|
-| Frontend     | React 18 (Create React App), React Router v6, Axios, GSAP, Lottie / Lordicon, canvas-confetti, react-google-charts, react-helmet |
-| Backend      | Django 4.1, Django REST Framework |
-| Auth         | Django session auth (cookie + CSRF), custom email-based user model |
-| Database     | MySQL on AWS RDS (`PyMySQL` driver) |
-| External API | Google Places API (nearby search + photos) |
-| Hosting      | AWS Elastic Beanstalk (Python platform); Django serves the built React app |
+| Frontend     | Vite + React 19, TypeScript, urql + GraphQL Code Generator, AWS Amplify Auth |
+| Backend      | Node.js + TypeScript, AWS Lambda (container image), GraphQL Yoga + Pothos |
+| Auth         | AWS Cognito (TOTP MFA); Amplify Auth client-side |
+| Database     | AWS DynamoDB — per-user preference map (always-free tier) |
+| External API | Unsplash API (weighted random travel photo selection) |
+| Hosting      | S3 + CloudFront (SPA + `/graphql` proxy); Lambda Function URL as origin |
+| IaC          | Terraform — three environments (`dev` / `qa` / `prod`) in one AWS account |
+| CI/CD        | GitHub Actions — lint, SAST, dep scan, IaC scan, SBOM, tests, deploy, DAST |
+
+The archived v1 stack (Django + Create React App + Elastic Beanstalk) lives under `legacy/` and is the reference for app behavior.
 
 ---
 
@@ -210,11 +216,11 @@ The project is being refactored with these goals:
 | Phase | Scope | Status |
 |---|---|---|
 | 0 | Repo hygiene — archived v1, created new skeleton | ✅ Done |
-| 1 | Backend — TypeScript GraphQL Lambda | Not started |
+| 1 | Backend — TypeScript GraphQL Lambda | 🔜 Next |
 | 2 | Frontend — Vite + React + TypeScript SPA, Amplify Auth | ✅ Done |
-| 3 | Terraform — all AWS infrastructure authored | ✅ Authored |
-| 4 | CI/CD — GitHub Actions pipelines + security scanning | ✅ Authored |
-| 5 | Deploy — DEV → QA → production release | Not started |
+| 3 | Terraform — all AWS infrastructure provisioned | ✅ Done |
+| 4 | CI/CD — GitHub Actions pipelines + security scanning | ✅ Done |
+| 5 | Deploy — DEV → QA → production release | 🚀 In progress — DEV live |
 
 ---
 

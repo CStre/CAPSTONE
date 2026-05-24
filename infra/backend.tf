@@ -155,11 +155,17 @@ resource "aws_lambda_function" "graphql" {
 
   environment {
     variables = {
+      NODE_ENV             = "production"
+      AUTH_MODE            = "cognito"
       ENVIRONMENT          = local.env
       COGNITO_USER_POOL_ID = aws_cognito_user_pool.main.id
       COGNITO_REGION       = local.region
       DYNAMODB_TABLE       = aws_dynamodb_table.prefs.name
       SSM_PREFIX           = "/bba/${local.env}"
+      # Passed directly — Lambda env vars are KMS-encrypted at rest. SSM is the
+      # stricter option (access logged, zero console exposure) but requires an async
+      # init path that is deferred to a future hardening pass.
+      UNSPLASH_ACCESS_KEY  = var.unsplash_access_key
     }
   }
 

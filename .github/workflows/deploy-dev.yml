@@ -395,22 +395,16 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      id-token: write
     steps:
-      - uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: arn:aws:iam::${{ env.AWS_ACCOUNT_ID }}:role/bba-dev-deploy
-          role-session-name: gh-dast-dev-${{ github.run_id }}
-          aws-region: ${{ env.AWS_REGION }}
-      - name: Get CloudFront URL
+      - name: Derive CloudFront URL
         id: cf
+        env:
+          GRAPHQL_URL: ${{ needs.terraform.outputs.graphql_url }}
         run: |
           # Allow a short warm-up period after deploy
           sleep 30
-          DOMAIN=$(aws cloudfront get-distribution \
-            --id ${{ needs.terraform.outputs.cloudfront_distribution_id }} \
-            --query 'Distribution.DomainName' --output text)
-          echo "url=https://$DOMAIN" >> $GITHUB_OUTPUT
+          # graphql_url is https://<cloudfront-domain>/graphql — strip the path suffix
+          echo "url=${GRAPHQL_URL%/graphql}" >> $GITHUB_OUTPUT
       - name: ZAP Baseline Scan
         uses: zaproxy/action-baseline@v0.12.0
         with:

@@ -72,14 +72,21 @@ cp envs/dev.tfvars.example envs/dev.tfvars
 # 2. Initialise with the environment-specific state key
 terraform init -backend-config="key=bba/dev/terraform.tfstate"
 
-# 3. Bootstrap the ECR repository before building the Lambda image
+# 3. Bootstrap the ECR repository (and lifecycle policy) before pushing an image
+#    The Lambda resource cannot be created until an image exists in ECR.
 terraform apply -target=aws_ecr_repository.lambda \
+                -target=aws_ecr_lifecycle_policy.lambda \
                 -var-file="envs/dev.tfvars"
 
-# 4. Build + push the Lambda container image (Phase 1 work)
-#    aws ecr get-login-password ... | docker login ...
-#    docker build -t <ecr-url>:latest backend/
-#    docker push <ecr-url>:latest
+# 4. Push a placeholder image so Terraform can create the Lambda.
+#    ECR is IMMUTABLE — never push :latest.  CI will overwrite :placeholder
+#    with the real image on the first deploy.
+ECR_URL=$(terraform output -raw ecr_repository_url)
+aws ecr get-login-password --region us-east-1 | \
+  docker login --username AWS --password-stdin "$ECR_URL"
+docker pull --platform linux/amd64 public.ecr.aws/lambda/nodejs:20
+docker tag public.ecr.aws/lambda/nodejs:20 "$ECR_URL:placeholder"
+docker push "$ECR_URL:placeholder"
 
 # 5. Apply everything
 terraform apply -var-file="envs/dev.tfvars"
@@ -88,14 +95,27 @@ terraform apply -var-file="envs/dev.tfvars"
 ### CI/CD (GitHub Actions)
 
 The pipeline passes variables as environment variables — no `.tfvars` file on
-the runner:
+the runner. It also handles the ECR bootstrap automatically:
 
 ```bash
-terraform init -backend-config="key=bba/${ENVIRONMENT}/terraform.tfstate"
-terraform apply \
+# Phase 1 — ensure ECR exists before building the image
+terraform apply -auto-approve \
+  -target=aws_ecr_repository.lambda \
+  -target=aws_ecr_lifecycle_policy.lambda
+
+# Phase 2 — push a placeholder image if ECR is empty (first deploy only)
+IMAGE_COUNT=$(aws ecr describe-images \
+  --repository-name bba-${ENVIRONMENT}-graphql \
+  --query 'length(imageDetails)' --output text)
+if [ "$IMAGE_COUNT" = "0" ]; then
+  docker pull --platform linux/amd64 public.ecr.aws/lambda/nodejs:20
+  docker push "$ECR_URL:placeholder"
+fi
+
+# Phase 3 — full apply
+terraform apply -auto-approve \
   -var="environment=${ENVIRONMENT}" \
-  -var="unsplash_access_key=${UNSPLASH_ACCESS_KEY}" \
-  -auto-approve
+  -var="unsplash_access_key=${UNSPLASH_ACCESS_KEY}"
 ```
 
 `UNSPLASH_ACCESS_KEY` comes from a GitHub Environment secret.

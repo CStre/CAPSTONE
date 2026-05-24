@@ -11,7 +11,7 @@
  */
 import SchemaBuilder from '@pothos/core';
 import { GraphQLError } from 'graphql';
-import type { AuthUser } from './auth';
+import { type AuthUser, deleteCognitoUser } from './auth';
 import { COUNTRIES, isValidCountryCode, type Country } from './countries';
 import { NEUTRAL_PREFERENCE, updatePreferences, type Feedback } from './algorithm';
 import type { TravelImage } from './images';
@@ -153,7 +153,7 @@ builder.mutationType({
       resolve: async (_root, _args, ctx) => {
         const user = requireUser(ctx);
         await db.deletePreferences(user.id);
-        // TODO (Phase 3): also delete the Cognito user via AdminDeleteUser.
+        await deleteCognitoUser(user.email);
         return true;
       },
     }),

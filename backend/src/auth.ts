@@ -6,6 +6,10 @@
  * no user pool exists until Phase 3 — and trusts an identity supplied via optional
  * `x-dev-*` request headers, defaulting to a fixed dev user.
  */
+import {
+  AdminDeleteUserCommand,
+  CognitoIdentityProviderClient,
+} from '@aws-sdk/client-cognito-identity-provider';
 import { CognitoJwtVerifier } from 'aws-jwt-verify';
 import { config } from './config';
 
@@ -17,6 +21,7 @@ export interface AuthUser {
 }
 
 let verifier: ReturnType<typeof createVerifier> | undefined;
+let adminClient: CognitoIdentityProviderClient | undefined;
 
 function createVerifier() {
   if (!config.cognitoUserPoolId || !config.cognitoClientId) {
@@ -54,4 +59,21 @@ export async function authenticate(headers: Headers): Promise<AuthUser | null> {
   } catch {
     return null;
   }
+}
+
+/**
+ * Remove a user from the Cognito user pool.
+ * No-op in dev mode (no pool configured locally).
+ * Username is the user's email — Cognito treats email as the login identifier
+ * when username_attributes = ["email"].
+ */
+export async function deleteCognitoUser(email: string): Promise<void> {
+  if (config.authMode !== 'cognito' || !config.cognitoUserPoolId) return;
+  adminClient ??= new CognitoIdentityProviderClient({ region: config.awsRegion });
+  await adminClient.send(
+    new AdminDeleteUserCommand({
+      UserPoolId: config.cognitoUserPoolId,
+      Username: email,
+    }),
+  );
 }
