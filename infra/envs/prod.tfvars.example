@@ -1,0 +1,6 @@
+# Copy to prod.tfvars and fill in the values.
+# prod.tfvars is gitignored — never commit secrets.
+
+environment         = "prod"
+unsplash_access_key = "YOUR_UNSPLASH_ACCESS_KEY"
+alert_email         = "collinm.streitman@gmail.com"
