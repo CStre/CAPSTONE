@@ -29,38 +29,39 @@ export function CustomCursor(): ReactElement {
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
+    const cursor: HTMLDivElement = el;
 
     function onMove(e: MouseEvent): void {
-      el.style.left = `${e.clientX}px`;
-      el.style.top = `${e.clientY}px`;
-      el.style.opacity = '1';
+      cursor.style.left = `${e.clientX}px`;
+      cursor.style.top = `${e.clientY}px`;
+      cursor.style.opacity = '1';
     }
 
     function onOver(e: MouseEvent): void {
       if ((e.target as Element | null)?.closest(INTERACTIVE)) {
-        el.classList.add('cc-hover');
+        cursor.classList.add('cc-hover');
       }
     }
 
     function onOut(e: MouseEvent): void {
       if (!(e.relatedTarget as Element | null)?.closest(INTERACTIVE)) {
-        el.classList.remove('cc-hover');
+        cursor.classList.remove('cc-hover');
       }
     }
 
     function onDown(): void {
       // Remove + reflow so rapid clicks each restart the animation
-      el.classList.remove('cc-click');
-      void el.offsetWidth;
-      el.classList.add('cc-click');
+      cursor.classList.remove('cc-click');
+      void cursor.offsetWidth;
+      cursor.classList.add('cc-click');
     }
 
     function onAnimEnd(): void {
-      el.classList.remove('cc-click');
+      cursor.classList.remove('cc-click');
     }
 
     function onLeave(): void {
-      el.style.opacity = '0';
+      cursor.style.opacity = '0';
     }
 
     document.addEventListener('mousemove', onMove);
@@ -68,7 +69,7 @@ export function CustomCursor(): ReactElement {
     document.addEventListener('mouseout', onOut);
     document.addEventListener('mousedown', onDown);
     document.addEventListener('mouseleave', onLeave);
-    el.addEventListener('animationend', onAnimEnd);
+    cursor.addEventListener('animationend', onAnimEnd);
 
     return () => {
       document.removeEventListener('mousemove', onMove);
@@ -76,7 +77,7 @@ export function CustomCursor(): ReactElement {
       document.removeEventListener('mouseout', onOut);
       document.removeEventListener('mousedown', onDown);
       document.removeEventListener('mouseleave', onLeave);
-      el.removeEventListener('animationend', onAnimEnd);
+      cursor.removeEventListener('animationend', onAnimEnd);
     };
   }, []);
 

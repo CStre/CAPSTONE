@@ -24,9 +24,10 @@ export function useCardTilt(maxDeg = 3, perspective = 900): CardTilt {
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
+    const node: HTMLDivElement = el;
 
     function onMove(e: MouseEvent): void {
-      const rect = el.getBoundingClientRect();
+      const rect = node.getBoundingClientRect();
       // Normalise to -1…1 relative to element center
       const nx = ((e.clientX - rect.left) / rect.width - 0.5) * 2;
       const ny = ((e.clientY - rect.top) / rect.height - 0.5) * 2;
@@ -37,11 +38,11 @@ export function useCardTilt(maxDeg = 3, perspective = 900): CardTilt {
       setTilt({ rx: 0, ry: 0, isHovered: false });
     }
 
-    el.addEventListener('mousemove', onMove);
-    el.addEventListener('mouseleave', onLeave);
+    node.addEventListener('mousemove', onMove);
+    node.addEventListener('mouseleave', onLeave);
     return () => {
-      el.removeEventListener('mousemove', onMove);
-      el.removeEventListener('mouseleave', onLeave);
+      node.removeEventListener('mousemove', onMove);
+      node.removeEventListener('mouseleave', onLeave);
     };
   }, [maxDeg, perspective]);
 

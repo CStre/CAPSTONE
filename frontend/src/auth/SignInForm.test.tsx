@@ -15,6 +15,7 @@ describe('SignInForm', () => {
         error={null}
         onSubmit={onSubmit}
         onSwitchToSignUp={jest.fn<() => void>()}
+        onLearnMore={jest.fn<() => void>()}
       />,
     );
 
