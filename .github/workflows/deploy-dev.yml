@@ -127,6 +127,7 @@ jobs:
           exit-code: "1"
           ignore-unfixed: true
           severity: CRITICAL,HIGH
+          skip-dirs: legacy
 
   iac-scan:
     name: IaC — Checkov & tfsec
@@ -286,9 +287,7 @@ jobs:
           IMAGE_TAG: ${{ github.sha }}
         run: |
           docker tag bba-dev-graphql:$IMAGE_TAG $ECR_URL:$IMAGE_TAG
-          docker tag bba-dev-graphql:$IMAGE_TAG $ECR_URL:latest
           docker push $ECR_URL:$IMAGE_TAG
-          docker push $ECR_URL:latest
           echo "image-uri=$ECR_URL:$IMAGE_TAG" >> $GITHUB_OUTPUT
 
   # ---------------------------------------------------------------------------

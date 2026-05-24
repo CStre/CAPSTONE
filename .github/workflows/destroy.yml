@@ -46,12 +46,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Require confirmation phrase
+        env:
+          CONFIRM: ${{ inputs.confirm }}
+          ENVIRONMENT: ${{ inputs.environment }}
         run: |
-          if [[ "${{ inputs.confirm }}" != "DESTROY" ]]; then
+          if [[ "$CONFIRM" != "DESTROY" ]]; then
             echo "::error::Confirmation failed. You must type exactly: DESTROY"
             exit 1
           fi
-          echo "Confirmed. Proceeding to destroy ${{ inputs.environment }}."
+          echo "Confirmed. Proceeding to destroy $ENVIRONMENT."
 
   destroy:
     name: Destroy — ${{ inputs.environment }}
@@ -66,6 +69,7 @@ jobs:
       AWS_ACCOUNT_ID: "958941188378"
       AWS_REGION: us-east-1
       TF_VERSION: "1.9.8"
+      ENVIRONMENT: ${{ inputs.environment }}
     steps:
       - uses: actions/checkout@v4
 
@@ -82,7 +86,7 @@ jobs:
 
       - name: Terraform Init
         working-directory: infra
-        run: terraform init -backend-config="key=bba/${{ inputs.environment }}/terraform.tfstate"
+        run: terraform init -backend-config="key=bba/$ENVIRONMENT/terraform.tfstate"
 
       # Empty S3 buckets before destroy (tf cannot delete non-empty buckets)
       - name: Empty S3 buckets
@@ -94,13 +98,13 @@ jobs:
           fi
 
           echo "Emptying CloudTrail bucket..."
-          TRAIL_BUCKET="bba-${{ inputs.environment }}-cloudtrail"
+          TRAIL_BUCKET="bba-$ENVIRONMENT-cloudtrail"
           aws s3 rm s3://$TRAIL_BUCKET --recursive 2>/dev/null || true
 
       # Remove all ECR images (tf cannot delete a non-empty repository)
       - name: Empty ECR repository
         run: |
-          REPO="bba-${{ inputs.environment }}-graphql"
+          REPO="bba-$ENVIRONMENT-graphql"
           IMAGE_IDS=$(aws ecr list-images --repository-name $REPO \
             --query 'imageIds[*]' --output json 2>/dev/null || echo "[]")
           if [[ "$IMAGE_IDS" != "[]" && "$IMAGE_IDS" != "" ]]; then
@@ -111,9 +115,9 @@ jobs:
       - name: Terraform Destroy
         working-directory: infra
         env:
-          TF_VAR_environment: ${{ inputs.environment }}
+          TF_VAR_environment: ${{ inputs.environment }}  # choice input; constrained to dev/qa/prod
           # unsplash_access_key is required by the variable block even for destroy
           TF_VAR_unsplash_access_key: ${{ secrets.UNSPLASH_ACCESS_KEY }}
         run: |
           terraform destroy -auto-approve
-          echo "Destroy complete for environment: ${{ inputs.environment }}"
+          echo "Destroy complete for environment: $ENVIRONMENT"

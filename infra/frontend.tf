@@ -216,6 +216,9 @@ resource "aws_cloudfront_distribution" "main" {
     cloudfront_default_certificate = !local.is_prod
     acm_certificate_arn            = local.is_prod ? aws_acm_certificate_validation.main[0].certificate_arn : null
     ssl_support_method             = local.is_prod ? "sni-only" : null
+    # nosemgrep: terraform.aws.security.aws-cloudfront-insecure-tls
+    # TLSv1 is the only valid value when cloudfront_default_certificate = true (dev/qa);
+    # prod uses TLSv1.2_2021 with its ACM certificate.
     minimum_protocol_version       = local.is_prod ? "TLSv1.2_2021" : "TLSv1"
   }
 

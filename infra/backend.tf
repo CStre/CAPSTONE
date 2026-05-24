@@ -4,7 +4,7 @@
 
 resource "aws_ecr_repository" "lambda" {
   name                 = "${local.prefix}-graphql"
-  image_tag_mutability = "MUTABLE"
+  image_tag_mutability = "IMMUTABLE"
 
   image_scanning_configuration {
     scan_on_push = true
@@ -151,6 +151,10 @@ resource "aws_lambda_function" "graphql" {
 
   # Cap concurrency to limit blast radius and runaway cost
   reserved_concurrent_executions = 10
+
+  tracing_config {
+    mode = "PassThrough"
+  }
 
   environment {
     variables = {

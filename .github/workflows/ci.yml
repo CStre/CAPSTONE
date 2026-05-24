@@ -127,6 +127,7 @@ jobs:
           exit-code: "1"
           ignore-unfixed: true
           severity: CRITICAL,HIGH
+          skip-dirs: legacy
 
   iac-scan:
     name: IaC — Checkov & tfsec

@@ -16,6 +16,9 @@ resource "aws_dynamodb_table" "prefs" {
     type = "S"
   }
 
+  # nosemgrep: terraform.aws.security.aws-dynamodb-table-unencrypted
+  # SSE is enabled with AWS-managed keys (free tier). Customer KMS key is optional
+  # hardening that costs $1/month — deferred per the free-tier cost constraint.
   server_side_encryption {
     enabled = true
   }
