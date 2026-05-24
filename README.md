@@ -194,7 +194,7 @@ These are documented honestly to inform the refactor — see [Roadmap](#roadmap)
 The project is being refactored with these goals:
 
 - Rebuild the stack in **TypeScript** end-to-end (React frontend, Node backend).
-- Re-deploy on the **AWS free tier** with **AWS Lambda** as the compute layer.
+- Re-deploy on the **AWS always-free tier** with **AWS Lambda** as the compute layer.
 - Use **Terraform** for infrastructure as code.
 - Adopt **GraphQL** (self-hosted in the Lambda) as the API.
 - Move to a **free-tier database** (DynamoDB).
@@ -204,6 +204,17 @@ The project is being refactored with these goals:
 - Add a **CI/CD pipeline** (GitHub Actions) with a full security-scanning suite
   (SAST, DAST, dependency/container/IaC scanning, SBOM) across DEV / QA / production.
 - Clean up dependencies and split frontend/backend hosting.
+
+### Phase status
+
+| Phase | Scope | Status |
+|---|---|---|
+| 0 | Repo hygiene — archived v1, created new skeleton | ✅ Done |
+| 1 | Backend — TypeScript GraphQL Lambda | Not started |
+| 2 | Frontend — Vite + React + TypeScript SPA, Amplify Auth | ✅ Done |
+| 3 | Terraform — all AWS infrastructure authored | ✅ Authored |
+| 4 | CI/CD — GitHub Actions pipelines + security scanning | ✅ Authored |
+| 5 | Deploy — DEV → QA → production release | Not started |
 
 ---
 

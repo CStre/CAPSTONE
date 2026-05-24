@@ -1,0 +1,116 @@
+# Destroy — tears down all AWS resources for a given environment.
+#
+# MANUAL TRIGGER ONLY — never runs automatically.
+# Run from: GitHub → Actions → Destroy Infrastructure → Run workflow
+#
+# What it does:
+#   1. Empties the S3 frontend bucket (Terraform cannot delete non-empty buckets)
+#   2. Empties the CloudTrail log bucket
+#   3. Removes all ECR images (Terraform cannot delete a non-empty repository)
+#   4. Runs terraform destroy
+#
+# The CloudFront distribution takes ~15 minutes to disable and delete — this
+# workflow waits for it. Total runtime is typically 20-25 minutes for prod.
+#
+# After destroy, the GitHub Environment deploy role (bba-<env>-deploy) is also
+# deleted by Terraform, so subsequent deploys will need to re-apply Terraform.
+
+name: Destroy Infrastructure
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Environment to destroy"
+        required: true
+        type: choice
+        options:
+          - dev
+          - qa
+          - prod
+      confirm:
+        description: 'Type "DESTROY" to confirm — this is irreversible'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  # Safety gate — fails immediately if the confirmation phrase is wrong
+  confirm:
+    name: Confirm Destruction
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require confirmation phrase
+        run: |
+          if [[ "${{ inputs.confirm }}" != "DESTROY" ]]; then
+            echo "::error::Confirmation failed. You must type exactly: DESTROY"
+            exit 1
+          fi
+          echo "Confirmed. Proceeding to destroy ${{ inputs.environment }}."
+
+  destroy:
+    name: Destroy — ${{ inputs.environment }}
+    needs: confirm
+    runs-on: ubuntu-latest
+    # GitHub Environment maps to the correct deploy role and secrets
+    environment: ${{ inputs.environment == 'prod' && 'production' || inputs.environment }}
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      AWS_ACCOUNT_ID: "958941188378"
+      AWS_REGION: us-east-1
+      TF_VERSION: "1.9.8"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ env.AWS_ACCOUNT_ID }}:role/bba-${{ inputs.environment }}-deploy
+          role-session-name: gh-destroy-${{ inputs.environment }}-${{ github.run_id }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+          terraform_wrapper: false
+
+      - name: Terraform Init
+        working-directory: infra
+        run: terraform init -backend-config="key=bba/${{ inputs.environment }}/terraform.tfstate"
+
+      # Empty S3 buckets before destroy (tf cannot delete non-empty buckets)
+      - name: Empty S3 buckets
+        run: |
+          echo "Emptying frontend bucket..."
+          FRONTEND_BUCKET=$(terraform -chdir=infra output -raw frontend_bucket 2>/dev/null || echo "")
+          if [[ -n "$FRONTEND_BUCKET" ]]; then
+            aws s3 rm s3://$FRONTEND_BUCKET --recursive || true
+          fi
+
+          echo "Emptying CloudTrail bucket..."
+          TRAIL_BUCKET="bba-${{ inputs.environment }}-cloudtrail"
+          aws s3 rm s3://$TRAIL_BUCKET --recursive 2>/dev/null || true
+
+      # Remove all ECR images (tf cannot delete a non-empty repository)
+      - name: Empty ECR repository
+        run: |
+          REPO="bba-${{ inputs.environment }}-graphql"
+          IMAGE_IDS=$(aws ecr list-images --repository-name $REPO \
+            --query 'imageIds[*]' --output json 2>/dev/null || echo "[]")
+          if [[ "$IMAGE_IDS" != "[]" && "$IMAGE_IDS" != "" ]]; then
+            aws ecr batch-delete-image --repository-name $REPO \
+              --image-ids "$IMAGE_IDS" || true
+          fi
+
+      - name: Terraform Destroy
+        working-directory: infra
+        env:
+          TF_VAR_environment: ${{ inputs.environment }}
+          # unsplash_access_key is required by the variable block even for destroy
+          TF_VAR_unsplash_access_key: ${{ secrets.UNSPLASH_ACCESS_KEY }}
+        run: |
+          terraform destroy -auto-approve
+          echo "Destroy complete for environment: ${{ inputs.environment }}"
