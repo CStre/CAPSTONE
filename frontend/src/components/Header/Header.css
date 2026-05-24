@@ -176,8 +176,7 @@
     inset 0 -1px 0 rgba(61, 82, 160, 0.06);
 }
 
-.di-nav-account:hover .di-menu,
-.di-nav-account:focus-within .di-menu {
+.di-nav-account.is-open .di-menu {
   opacity: 1;
   transform: translateX(-50%) translateY(0);
   pointer-events: auto;

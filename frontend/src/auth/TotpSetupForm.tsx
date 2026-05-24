@@ -35,7 +35,11 @@ export function TotpSetupForm({
         Scan this code with an authenticator app (Google Authenticator, 1Password, …), then enter
         the 6-digit code it shows.
       </p>
-      {setupUri !== '' && <QRCodeSVG value={setupUri} size={180} />}
+      {setupUri !== '' && (
+        <div style={{ display: 'flex', justifyContent: 'center', margin: '0.5rem 0 0.75rem' }}>
+          <QRCodeSVG value={setupUri} size={180} />
+        </div>
+      )}
       <p className="auth-secret">
         Can’t scan? Enter this key manually: <code>{secret}</code>
       </p>

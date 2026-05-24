@@ -8,7 +8,7 @@ deployed to S3 + CloudFront.
 - **Vite** + **React 19** (TypeScript, strict)
 - **React Router** — client-side routing _(added with the app shell)_
 - **urql** + **GraphQL Code Generator** — typed GraphQL operations from the backend schema
-- **AWS Amplify Auth** — Cognito sign-in + TOTP MFA _(wired next)_
+- **AWS Amplify Auth** — Cognito sign-in + TOTP MFA (wired to deployed Cognito pool)
 - **Jest** + **React Testing Library** — component and client tests
 
 ## Layout
@@ -23,7 +23,7 @@ src/
     SourcesPage/   academic sources and acknowledgements
     TravelPage/    swipe-to-rate photo cards
     DashboardPage/ GeoChart world map of preference scores
-    AccountPage/   profile and password management
+    AccountPage/   profile, password, TOTP re-enrollment, and account deletion
     LoginPage/     Amplify Auth sign-in / sign-up shell
     NotFoundPage/  404
   components/    Header, Loader, GlassIsland, LordIcon, ThemeToggle, CustomCursor, SecurityInfo

@@ -5,6 +5,7 @@
  * small NextAction value the AuthPanel state machine can switch on.
  */
 import {
+  autoSignIn,
   confirmSignIn,
   confirmSignUp,
   resendSignUpCode,
@@ -59,15 +60,20 @@ export async function register(email: string, password: string, name: string): P
   const { nextStep } = await signUp({
     username: email,
     password,
-    options: { userAttributes: { email, name } },
+    options: { userAttributes: { email, name }, autoSignIn: true },
   });
   return nextStep.signUpStep === 'CONFIRM_SIGN_UP' ? { kind: 'confirmSignUp' } : { kind: 'signIn' };
 }
 
-/** Confirm a new account with the emailed verification code. */
+/** Confirm a new account with the emailed verification code, then auto sign-in. */
 export async function confirmRegistration(email: string, code: string): Promise<NextAction> {
   await confirmSignUp({ username: email, confirmationCode: code });
-  return { kind: 'signIn' };
+  try {
+    const { nextStep } = await autoSignIn();
+    return interpretSignIn(nextStep, email);
+  } catch {
+    return { kind: 'signIn' };
+  }
 }
 
 /** Re-send the account-verification email. */

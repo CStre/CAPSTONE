@@ -10,6 +10,7 @@
  *   Stage 3   : Sources slides in
  */
 import { NavLink, useNavigate } from 'react-router';
+import { useState, useEffect, useRef } from 'react';
 import type { ReactElement } from 'react';
 import { useAuth } from '../../auth/context';
 import { ICONS, LordIcon } from '../LordIcon/LordIcon';
@@ -53,6 +54,21 @@ export function Header(): ReactElement {
   const { status, logout } = useAuth();
   const navigate = useNavigate();
   const authenticated = status === 'authenticated';
+  const [menuOpen, setMenuOpen] = useState(false);
+  const accountRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    function handleOutside(e: MouseEvent) {
+      if (accountRef.current && !accountRef.current.contains(e.target as Node)) {
+        setMenuOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleOutside);
+    };
+  }, [menuOpen]);
   const { introStage } = useIntroStage();
   const isMinimal = introStage === -2; // 404 page: right island only
   const inIntro = introStage >= 0;
@@ -180,21 +196,47 @@ export function Header(): ReactElement {
 
         {/* Sign In / Account — always visible */}
         {authenticated ? (
-          <div className="di-nav-item di-nav-account" style={accountReveal(true)}>
+          <div
+            ref={accountRef}
+            className={`di-nav-item di-nav-account${menuOpen ? ' is-open' : ''}`}
+            style={accountReveal(true)}
+            onClick={() => {
+              setMenuOpen((o) => !o);
+            }}
+          >
             <span className="di-nav-item-face">
               <Icon src={ICONS.account} />
               <span>Account</span>
             </span>
             <div className="di-menu">
-              <NavLink to="/account" className="di-menu-link">
+              <NavLink
+                to="/account"
+                className="di-menu-link"
+                onClick={() => {
+                  setMenuOpen(false);
+                }}
+              >
                 <Icon src={ICONS.account} small />
                 Account
               </NavLink>
-              <NavLink to="/dashboard" className="di-menu-link">
+              <NavLink
+                to="/dashboard"
+                className="di-menu-link"
+                onClick={() => {
+                  setMenuOpen(false);
+                }}
+              >
                 <Icon src={ICONS.dashboard} small />
                 Dashboard
               </NavLink>
-              <button type="button" className="di-menu-link di-menu-logout" onClick={handleLogout}>
+              <button
+                type="button"
+                className="di-menu-link di-menu-logout"
+                onClick={() => {
+                  setMenuOpen(false);
+                  handleLogout();
+                }}
+              >
                 <Icon src={ICONS.signOut} small danger />
                 Sign out
               </button>

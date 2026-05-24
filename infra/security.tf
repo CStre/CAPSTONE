@@ -35,19 +35,20 @@ resource "aws_cloudfront_response_headers_policy" "security" {
     }
 
     # CSP allows:
-    #   - scripts from self and Google Charts CDN (react-google-charts)
+    #   - scripts from self, Google Charts CDN (react-google-charts), and Maps API
+    #     unsafe-eval is required by the Google Charts runtime
     #   - styles with unsafe-inline (tilt/dynamic styles generated at runtime)
-    #   - images from self, Unsplash delivery CDN, and data URIs
-    #   - XHR/WS to Cognito and same-origin GraphQL
+    #   - images from self, Unsplash CDN, Google Maps tiles, and data URIs
+    #   - XHR/WS to Cognito, same-origin GraphQL, and Google Maps APIs (GeoChart data)
     #   - fonts from self and Google Fonts (if used)
     # Tighten after first deployment + CSP report testing.
     content_security_policy {
       content_security_policy = join("; ", [
         "default-src 'self'",
-        "script-src 'self' https://www.gstatic.com",
+        "script-src 'self' 'unsafe-eval' https://www.gstatic.com https://maps.googleapis.com",
         "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-        "img-src 'self' data: https://*.unsplash.com",
-        "connect-src 'self' https://cognito-idp.us-east-1.amazonaws.com",
+        "img-src 'self' data: https://*.unsplash.com https://maps.gstatic.com https://*.googleapis.com",
+        "connect-src 'self' https://cognito-idp.us-east-1.amazonaws.com https://maps.googleapis.com https://www.googleapis.com",
         "font-src 'self' https://fonts.gstatic.com",
         "frame-ancestors 'none'",
         "base-uri 'self'",
