@@ -217,6 +217,29 @@ jobs:
       - name: Terraform Init
         working-directory: infra
         run: terraform init -backend-config="key=${{ env.TF_STATE_KEY }}"
+      - name: Create ECR repository
+        working-directory: infra
+        env:
+          TF_VAR_environment: ${{ env.ENVIRONMENT }}
+          TF_VAR_unsplash_access_key: ${{ secrets.UNSPLASH_ACCESS_KEY }}
+        run: |
+          terraform apply -auto-approve \
+            -target=aws_ecr_repository.lambda \
+            -target=aws_ecr_lifecycle_policy.lambda
+      - name: Push placeholder image if ECR is empty
+        env:
+          ECR_URL: ${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/bba-${{ env.ENVIRONMENT }}-graphql
+        run: |
+          IMAGE_COUNT=$(aws ecr describe-images \
+            --repository-name bba-$ENVIRONMENT-graphql \
+            --query 'length(imageDetails)' --output text 2>/dev/null || echo "0")
+          if [ "$IMAGE_COUNT" = "0" ]; then
+            aws ecr get-login-password --region $AWS_REGION | \
+              docker login --username AWS --password-stdin $ECR_URL
+            docker pull --platform linux/amd64 public.ecr.aws/lambda/nodejs:20
+            docker tag public.ecr.aws/lambda/nodejs:20 $ECR_URL:placeholder
+            docker push $ECR_URL:placeholder
+          fi
       - name: Terraform Apply
         working-directory: infra
         env:
