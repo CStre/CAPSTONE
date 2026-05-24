@@ -1,0 +1,106 @@
+/* ── Full-viewport canvas behind everything ──────────────────────────────────── */
+
+.nf-canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 0;
+}
+
+/* ── Page wrapper — sits above canvas, clears fixed header ───────────────────── */
+
+.nf-page {
+  position: relative;
+  z-index: 1;
+  min-height: 100vh;
+  background:
+    radial-gradient(ellipse at 30% 70%, rgba(61, 82, 160, 0.18) 0%, transparent 55%),
+    radial-gradient(ellipse at 70% 20%, rgba(112, 145, 230, 0.12) 0%, transparent 50%);
+}
+
+.nf-panel {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6rem 1.5rem 3rem;
+}
+
+/* ── Glass card — exact recipe matching auth-card / si-card ──────────────────── */
+
+.nf-card {
+  width: 100%;
+  max-width: 44rem;
+  padding: 3rem 3rem 2.5rem;
+  border-radius: 30px;
+
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  box-shadow:
+    0 12px 40px rgba(0, 0, 0, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.18);
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(18px) saturate(180%);
+  -webkit-backdrop-filter: blur(18px) saturate(180%);
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 1rem;
+
+  animation: nf-slide-up 0.35s ease;
+}
+
+[data-theme='light'] .nf-card {
+  border-color: rgba(255, 255, 255, 0.8);
+  box-shadow:
+    0 12px 40px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95),
+    inset 0 -1px 0 rgba(61, 82, 160, 0.08);
+  background: rgba(255, 255, 255, 0.28);
+}
+
+@keyframes nf-slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ── Card content ────────────────────────────────────────────────────────────── */
+
+.nf-code {
+  font-size: var(--fs-5xl);
+  font-weight: var(--fw-black);
+  color: var(--color-heading);
+  line-height: 1;
+}
+
+.nf-message {
+  max-width: 34rem;
+  font-size: var(--fs-base);
+  color: var(--color-text);
+  line-height: 1.7;
+  margin: 0;
+}
+
+.nf-sub {
+  font-size: var(--fs-sm);
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+.nf-countdown {
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-bold);
+  color: var(--color-accent);
+  margin: 0.25rem 0 0;
+  letter-spacing: 0.03em;
+}

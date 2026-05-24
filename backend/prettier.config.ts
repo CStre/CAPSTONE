@@ -20,7 +20,7 @@ const config: Config = {
   overrides: [
     {
       // Generated / vendored paths — formatted as-is (the "ignored" parser is a no-op).
-      files: ['dist/**', 'coverage/**', 'package-lock.json'],
+      files: ['dist/**', 'coverage/**', 'package-lock.json', 'schema.graphql'],
       options: { parser: 'ignored' },
     },
   ],

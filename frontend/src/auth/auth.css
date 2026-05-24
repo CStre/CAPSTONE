@@ -1,0 +1,337 @@
+/* ── Full-viewport canvas behind the form ────────────────────────────────────── */
+
+.auth-canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 0;
+}
+
+/* ── Page wrapper ────────────────────────────────────────────────────────────── */
+
+.auth-panel {
+  position: relative;
+  z-index: 1;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6rem 1rem 3rem; /* top clears the fixed header */
+
+  /* colour blobs sit over the canvas; body provides the base --color-bg */
+  background:
+    radial-gradient(ellipse at 25% 65%, rgba(61, 82, 160, 0.18) 0%, transparent 55%),
+    radial-gradient(ellipse at 75% 25%, rgba(112, 145, 230, 0.12) 0%, transparent 50%);
+}
+
+/* ── 3-D flip card ───────────────────────────────────────────────────────────── */
+
+.auth-flipcard-scene {
+  width: 100%;
+  max-width: 30rem;
+  /* perspective lives here for the flip; tilt is applied via inline transform */
+}
+
+.auth-flipcard-inner {
+  position: relative;
+  transform-style: preserve-3d;
+  transition:
+    transform 0.72s cubic-bezier(0.4, 0, 0.2, 1),
+    height 0.72s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.auth-flipcard-inner.is-flipped {
+  transform: rotateY(180deg);
+}
+
+/* ── Card faces — glass recipe matching .intro-card / .gi-glass ─────────────── */
+
+.auth-card {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  padding: 2rem;
+  border-radius: 30px;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  box-shadow:
+    0 12px 40px rgba(0, 0, 0, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.18);
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(18px) saturate(180%);
+  -webkit-backdrop-filter: blur(18px) saturate(180%);
+}
+
+[data-theme='light'] .auth-card {
+  border-color: rgba(255, 255, 255, 0.8);
+  box-shadow:
+    0 12px 40px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95),
+    inset 0 -1px 0 rgba(61, 82, 160, 0.08);
+  background: rgba(255, 255, 255, 0.28);
+}
+
+/* Back face is pre-rotated — the flip reveal turns it right-way-up */
+.auth-card--back {
+  transform: rotateY(180deg);
+}
+
+/* ── Form layout ─────────────────────────────────────────────────────────────── */
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  width: 100%;
+}
+
+.auth-form h2 {
+  margin: 0;
+  font-size: var(--fs-xl);
+  font-weight: var(--fw-extrabold);
+  color: var(--color-heading);
+}
+
+.auth-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text);
+}
+
+/* ── Inputs — borderless until focused, glass tint ──────────────────────────── */
+
+.auth-form input {
+  padding: 0.6rem 0.75rem;
+  font: inherit;
+  color: var(--color-heading);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid transparent;
+  border-radius: 7px;
+  outline: none;
+  transition:
+    border-color 0.2s,
+    background 0.2s;
+}
+
+[data-theme='light'] .auth-form input {
+  background: rgba(255, 255, 255, 0.35);
+}
+
+.auth-form input:focus {
+  border-color: rgba(255, 255, 255, 0.35);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme='light'] .auth-form input:focus {
+  border-color: var(--color-accent);
+  background: rgba(255, 255, 255, 0.55);
+}
+
+.auth-form input::placeholder {
+  color: var(--color-text-muted);
+  opacity: 0.7;
+}
+
+/* ── Submit button — glass pill ──────────────────────────────────────────────── */
+
+.auth-form button[type='submit'] {
+  margin-top: 0.2rem;
+  padding: 0.65rem;
+  font: inherit;
+  font-weight: var(--fw-bold);
+  letter-spacing: 0.03em;
+  color: var(--color-heading);
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 10px;
+  cursor: pointer;
+  transition:
+    background 0.2s,
+    border-color 0.2s,
+    transform 0.1s;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.auth-form button[type='submit']:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.16);
+  border-color: rgba(255, 255, 255, 0.38);
+}
+
+.auth-form button[type='submit']:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.auth-form button[type='submit']:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+[data-theme='light'] .auth-form button[type='submit'] {
+  background: rgba(61, 82, 160, 0.1);
+  border-color: rgba(61, 82, 160, 0.25);
+  color: var(--color-text);
+}
+
+[data-theme='light'] .auth-form button[type='submit']:hover:not(:disabled) {
+  background: rgba(61, 82, 160, 0.18);
+  border-color: rgba(61, 82, 160, 0.4);
+}
+
+/* ── Inline prose / code (TOTP setup) ───────────────────────────────────────── */
+
+.auth-description,
+.auth-secret {
+  margin: 0;
+  font-size: var(--fs-sm);
+  color: var(--color-text);
+}
+
+.auth-secret code {
+  font-size: var(--fs-sm);
+  word-break: break-all;
+  color: var(--color-accent);
+}
+
+/* ── Error ───────────────────────────────────────────────────────────────────── */
+
+.auth-error {
+  margin: 0;
+  font-size: var(--fs-sm);
+  color: var(--color-danger);
+}
+
+/* ── Bottom row — switch pill centred, shield circle at right ────────────────── */
+
+.auth-bottom-row {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 0.1rem;
+}
+
+.auth-link {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.2rem 0.9rem;
+  font: inherit;
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+  color: var(--color-heading);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 100px;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    background 0.2s,
+    border-color 0.2s;
+}
+
+.auth-link:hover {
+  background: rgba(255, 255, 255, 0.14);
+  border-color: rgba(255, 255, 255, 0.32);
+}
+
+[data-theme='light'] .auth-link {
+  background: rgba(61, 82, 160, 0.07);
+  border-color: rgba(61, 82, 160, 0.18);
+  color: var(--color-text);
+}
+
+[data-theme='light'] .auth-link:hover {
+  background: rgba(61, 82, 160, 0.13);
+}
+
+/* Shield circle — same size as SecurityInfo close button, pinned to right edge */
+
+.auth-security-btn {
+  position: absolute;
+  right: 0;
+  width: 3rem;
+  height: 3rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 50%;
+  cursor: pointer;
+  transition:
+    background 0.2s,
+    border-color 0.2s;
+}
+
+.auth-security-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.22);
+}
+
+[data-theme='light'] .auth-security-btn:hover {
+  background: rgba(0, 0, 0, 0.05);
+  border-color: rgba(0, 0, 0, 0.12);
+}
+
+/* ── Two-column field row (sign-up: Name + Email side by side) ───────────────── */
+
+.auth-field-row {
+  display: flex;
+  gap: 0.6rem;
+}
+
+.auth-field-row label {
+  flex: 1;
+  min-width: 0;
+}
+
+/* ── Form header (icon + title, centred) ─────────────────────────────────────── */
+
+.auth-form-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.4rem;
+  margin-bottom: 0.1rem;
+}
+
+.auth-form-header h2 {
+  margin: 0;
+}
+
+/* ── Password input with eye toggle ─────────────────────────────────────────── */
+
+.auth-input-wrap {
+  position: relative;
+}
+
+.auth-input-wrap input {
+  padding-right: 2.5rem;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.auth-eye-btn {
+  position: absolute;
+  right: 0.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  color: var(--color-text-muted);
+}

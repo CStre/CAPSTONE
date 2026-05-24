@@ -1,0 +1,55 @@
+/* ── Glass island base ──────────────────────────────────────────────────────
+   Shared "frosted pill" used by the Header and any other island-style UI.
+   Variant classes (gi-island--foo) live alongside the consumer component.
+   ────────────────────────────────────────────────────────────────────────── */
+
+.gi-island {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: auto;
+  min-height: 3.6rem;
+  padding-block: 0;
+  min-width: 0;
+  max-width: 100%;
+  border-radius: 100px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  box-shadow:
+    0 12px 40px rgba(0, 0, 0, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.18);
+  transition:
+    top 0.18s ease-out,
+    left 0.18s ease-out;
+}
+
+[data-theme='light'] .gi-island {
+  border-color: rgba(255, 255, 255, 0.8);
+  box-shadow:
+    0 12px 40px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95),
+    inset 0 -1px 0 rgba(61, 82, 160, 0.08);
+}
+
+/* Frosted backdrop — sits behind island content, blurs the page behind it */
+.gi-glass {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(18px) saturate(180%);
+  -webkit-backdrop-filter: blur(18px) saturate(180%);
+}
+
+[data-theme='light'] .gi-glass {
+  background: rgba(255, 255, 255, 0.28);
+}
+
+/* Lift all real island content above the glass layer */
+.gi-island > *:not(.gi-glass) {
+  position: relative;
+  z-index: 1;
+}

@@ -1,0 +1,63 @@
+/* Hide the native cursor everywhere */
+* {
+  cursor: none !important;
+}
+
+/* ── Custom cursor circle ─────────────────────────────────────────────────── */
+
+.cc {
+  position: fixed;
+  left: -100px;
+  top: -100px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 99999;
+  opacity: 0; /* invisible until first mousemove */
+  /* Center on the real hotspot */
+  transform: translate(-50%, -50%);
+  transition:
+    width 0.18s ease,
+    height 0.18s ease,
+    opacity 0.15s ease,
+    background-color 0.25s ease;
+  will-change: left, top, transform, width, height;
+}
+
+/* Dark theme → white circle */
+.cc[data-theme='dark'] {
+  background: rgba(255, 255, 255, 0.9);
+}
+
+/* Light theme → black circle */
+.cc[data-theme='light'] {
+  background: rgba(12, 12, 12, 0.88);
+}
+
+/* Hover: grow to signal interactivity */
+.cc.cc-hover {
+  width: 40px;
+  height: 40px;
+}
+
+/* ── Click bounce ─────────────────────────────────────────────────────────── */
+
+@keyframes cc-bounce {
+  0% {
+    transform: translate(-50%, -50%) scale(1);
+  }
+  28% {
+    transform: translate(-50%, -50%) scale(0.45);
+  }
+  65% {
+    transform: translate(-50%, -50%) scale(1.4);
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+.cc.cc-click {
+  animation: cc-bounce 0.44s cubic-bezier(0.36, 0.07, 0.19, 0.97) forwards;
+}

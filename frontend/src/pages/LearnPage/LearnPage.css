@@ -1,0 +1,300 @@
+/* ── Banner ───────────────────────────────────────────────────────────────── */
+
+.learn-banner {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: linear-gradient(
+    150deg,
+    var(--color-bg) 0%,
+    var(--color-surface) 55%,
+    var(--color-border) 100%
+  );
+}
+
+.learn-banner-content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 0 1.5rem;
+  animation: fadeIn 2s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.learn-banner-kicker {
+  margin: 0 0 0.4rem;
+  font-size: var(--fs-md);
+  font-weight: var(--fw-bold);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+}
+
+.learn-banner h1 {
+  margin: 0 0 0.75rem;
+  font-size: var(--fs-4xl);
+  font-weight: var(--fw-black);
+  color: var(--color-heading);
+  line-height: 1.1;
+  text-shadow: 0 2px 20px rgba(0, 0, 0, 0.6);
+}
+
+.learn-banner-sub {
+  margin: 0;
+  font-size: var(--fs-md);
+  color: var(--color-text);
+}
+
+/* ── Shared horizontal-scroll container ───────────────────────────────────── */
+
+.learn-container {
+  display: flex;
+  flex-wrap: nowrap;
+  width: 1200vw;
+  height: 100vh;
+  background: var(--color-bg);
+  overflow: hidden;
+}
+
+.learn-container--tech {
+  width: 1200vw;
+}
+
+/* ── Essay panels ─────────────────────────────────────────────────────────── */
+
+.learn-panel {
+  flex: 0 0 100vw;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 6rem;
+  background: var(--color-bg);
+  text-align: center;
+}
+
+.learn-panel h2 {
+  margin: 1rem 0 0.75rem;
+  font-size: var(--fs-2xl);
+  color: var(--color-text);
+}
+
+.learn-panel p {
+  max-width: 52rem;
+  font-size: var(--fs-base);
+  line-height: 1.8;
+  color: var(--color-text);
+  opacity: 0.85;
+  text-align: left;
+}
+
+/* Intro / logo panel */
+.learn-panel--intro {
+  gap: 0.75rem;
+}
+
+.learn-panel-logo {
+  font-size: var(--fs-6xl);
+  font-weight: var(--fw-black);
+  color: var(--color-accent);
+  letter-spacing: 0.05em;
+}
+
+.learn-panel-logo-sub {
+  font-size: var(--fs-md);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text-muted);
+  text-align: center !important;
+}
+
+.learn-cta {
+  display: inline-block;
+  margin-top: 1.5rem;
+  padding: 0.6rem 1.4rem;
+  font-weight: var(--fw-bold);
+  color: var(--color-bg);
+  text-decoration: none;
+  background: var(--color-accent);
+  border-radius: 8px;
+  transition: opacity 0.2s;
+}
+
+.learn-cta:hover {
+  opacity: 0.85;
+}
+
+/* ── Tech-stack intro (between the two scroll containers) ─────────────────── */
+
+.learn-tech-intro {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 3rem 2rem;
+  background: var(--color-bg);
+  text-align: center;
+}
+
+.learn-tech-intro h2 {
+  margin: 1rem 0 0.75rem;
+  font-size: var(--fs-2xl);
+  color: var(--color-text);
+}
+
+.learn-tech-intro p {
+  max-width: 42rem;
+  font-size: var(--fs-base);
+  line-height: 1.8;
+  color: var(--color-text);
+  opacity: 0.75;
+}
+
+/* ── Tech panels ──────────────────────────────────────────────────────────── */
+
+.learn-tech-panel {
+  flex: 0 0 100vw;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.25rem;
+  background: var(--color-bg);
+}
+
+.learn-tech-accent {
+  width: 6rem;
+  height: 6rem;
+  border-radius: 50%;
+  opacity: 0.85;
+}
+
+.learn-tech-accent.palette-1 {
+  background: var(--color-border);
+}
+.learn-tech-accent.palette-2 {
+  background: var(--color-accent);
+}
+.learn-tech-accent.palette-3 {
+  background: var(--color-text-muted);
+}
+
+.learn-tech-name {
+  margin: 0;
+  font-size: var(--fs-4xl);
+  font-weight: var(--fw-black);
+  color: var(--color-heading);
+  text-align: center;
+}
+
+.learn-tech-role {
+  margin: 0;
+  font-size: var(--fs-md);
+  font-weight: var(--fw-medium);
+  color: var(--color-text-muted);
+  text-align: center;
+}
+
+/* ── About the Creator ────────────────────────────────────────────────────── */
+
+.learn-creator {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 4rem 2rem;
+  background: var(--color-surface);
+  text-align: center;
+}
+
+.learn-creator h1 {
+  margin: 0 0 0.25rem;
+  font-size: var(--fs-3xl);
+  font-weight: var(--fw-black);
+  color: var(--color-heading);
+}
+
+.learn-creator h2 {
+  margin: 0 0 1.25rem;
+  font-size: var(--fs-xl);
+  font-weight: var(--fw-semibold);
+  color: var(--color-accent);
+}
+
+.learn-creator p {
+  max-width: 36rem;
+  font-size: var(--fs-base);
+  line-height: 1.8;
+  color: var(--color-text);
+  opacity: 0.85;
+}
+
+.learn-connect {
+  margin-top: 2rem;
+}
+
+.learn-connect h3 {
+  margin: 0 0 1rem;
+  font-size: var(--fs-base);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.learn-social {
+  display: flex;
+  gap: 1.5rem;
+  justify-content: center;
+}
+
+.learn-social a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--color-border);
+  transition: background 0.2s;
+}
+
+.learn-social a:hover {
+  background: var(--color-accent);
+}
+
+.learn-social img {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+}
+
+/* ── Responsive: tighten padding on smaller screens ──────────────────────── */
+
+@media (max-width: 48rem) {
+  .learn-panel {
+    padding: 2rem 1.5rem;
+  }
+}

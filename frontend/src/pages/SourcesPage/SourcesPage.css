@@ -1,0 +1,109 @@
+.credits {
+  min-height: 100vh;
+  background: var(--color-bg);
+  padding-bottom: 6rem;
+}
+
+/* ── Title ──────────────────────────────────────────────────────────────── */
+
+.credits-title {
+  text-align: center;
+  padding: 8rem 1.5rem 4rem;
+}
+
+.credits-title h1 {
+  margin: 0 0 1rem;
+  font-size: var(--fs-5xl);
+  font-weight: var(--fw-black);
+  color: var(--color-heading);
+}
+
+.credits-title h2 {
+  margin: 0;
+  font-size: var(--fs-md);
+  font-weight: var(--fw-normal);
+  color: var(--color-text);
+  opacity: 0.75;
+}
+
+/* ── Section titles ─────────────────────────────────────────────────────── */
+
+.credits-section-title {
+  text-align: center;
+  padding: 4rem 1.5rem 2rem;
+}
+
+.credits-section-title h2 {
+  margin: 0;
+  font-size: var(--fs-2xl);
+  font-weight: var(--fw-extrabold);
+  color: var(--color-accent);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+/* ── Source cards ───────────────────────────────────────────────────────── */
+
+.credits-sources {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+}
+
+.source {
+  width: min(60rem, 100%);
+  padding: 1.5rem 10%;
+  font-family: inherit;
+  font-size: var(--fs-base);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text);
+  text-align: center;
+  line-height: 1.7;
+  transform-origin: center;
+  will-change: transform, opacity;
+}
+
+.source a {
+  display: block;
+  margin-top: 0.2rem;
+  color: var(--color-text);
+  text-decoration: underline;
+  overflow-wrap: anywhere;
+  transition: color 0.2s;
+}
+
+.source a:hover {
+  color: var(--color-accent);
+}
+
+/* ── Disclaimer card ────────────────────────────────────────────────────── */
+
+.credits-disclaimer {
+  margin-top: 3rem;
+  padding: 2rem 10%;
+  border-top: 1px solid var(--color-border);
+}
+
+.credits-disclaimer h2 {
+  margin: 0 0 0.9rem;
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-extrabold);
+  color: var(--color-accent);
+}
+
+.credits-disclaimer p {
+  margin: 0;
+  font-size: var(--fs-base);
+  font-weight: var(--fw-normal);
+  color: var(--color-text);
+  line-height: 1.8;
+  opacity: 0.85;
+  text-align: left;
+}
+
+@media (max-width: 40rem) {
+  .source {
+    padding: 1.2rem 5%;
+  }
+}

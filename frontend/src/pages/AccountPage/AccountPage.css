@@ -1,0 +1,181 @@
+/* ── Page header ────────────────────────────────────────────────────────── */
+
+.account-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.account-header h1 {
+  margin: 0.25rem 0 0;
+  font-size: var(--fs-2xl);
+  font-weight: var(--fw-extrabold);
+  color: var(--color-accent);
+}
+
+/* ── Profile summary ────────────────────────────────────────────────────── */
+
+.account-profile {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem 3rem;
+  margin: 0 0 0.5rem;
+  padding: 1.25rem 1.5rem;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+}
+
+.account-profile dt {
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-bold);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-accent);
+}
+
+.account-profile dd {
+  margin: 0.2rem 0 0;
+  font-size: var(--fs-base);
+  font-weight: var(--fw-medium);
+  color: var(--color-text);
+}
+
+.account-note {
+  margin: 0.4rem 0 1.5rem;
+  font-size: var(--fs-xs);
+  color: var(--color-text-muted);
+}
+
+.account-link {
+  padding: 0;
+  font: inherit;
+  font-size: var(--fs-xs);
+  color: var(--color-accent);
+  background: none;
+  border: none;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* ── Cards ──────────────────────────────────────────────────────────────── */
+
+.account-card {
+  margin-bottom: 1.25rem;
+  padding: 1.5rem;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+}
+
+.account-card h2 {
+  margin: 0 0 1rem;
+  font-size: var(--fs-md);
+  font-weight: var(--fw-extrabold);
+  color: var(--color-accent);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.account-card--danger {
+  border-color: var(--color-error-border);
+}
+
+.account-card--danger p {
+  margin: 0 0 1rem;
+  font-size: var(--fs-sm);
+  color: var(--color-text-muted);
+}
+
+/* ── Form fields ────────────────────────────────────────────────────────── */
+
+.account-field {
+  display: block;
+  margin-bottom: 0.9rem;
+}
+
+.account-field span {
+  display: block;
+  margin-bottom: 0.3rem;
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text);
+}
+
+.account-field input {
+  width: 100%;
+  max-width: 22rem;
+  height: 48px;
+  padding: 0 1rem;
+  font: inherit;
+  font-size: var(--fs-base);
+  color: var(--color-text);
+  background: var(--color-surface);
+  border: none;
+  border-radius: 6px;
+  outline: none;
+  transition: box-shadow 0.2s;
+  box-shadow: 0 4px 8px rgba(21, 21, 21, 0.2);
+}
+
+.account-field input:focus {
+  box-shadow: 0 0 0 2px var(--color-accent);
+}
+
+/* ── Buttons ────────────────────────────────────────────────────────────── */
+
+.account-btn {
+  height: 44px;
+  padding: 0 1.4rem;
+  font: inherit;
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-bold);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-bg);
+  background: var(--color-text);
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition:
+    background 0.2s,
+    color 0.2s;
+}
+
+.account-btn:hover {
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+
+.account-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.account-btn--danger {
+  background: var(--color-error);
+  color: var(--color-bg);
+}
+
+.account-btn--danger:hover {
+  background: var(--color-border);
+  color: var(--color-bg);
+}
+
+/* ── Status messages ────────────────────────────────────────────────────── */
+
+.account-status {
+  margin: 0.75rem 0 0;
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-medium);
+}
+
+.account-status--ok {
+  color: var(--color-success);
+}
+
+.account-status--error {
+  color: var(--color-error);
+}

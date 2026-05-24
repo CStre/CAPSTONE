@@ -1,0 +1,27 @@
+{
+  "compilerOptions": {
+    "target": "ES2023",
+    "lib": ["ES2023"],
+    "module": "preserve",
+    "moduleResolution": "bundler",
+    "types": ["node"],
+    "verbatimModuleSyntax": true,
+    "isolatedModules": true,
+    "noEmit": true,
+
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true
+  },
+  "include": [
+    "codegen.ts",
+    "vite.config.ts",
+    "eslint.config.ts",
+    "prettier.config.ts",
+    "jest.config.ts",
+    "jest.polyfills.ts"
+  ]
+}

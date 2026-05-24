@@ -1,0 +1,17 @@
+.app-main {
+  min-height: 70vh;
+  background: var(--color-bg);
+}
+
+/* Constrained content wrapper for the standard (non-full-bleed) pages. */
+.page {
+  max-width: 60rem;
+  margin: 0 auto;
+  padding: 6.5rem 1.25rem 2.5rem; /* top clears the floating header */
+  color: var(--color-text);
+}
+
+.page h1 {
+  margin-top: 0;
+  color: var(--color-heading);
+}

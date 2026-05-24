@@ -1,0 +1,206 @@
+/* Frosted glass card. backdrop-filter lives on this element directly — NOT on
+   a child — so transform: rotateX/rotateY on the same element is safe and
+   doesn't break the blur (only ancestor-transform → child-backdrop-filter does). */
+.intro-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.25rem;
+  padding: 2.5rem 3rem;
+  max-width: 36rem;
+  width: calc(100% - 3rem);
+  text-align: center;
+  z-index: 10;
+
+  border-radius: 28px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  box-shadow:
+    0 12px 40px rgba(0, 0, 0, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.18);
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(18px) saturate(180%);
+  -webkit-backdrop-filter: blur(18px) saturate(180%);
+}
+
+[data-theme='light'] .intro-card {
+  border-color: rgba(255, 255, 255, 0.8);
+  box-shadow:
+    0 12px 40px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95),
+    inset 0 -1px 0 rgba(61, 82, 160, 0.08);
+  background: rgba(255, 255, 255, 0.28);
+}
+
+/* Fixed height matches the tallest slide so the card never resizes */
+.intro-slide {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  min-height: 9.5rem;
+  justify-content: center;
+}
+
+/* CTA wrapper — always reserves space so the card height never jumps */
+.intro-cta {
+  margin-top: 0.25rem;
+  display: flex;
+  justify-content: center;
+}
+
+.intro-next-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  background: var(--color-accent);
+  border: none;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease;
+  pointer-events: auto;
+}
+
+.intro-next-btn:hover {
+  background: var(--color-accent-hover, var(--color-accent));
+  transform: scale(1.08);
+}
+
+.intro-title {
+  margin: 0;
+  font-size: var(--fs-3xl);
+  font-weight: var(--fw-black);
+  color: var(--color-heading);
+  line-height: 1.15;
+}
+
+.intro-subtitle {
+  margin: 0;
+  font-size: var(--fs-base);
+  color: var(--color-text);
+}
+
+/* ── Slide progress timeline ──────────────────────────────────────────────── */
+
+.intro-progress {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+  justify-content: center;
+}
+
+.intro-progress__seg {
+  width: 24px;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--color-text);
+  opacity: 0.18;
+  transition:
+    opacity 0.4s ease,
+    background 0.4s ease,
+    width 0.4s ease;
+}
+
+.intro-progress__seg--done {
+  opacity: 0.4;
+}
+
+.intro-progress__seg--active {
+  width: 36px;
+  opacity: 1;
+  background: var(--color-accent);
+}
+
+/* ── Explore / Get Started button (Uiverse.io learn-more style) ──────────── */
+
+.intro-explore-btn {
+  position: relative;
+  display: inline-block;
+  cursor: pointer;
+  outline: none;
+  border: 0;
+  vertical-align: middle;
+  text-decoration: none;
+  background: transparent;
+  padding: 0;
+  font-size: var(--fs-md);
+  font-family: inherit;
+  width: 12rem;
+  height: auto;
+}
+
+.intro-explore-btn .circle {
+  transition: all 0.45s cubic-bezier(0.65, 0, 0.076, 1);
+  position: relative;
+  display: block;
+  margin: 0;
+  width: 3rem;
+  height: 3rem;
+  background: var(--color-accent);
+  border-radius: 1.625rem;
+}
+
+.intro-explore-btn .circle .icon {
+  transition: all 0.45s cubic-bezier(0.65, 0, 0.076, 1);
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  margin: auto;
+  background: var(--color-bg);
+}
+
+.intro-explore-btn .circle .icon.arrow {
+  transition: all 0.45s cubic-bezier(0.65, 0, 0.076, 1);
+  left: 0.625rem;
+  width: 1.125rem;
+  height: 0.125rem;
+  background: none;
+}
+
+.intro-explore-btn .circle .icon.arrow::before {
+  position: absolute;
+  content: '';
+  top: -0.29rem;
+  right: 0.0625rem;
+  width: 0.625rem;
+  height: 0.625rem;
+  border-top: 0.125rem solid var(--color-bg);
+  border-right: 0.125rem solid var(--color-bg);
+  transform: rotate(45deg);
+}
+
+.intro-explore-btn .button-text {
+  transition: all 0.45s cubic-bezier(0.65, 0, 0.076, 1);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 0.75rem 0;
+  margin: 0 0 0 1.85rem;
+  color: var(--color-heading);
+  font-weight: 700;
+  line-height: 1.6;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.intro-explore-btn:hover .circle {
+  width: 100%;
+}
+
+.intro-explore-btn:hover .circle .icon.arrow {
+  background: var(--color-bg);
+  transform: translate(1rem, 0);
+}
+
+.intro-explore-btn:hover .button-text {
+  color: var(--color-bg);
+}

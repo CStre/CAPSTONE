@@ -1,0 +1,255 @@
+/* ── Page layout ─────────────────────────────────────────────────────────── */
+
+.travel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 6rem; /* clear the floating header */
+  padding-bottom: 3rem;
+}
+
+.travel h1 {
+  font-size: var(--fs-2xl);
+  font-weight: var(--fw-extrabold);
+  color: var(--color-heading);
+  align-self: flex-start;
+}
+
+.travel-intro {
+  max-width: 44rem;
+  color: var(--color-text);
+  opacity: 0.8;
+  line-height: 1.7;
+  align-self: flex-start;
+  margin-bottom: 0.5rem;
+}
+
+.travel-error {
+  align-self: flex-start;
+  padding: 0.7rem 1rem;
+  color: var(--color-error);
+  background: var(--color-error-bg);
+  border: 1px solid var(--color-error-border);
+  border-radius: 8px;
+  font-size: var(--fs-base);
+  margin-bottom: 0.5rem;
+}
+
+/* ── Progress pips ───────────────────────────────────────────────────────── */
+
+.travel-progress {
+  display: flex;
+  gap: 0.35rem;
+  margin: 0.75rem 0 1.25rem;
+  max-width: min(380px, calc(100vw - 2rem));
+  width: 100%;
+}
+
+.travel-pip {
+  flex: 1;
+  max-width: 28px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--color-surface);
+  transition: background 0.25s;
+}
+
+.travel-pip--current {
+  background: var(--color-text);
+}
+
+.travel-pip--done {
+  background: var(--color-accent);
+}
+
+/* ── Panel (visual bounding box around the whole card experience) ─────────── */
+
+.travel-panel {
+  background: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: 28px;
+  padding: 1.5rem 1.5rem 2rem;
+  box-shadow: 0 32px 80px rgba(0, 0, 0, 0.5);
+}
+
+/*
+ * Clip container: clips peek cards on the right while allowing the active
+ * card to fly freely in any direction during swipe.
+ *
+ * - touch-action: none tells the browser never to initiate a scroll/zoom
+ *   gesture on any touch that starts within this area.
+ * - clip-path horizontal insets are slightly negative (-50px) so the card's
+ *   rotated corners (which extend a few pixels past the element edge) are
+ *   never clipped during the exit animation. The right -50px also means
+ *   peek cards can show up to 50px beyond the clip width before being hidden.
+ */
+.travel-card-clip {
+  width: min(380px, calc(100vw - 5rem));
+  touch-action: none;
+  clip-path: inset(-9999px -50px -9999px -50px);
+}
+
+/* ── Card stack area ─────────────────────────────────────────────────────── */
+
+.travel-card-area {
+  position: relative;
+  width: 100%;
+  height: 500px;
+}
+
+/* ── Cards ───────────────────────────────────────────────────────────────── */
+
+.travel-card {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 340px;
+  height: 500px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 18px;
+}
+
+/*
+ * Behind cards fan out to the right and slightly downward.
+ * Each step adds ~18px right and ~10px down, with decreasing opacity
+ * so the furthest cards read as "deep" in the deck.
+ */
+.travel-card--behind-1 {
+  transform: translateX(18px) translateY(9px);
+  z-index: 3;
+  opacity: 0.82;
+}
+
+.travel-card--behind-2 {
+  transform: translateX(32px) translateY(17px);
+  z-index: 2;
+  opacity: 0.58;
+}
+
+.travel-card--behind-3 {
+  transform: translateX(44px) translateY(24px);
+  z-index: 1;
+  opacity: 0.35;
+}
+
+.travel-card--active {
+  z-index: 4;
+  cursor: grab;
+  touch-action: none;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6);
+}
+
+.travel-card--active:active {
+  cursor: grabbing;
+}
+
+.travel-card-photo {
+  width: 100%;
+  flex: 1;
+  min-height: 0;
+  object-fit: cover;
+  background: var(--color-bg);
+  pointer-events: none;
+  user-select: none;
+}
+
+.travel-card-footer {
+  padding: 0.75rem 1rem 0.85rem;
+  flex-shrink: 0;
+}
+
+.travel-card-credit {
+  margin: 0;
+  font-size: var(--fs-xs);
+  color: var(--color-text-muted);
+  opacity: 0.45;
+}
+
+/* ── Swipe overlays ──────────────────────────────────────────────────────── */
+
+.travel-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  border-radius: 18px;
+}
+
+.travel-overlay--like {
+  background: var(--color-liked-overlay);
+}
+
+.travel-overlay--dislike {
+  background: var(--color-disliked-overlay);
+}
+
+.travel-stamp {
+  font-size: var(--fs-4xl);
+  font-weight: var(--fw-black);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 0.15rem 0.7rem;
+  border-radius: 8px;
+  border-width: 4px;
+  border-style: solid;
+  line-height: 1;
+}
+
+.travel-stamp--like {
+  color: var(--color-accent);
+  border-color: var(--color-accent);
+  transform: rotate(-12deg);
+}
+
+.travel-stamp--dislike {
+  color: var(--color-error);
+  border-color: var(--color-error);
+  transform: rotate(12deg);
+}
+
+/* ── All done state ──────────────────────────────────────────────────────── */
+
+.travel-done {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 4rem;
+  text-align: center;
+}
+
+.travel-done-text {
+  font-size: var(--fs-md);
+  font-weight: var(--fw-bold);
+  color: var(--color-text);
+  margin: 0;
+}
+
+.travel-submit {
+  padding: 0.7rem 2rem;
+  font: inherit;
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-bold);
+  color: var(--color-bg);
+  background: var(--color-accent);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.travel-submit:hover {
+  background: var(--color-accent-hover);
+}
+
+.travel-submit:disabled {
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+  cursor: not-allowed;
+}

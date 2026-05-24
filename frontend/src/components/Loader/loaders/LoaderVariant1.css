@@ -1,0 +1,31 @@
+/* Variant 1 — dot traces the four corners of a square via conic-gradient arcs */
+.lv1 {
+  width: 120px;
+  aspect-ratio: 1;
+  border: 15px solid #0000;
+  padding: 8px;
+  box-sizing: border-box;
+  background:
+    radial-gradient(farthest-side, var(--color-loader-dot) 98%, #0000) 0 0/30px 30px no-repeat,
+    conic-gradient(from 90deg at 15px 15px, #0000 90deg, var(--color-loader-dot) 0) content-box,
+    conic-gradient(from -90deg at 60px 60px, #0000 90deg, var(--color-loader-dot) 0) content-box;
+  animation: lv1-anim 2s infinite;
+}
+
+@keyframes lv1-anim {
+  0% {
+    background-position: 0 0;
+  }
+  25% {
+    background-position: 100% 0;
+  }
+  50% {
+    background-position: 100% 100%;
+  }
+  75% {
+    background-position: 0% 100%;
+  }
+  100% {
+    background-position: 0% 0;
+  }
+}

@@ -1,0 +1,159 @@
+/* Poppins — the v1 brand typeface. */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap');
+
+/* ── Colour palettes ──────────────────────────────────────────────────────── */
+
+:root {
+  /* Dark palette */
+  --dp-1: #212a31;
+  --dp-2: #2e3944;
+  --dp-3: #124e66;
+  --dp-4: #748d92;
+  --dp-5: #d3d9d4;
+
+  /* Light palette */
+  --lp-1: #3d52a0;
+  --lp-2: #7091e6;
+  --lp-3: #8697c4;
+  --lp-4: #adbbda;
+  --lp-5: #ede8f5;
+
+  /* Semantic tokens — dark theme (default) */
+  --color-bg: var(--dp-1);
+  --color-surface: var(--dp-2);
+  --color-border: var(--dp-3);
+  --color-text-muted: var(--dp-4);
+  --color-text: var(--dp-5);
+  --color-heading: var(--dp-5);
+
+  --color-accent: var(--dp-4);
+  --color-accent-hover: var(--dp-5);
+  --color-error: var(--dp-4);
+  --color-error-bg: var(--dp-2);
+  --color-error-border: var(--dp-3);
+  --color-warning: var(--dp-4);
+  --color-info: var(--dp-3);
+  --color-success: var(--dp-5);
+  --color-danger: var(--dp-4);
+
+  /* Loader ring colors (outer → inner) */
+  --color-ring-1: var(--dp-3);
+  --color-ring-2: var(--dp-4);
+  --color-ring-3: var(--dp-5);
+
+  /* Loader gooey animation — after filter:contrast(10) these map to:
+     bg → black, dot → white (dp-5 #D3D9D4 is light enough to survive as white) */
+  --color-loader-bg: var(--dp-1);
+  --color-loader-dot: var(--dp-5);
+
+  /* Password strength levels */
+  --color-strength-weak: var(--dp-3);
+  --color-strength-medium: var(--dp-4);
+  --color-strength-strong: var(--dp-5);
+
+  /* Travel feedback overlays */
+  --color-liked-overlay: rgba(211, 217, 212, 0.22);
+  --color-disliked-overlay: rgba(18, 78, 102, 0.22);
+
+  /* ── Type scale ───────────────────────────────────────────────────────── */
+  --fs-xs: 0.75rem;
+  --fs-sm: 0.875rem;
+  --fs-base: 1rem;
+  --fs-md: 1.125rem;
+  --fs-lg: 1.375rem;
+  --fs-xl: 1.5rem;
+  --fs-2xl: clamp(1.4rem, 3.5vw, 2.2rem);
+  --fs-3xl: clamp(1.75rem, 4.5vw, 3rem);
+  --fs-4xl: clamp(2rem, 5.5vw, 4rem);
+  --fs-5xl: clamp(2.5rem, 7vw, 5rem);
+  --fs-6xl: clamp(3rem, 8vw, 6rem);
+
+  /* ── Font weights ──────────────────────────────────────────────────────── */
+  --fw-normal: 400;
+  --fw-medium: 500;
+  --fw-semibold: 600;
+  --fw-bold: 700;
+  --fw-extrabold: 800;
+  --fw-black: 900;
+
+  /* Typography */
+  font-family:
+    'Poppins',
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    Roboto,
+    sans-serif;
+  line-height: 1.6;
+  color-scheme: dark;
+}
+
+/* Light theme override — apply via <html data-theme="light"> */
+[data-theme='light'] {
+  --color-bg: var(--lp-5);
+  --color-surface: var(--lp-4);
+  --color-border: var(--lp-3);
+  --color-text: var(--lp-1);
+  --color-text-muted: var(--lp-2);
+  --color-heading: var(--lp-1);
+
+  --color-accent: var(--lp-1);
+  --color-accent-hover: var(--lp-2);
+  --color-error: var(--lp-2);
+  --color-error-bg: var(--lp-4);
+  --color-error-border: var(--lp-3);
+  --color-warning: var(--lp-2);
+  --color-info: var(--lp-3);
+  --color-success: var(--lp-1);
+  --color-danger: var(--lp-2);
+
+  --color-ring-1: var(--lp-1);
+  --color-ring-2: var(--lp-2);
+  --color-ring-3: var(--lp-3);
+
+  /* Loader gooey animation — after filter:contrast(10) these map to:
+     bg → white, dot → blue (lp-1 #3D52A0 survives as pure blue) */
+  --color-loader-bg: var(--lp-5);
+  --color-loader-dot: var(--lp-1);
+
+  --color-strength-weak: var(--lp-3);
+  --color-strength-medium: var(--lp-2);
+  --color-strength-strong: var(--lp-1);
+
+  --color-liked-overlay: rgba(61, 82, 160, 0.22);
+  --color-disliked-overlay: rgba(134, 151, 196, 0.22);
+
+  color-scheme: light;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Scrollbar — dark track, green thumb (v1 styling). */
+body::-webkit-scrollbar {
+  width: 8px;
+}
+
+body::-webkit-scrollbar-track {
+  background: var(--color-bg);
+}
+
+body::-webkit-scrollbar-thumb {
+  background: var(--color-accent);
+  border-radius: 8px;
+}
+
+a {
+  color: var(--color-accent);
+}

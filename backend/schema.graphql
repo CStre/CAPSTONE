@@ -1,0 +1,62 @@
+"""A travel destination in the catalog."""
+type Country {
+  """ISO 3166-1 alpha-2 code."""
+  code: ID!
+  name: String!
+}
+
+"""A single country's preference score for a user (0–100)."""
+type CountryPreference {
+  country: Country!
+  value: Int!
+}
+
+input FeedbackInput {
+  """Country code the feedback applies to."""
+  country: ID!
+
+  """true = liked, false = disliked."""
+  liked: Boolean!
+}
+
+type Mutation {
+  """Delete the user’s stored data."""
+  deleteAccount: Boolean!
+
+  """
+  Run a batch of like/dislike feedback through the algorithm and persist it.
+  """
+  submitFeedback(feedback: [FeedbackInput!]!): User!
+}
+
+type Query {
+  """The full country catalog."""
+  countries: [Country!]!
+
+  """The authenticated user, or null if not signed in."""
+  me: User
+
+  """A batch of travel photos, weighted by the user’s preferences."""
+  travelImages(count: Int = 8): [TravelImage!]!
+}
+
+"""A travel photo for the user to rate."""
+type TravelImage {
+  attribution: String!
+  country: Country!
+  imageUrl: String!
+}
+
+"""
+The authenticated user. Identity comes from Cognito; preferences from DynamoDB.
+"""
+type User {
+  email: String!
+  id: ID!
+  name: String!
+
+  """
+  Every catalog country with its current score (neutral default filled in).
+  """
+  preferences: [CountryPreference!]!
+}

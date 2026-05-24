@@ -4,6 +4,10 @@
  * Resolvers stay thin — the real work lives in db.ts, images.ts, and algorithm.ts.
  * Account management (sign-up, login, password, MFA) is handled by Cognito on the
  * client, so the API only covers app data.
+ *
+ * Pothos defaults output fields to nullable; fields that always resolve carry an
+ * explicit `nullable: false` so the schema (and the generated frontend types)
+ * reflect what the resolvers actually guarantee. `Query.me` stays nullable.
  */
 import SchemaBuilder from '@pothos/core';
 import { GraphQLError } from 'graphql';
@@ -46,36 +50,37 @@ function requireUser(ctx: GraphQLContext): AuthUser {
 builder.objectType('Country', {
   description: 'A travel destination in the catalog.',
   fields: (t) => ({
-    code: t.exposeID('code', { description: 'ISO 3166-1 alpha-2 code.' }),
-    name: t.exposeString('name'),
+    code: t.exposeID('code', { description: 'ISO 3166-1 alpha-2 code.', nullable: false }),
+    name: t.exposeString('name', { nullable: false }),
   }),
 });
 
 builder.objectType('CountryPreference', {
   description: "A single country's preference score for a user (0–100).",
   fields: (t) => ({
-    country: t.field({ type: 'Country', resolve: (p) => p.country }),
-    value: t.exposeInt('value'),
+    country: t.field({ type: 'Country', nullable: false, resolve: (p) => p.country }),
+    value: t.exposeInt('value', { nullable: false }),
   }),
 });
 
 builder.objectType('TravelImage', {
   description: 'A travel photo for the user to rate.',
   fields: (t) => ({
-    country: t.field({ type: 'Country', resolve: (p) => p.country }),
-    imageUrl: t.exposeString('imageUrl'),
-    attribution: t.exposeString('attribution'),
+    country: t.field({ type: 'Country', nullable: false, resolve: (p) => p.country }),
+    imageUrl: t.exposeString('imageUrl', { nullable: false }),
+    attribution: t.exposeString('attribution', { nullable: false }),
   }),
 });
 
 builder.objectType('User', {
   description: 'The authenticated user. Identity comes from Cognito; preferences from DynamoDB.',
   fields: (t) => ({
-    id: t.exposeID('id'),
-    email: t.exposeString('email'),
-    name: t.exposeString('name'),
+    id: t.exposeID('id', { nullable: false }),
+    email: t.exposeString('email', { nullable: false }),
+    name: t.exposeString('name', { nullable: false }),
     preferences: t.field({
       type: ['CountryPreference'],
+      nullable: false,
       description: 'Every catalog country with its current score (neutral default filled in).',
       resolve: async (user) => {
         const stored = await db.getPreferences(user.id);
@@ -99,6 +104,7 @@ builder.queryType({
   fields: (t) => ({
     countries: t.field({
       type: ['Country'],
+      nullable: false,
       description: 'The full country catalog.',
       resolve: () => [...COUNTRIES],
     }),
@@ -110,6 +116,7 @@ builder.queryType({
     }),
     travelImages: t.field({
       type: ['TravelImage'],
+      nullable: false,
       description: 'A batch of travel photos, weighted by the user’s preferences.',
       args: { count: t.arg.int({ defaultValue: 8 }) },
       resolve: async (_root, args, ctx) => {
@@ -125,6 +132,7 @@ builder.mutationType({
   fields: (t) => ({
     submitFeedback: t.field({
       type: 'User',
+      nullable: false,
       description: 'Run a batch of like/dislike feedback through the algorithm and persist it.',
       args: { feedback: t.arg({ type: [FeedbackInput], required: true }) },
       resolve: async (_root, args, ctx) => {
@@ -140,6 +148,7 @@ builder.mutationType({
     }),
     deleteAccount: t.field({
       type: 'Boolean',
+      nullable: false,
       description: 'Delete the user’s stored data.',
       resolve: async (_root, _args, ctx) => {
         const user = requireUser(ctx);

@@ -1,0 +1,45 @@
+/* Variant 5 — circle slides back and forth along a horizontal bar */
+.lv5 {
+  width: 120px;
+  height: 120px;
+  padding: 12px;
+  box-sizing: border-box;
+  display: grid;
+}
+
+.lv5::before {
+  content: '';
+  grid-area: 1/1;
+  margin: 36px 0;
+  border-radius: 100px;
+  background: var(--color-loader-dot);
+}
+
+.lv5::after {
+  content: '';
+  grid-area: 1/1;
+  height: 42px;
+  width: 42px;
+  margin: auto;
+  border-radius: 50%;
+  background: var(--color-loader-dot);
+  animation: lv5-anim 2s infinite linear;
+}
+
+@keyframes lv5-anim {
+  0% {
+    transform: translate(36px);
+  }
+  25% {
+    transform: translate(0);
+  }
+  50% {
+    transform: translate(-36px);
+  }
+  75% {
+    transform: translate(0);
+  }
+  100% {
+    transform: translate(36px);
+  }
+}

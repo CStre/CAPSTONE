@@ -1,0 +1,32 @@
+.home {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background: var(--color-bg);
+  /* Flex-center so the card needs no transform (transform breaks backdrop-filter) */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Full-viewport canvas behind everything. */
+.home-canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 0;
+}
+
+/* Loader overlay — sits in front of canvas during the 3-second intro. */
+.home-loader {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  background: var(--color-bg);
+}
