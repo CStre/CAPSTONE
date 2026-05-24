@@ -149,9 +149,6 @@ resource "aws_lambda_function" "graphql" {
   timeout     = 30
   memory_size = 512
 
-  # Cap concurrency to limit blast radius and runaway cost
-  reserved_concurrent_executions = 10
-
   tracing_config {
     mode = "Active"
   }
