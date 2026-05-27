@@ -13,12 +13,30 @@ Terraform configuration for the AWS deployment — one stack per environment
 
 ## Architecture
 
-```
-CloudFront (/*  → S3)  ·  CloudFront (/graphql → Lambda URL)
-       │                               │
-   S3 (SPA)                     Lambda (container)
-                                       │
-                              DynamoDB · SSM · Cognito
+```mermaid
+architecture-beta
+    group aws(logos:aws)[AWS]
+
+    service browser(internet)[Browser]
+    service unsplash(internet)[Unsplash]
+
+    service cf(logos:aws-cloudfront)[CloudFront] in aws
+    service s3(logos:aws-s3)[S3] in aws
+    service apigw(logos:aws-api-gateway)[API Gateway] in aws
+    service lambda(logos:aws-lambda)[Lambda] in aws
+    service dynamo(logos:aws-dynamodb)[DynamoDB] in aws
+    service cognito(logos:aws-cognito)[Cognito] in aws
+    service ssm(logos:aws-systems-manager)[SSM] in aws
+
+    browser:R --> L:cf
+    browser:T --> B:cognito
+    cf:R --> L:s3
+    cf:B --> T:apigw
+    apigw:R --> L:lambda
+    lambda:T --> B:cognito
+    lambda:R --> L:dynamo
+    lambda:B --> T:ssm
+    lambda:R --> L:unsplash
 ```
 
 All environments use the same single AWS account (`958941188378`, `us-east-1`).
@@ -36,7 +54,7 @@ Production additionally creates an ACM certificate and Route 53 A records for
 | `data.tf` | DynamoDB `bba-<env>-prefs` table |
 | `auth.tf` | Cognito user pool (TOTP MFA) + app client |
 | `frontend.tf` | S3 bucket, CloudFront distribution, OAC, ACM cert + R53 (prod only) |
-| `backend.tf` | ECR repository, Lambda function, IAM execution role, CloudWatch log group |
+| `backend.tf` | ECR, Lambda, IAM execution role, CloudWatch log group, API Gateway HTTP API |
 | `secrets.tf` | SSM Parameter Store — Unsplash key, Cognito IDs |
 | `security.tf` | CloudFront response-headers policy, CloudTrail, billing alarm (prod) |
 | `cicd.tf` | GitHub Actions OIDC deploy role (one per environment) |
@@ -136,6 +154,7 @@ Everything runs within the AWS always-free tier:
 | Service | Free allowance |
 |---|---|
 | Lambda | 1 M req/mo + 400 GB-s compute |
+| API Gateway (HTTP API) | 1 M req/mo (first 12 mo), then $1/M |
 | DynamoDB | 25 GB storage, 25 WCU/RCU |
 | CloudFront | 1 TB transfer/mo, 10 M requests |
 | S3 | 5 GB (first 12 mo), then pennies |
@@ -158,6 +177,7 @@ cloudfront_distribution_id → CloudFront invalidation in CI
 frontend_bucket            → S3 sync target in CI
 ecr_repository_url         → docker push target
 lambda_function_name       → update-function-code target
+apigateway_url             → raw API Gateway endpoint (debugging only)
 cognito_user_pool_id       → VITE_COGNITO_USER_POOL_ID
 cognito_client_id          → VITE_COGNITO_CLIENT_ID
 deploy_role_arn            → role assumed by GitHub Actions

@@ -61,11 +61,74 @@ The refactored stack (active development):
 | Auth         | AWS Cognito (TOTP MFA); Amplify Auth client-side |
 | Database     | AWS DynamoDB — per-user preference map (always-free tier) |
 | External API | Unsplash API (weighted random travel photo selection) |
-| Hosting      | S3 + CloudFront (SPA + `/graphql` proxy); Lambda Function URL as origin |
+| Hosting      | S3 + CloudFront (SPA + `/graphql` proxy); API Gateway HTTP API in front of Lambda |
 | IaC          | Terraform — three environments (`dev` / `qa` / `prod`) in one AWS account |
 | CI/CD        | GitHub Actions — lint, SAST, dep scan, IaC scan, SBOM, tests, deploy, DAST |
 
 The archived v1 stack (Django + Create React App + Elastic Beanstalk) lives under `legacy/` and is the reference for app behavior.
+
+---
+
+## Deployed Architecture
+
+One CloudFront distribution fronts everything — the SPA from S3 at `/*`, and the
+GraphQL API via API Gateway at `/graphql`. Same origin, no CORS, single TLS cert.
+
+```mermaid
+architecture-beta
+    group aws(logos:aws)[AWS]
+
+    service browser(internet)[Browser]
+    service unsplash(internet)[Unsplash]
+
+    service cf(logos:aws-cloudfront)[CloudFront] in aws
+    service s3(logos:aws-s3)[S3 React SPA] in aws
+    service apigw(logos:aws-api-gateway)[API Gateway] in aws
+    service lambda(logos:aws-lambda)[Lambda] in aws
+    service dynamo(logos:aws-dynamodb)[DynamoDB] in aws
+    service cognito(logos:aws-cognito)[Cognito] in aws
+    service ssm(logos:aws-systems-manager)[SSM] in aws
+
+    browser:R --> L:cf
+    browser:T --> B:cognito
+    cf:R --> L:s3
+    cf:B --> T:apigw
+    apigw:R --> L:lambda
+    lambda:T --> B:cognito
+    lambda:R --> L:dynamo
+    lambda:B --> T:ssm
+    lambda:R --> L:unsplash
+```
+
+**Edges shown:**
+
+- `Browser → CloudFront` — HTTPS for both SPA assets (`/*`) and GraphQL (`/graphql`).
+- `Browser → Cognito` — direct sign-up / sign-in / TOTP MFA via Amplify Auth.
+- `CloudFront → S3` — `/*` serves the React/Vite build.
+- `CloudFront → API Gateway → Lambda` — `/graphql` proxies through to the container image (GraphQL Yoga + Pothos).
+- `Lambda → Cognito` — verifies the JWT against the pool's JWKS.
+- `Lambda → DynamoDB` — per-user preference map.
+- `Lambda → SSM` — reads the Unsplash key (KMS-encrypted at rest).
+- `Lambda → Unsplash` — weighted random photo selection for the Travel page.
+
+**Request flow for a typical mutation** (e.g. `submitFeedback`):
+
+1. Amplify Auth in the browser supplies the Cognito ID token from secure cookies.
+2. urql sends `POST /graphql` with `Authorization: Bearer <jwt>`.
+3. CloudFront forwards `/graphql` to the API Gateway HTTP API (default cache disabled,
+   `AllViewerExceptHostHeader` policy forwards the JWT).
+4. API Gateway invokes the Lambda container with payload-format v2.
+5. The Lambda verifies the JWT against the Cognito pool's JWKS, runs the resolver
+   (updates `preferences` in DynamoDB, fetches Unsplash images for `travelImages`,
+   etc.), and returns the GraphQL response back through API Gateway → CloudFront →
+   the browser.
+
+> **Why API Gateway instead of a Lambda Function URL?** The original plan called for
+> `CloudFront → Lambda Function URL`. New AWS accounts have a guardrail that blocks
+> anonymous Function URL access regardless of resource policy, and the CloudFront
+> OAC + SigV4 path proved brittle in practice. API Gateway HTTP APIs are free for
+> the first 1M requests/month and route to the same Lambda with the same payload
+> format — no signing required.
 
 ---
 

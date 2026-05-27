@@ -6,12 +6,7 @@
     <meta name="description" content="An interactive look at preference-learning algorithms." />
     <title>Building Better Algorithms</title>
     <!-- Apply saved theme before React mounts to prevent flash of wrong theme. -->
-    <script>
-      (function () {
-        var t = localStorage.getItem('bba-theme');
-        document.documentElement.setAttribute('data-theme', t === 'light' ? 'light' : 'dark');
-      })();
-    </script>
+    <script src="/theme-init.js"></script>
   </head>
   <body>
     <div id="root"></div>

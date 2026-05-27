@@ -44,6 +44,7 @@ resource "aws_cloudfront_origin_access_control" "frontend" {
   signing_protocol                  = "sigv4"
 }
 
+
 # Bucket policy: allow only the CloudFront distribution to GetObject
 resource "aws_s3_bucket_policy" "frontend" {
   bucket = aws_s3_bucket.frontend.id
@@ -122,7 +123,7 @@ resource "aws_acm_certificate_validation" "main" {
 # ---------------------------------------------------------------------------
 # CloudFront distribution
 #   /*         → S3 (React SPA)
-#   /graphql   → Lambda Function URL
+#   /graphql   → API Gateway HTTP API → Lambda
 # ---------------------------------------------------------------------------
 
 resource "aws_cloudfront_distribution" "main" { # nosemgrep: terraform.aws.security.aws-cloudfront-insecure-tls.aws-insecure-cloudfront-distribution-tls-version
@@ -142,11 +143,11 @@ resource "aws_cloudfront_distribution" "main" { # nosemgrep: terraform.aws.secur
     origin_access_control_id = aws_cloudfront_origin_access_control.frontend.id
   }
 
-  # Origin 2: Lambda Function URL (GraphQL)
-  # Strip the https:// prefix — CloudFront expects just the hostname
+  # Origin 2: API Gateway HTTP API (GraphQL). API Gateway is publicly reachable
+  # and CloudFront proxies the request unchanged — no signing required.
   origin {
-    domain_name = replace(replace(aws_lambda_function_url.graphql.function_url, "https://", ""), "/", "")
-    origin_id   = "lambda-graphql"
+    domain_name = "${aws_apigatewayv2_api.graphql.id}.execute-api.${local.region}.amazonaws.com"
+    origin_id   = "apigateway-graphql"
 
     custom_origin_config {
       http_port              = 80
@@ -178,29 +179,24 @@ resource "aws_cloudfront_distribution" "main" { # nosemgrep: terraform.aws.secur
     max_ttl     = 86400
   }
 
-  # /graphql behaviour: proxy to Lambda; no caching
+  # /graphql behaviour: proxy to API Gateway; no caching.
   ordered_cache_behavior {
     path_pattern           = "/graphql"
-    target_origin_id       = "lambda-graphql"
+    target_origin_id       = "apigateway-graphql"
     viewer_protocol_policy = "redirect-to-https"
     allowed_methods        = ["DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT"]
     cached_methods         = ["GET", "HEAD"]
     compress               = false
 
-    forwarded_values {
-      query_string = true
-      headers      = ["Authorization", "Content-Type", "Origin"]
-      cookies {
-        forward = "none"
-      }
-    }
-
-    min_ttl     = 0
-    default_ttl = 0
-    max_ttl     = 0
+    # Managed-CachingDisabled — never cache API responses.
+    cache_policy_id = "4135ea2d-6df8-44a3-9df3-4b5a84be39ad"
+    # Managed-AllViewerExceptHostHeader — forwards Authorization, Content-Type,
+    # cookies, query strings (everything except Host, which must be the API
+    # Gateway hostname so the API resolves the right stage).
+    origin_request_policy_id = "b689b0a8-53d0-40ab-baf2-68738e2966ac"
   }
 
-  # Return index.html for any 403/404 from S3 (SPA client-side routing)
+  # Return index.html for any 403/404 from S3 (SPA client-side routing).
   custom_error_response {
     error_code         = 403
     response_code      = 200
@@ -218,7 +214,7 @@ resource "aws_cloudfront_distribution" "main" { # nosemgrep: terraform.aws.secur
     ssl_support_method             = local.is_prod ? "sni-only" : null
     # TLSv1 is the only valid value AWS accepts when cloudfront_default_certificate=true (dev/qa);
     # prod uses TLSv1.2_2021 with its ACM cert. The ternary cannot be avoided here.
-    minimum_protocol_version       = local.is_prod ? "TLSv1.2_2021" : "TLSv1" # nosemgrep: terraform.aws.security.aws-cloudfront-insecure-tls.aws-insecure-cloudfront-distribution-tls-version
+    minimum_protocol_version = local.is_prod ? "TLSv1.2_2021" : "TLSv1" # nosemgrep: terraform.aws.security.aws-cloudfront-insecure-tls.aws-insecure-cloudfront-distribution-tls-version
   }
 
   restrictions {

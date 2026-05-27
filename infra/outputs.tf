@@ -27,10 +27,9 @@ output "lambda_function_name" {
   value       = aws_lambda_function.graphql.function_name
 }
 
-output "lambda_function_url" {
-  description = "Raw Lambda Function URL (CloudFront proxies /graphql here)"
-  value       = aws_lambda_function_url.graphql.function_url
-  sensitive   = false
+output "apigateway_url" {
+  description = "Raw API Gateway HTTP API endpoint (CloudFront proxies /graphql here)"
+  value       = aws_apigatewayv2_api.graphql.api_endpoint
 }
 
 output "cognito_user_pool_id" {

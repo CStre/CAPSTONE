@@ -159,13 +159,14 @@ resource "aws_lambda_function" "graphql" {
       AUTH_MODE            = "cognito"
       ENVIRONMENT          = local.env
       COGNITO_USER_POOL_ID = aws_cognito_user_pool.main.id
+      COGNITO_CLIENT_ID    = aws_cognito_user_pool_client.main.id
       COGNITO_REGION       = local.region
       DYNAMODB_TABLE       = aws_dynamodb_table.prefs.name
       SSM_PREFIX           = "/bba/${local.env}"
       # Passed directly — Lambda env vars are KMS-encrypted at rest. SSM is the
       # stricter option (access logged, zero console exposure) but requires an async
       # init path that is deferred to a future hardening pass.
-      UNSPLASH_ACCESS_KEY  = var.unsplash_access_key
+      UNSPLASH_ACCESS_KEY = var.unsplash_access_key
     }
   }
 
@@ -183,12 +184,49 @@ resource "aws_lambda_function" "graphql" {
 }
 
 # ---------------------------------------------------------------------------
-# Lambda Function URL — HTTPS endpoint consumed by CloudFront as an origin.
-# auth=NONE because CloudFront is the only caller and the Lambda verifies
-# Cognito JWTs itself.
+# API Gateway HTTP API — public HTTPS endpoint that proxies POST /graphql to
+# the Lambda. Replaces the Lambda Function URL: this account's new-account
+# guardrails block anonymous Function URL access, and CloudFront OAC SigV4
+# signing of Function URLs is fragile in practice. API Gateway HTTP APIs are
+# free for the first 1M requests/month and route to Lambda over the same
+# payload-format v2 our handler already expects.
 # ---------------------------------------------------------------------------
 
-resource "aws_lambda_function_url" "graphql" {
-  function_name      = aws_lambda_function.graphql.function_name
-  authorization_type = "NONE"
+resource "aws_apigatewayv2_api" "graphql" {
+  name          = "${local.prefix}-graphql"
+  protocol_type = "HTTP"
+
+  tags = local.tags
+}
+
+resource "aws_apigatewayv2_integration" "graphql" {
+  api_id                 = aws_apigatewayv2_api.graphql.id
+  integration_type       = "AWS_PROXY"
+  integration_uri        = aws_lambda_function.graphql.invoke_arn
+  payload_format_version = "2.0"
+  timeout_milliseconds   = 30000
+}
+
+# Match every method/path; GraphQL Yoga handles routing itself (POST /graphql,
+# GET /graphql for introspection, OPTIONS for CORS preflight).
+resource "aws_apigatewayv2_route" "graphql" {
+  api_id    = aws_apigatewayv2_api.graphql.id
+  route_key = "ANY /{proxy+}"
+  target    = "integrations/${aws_apigatewayv2_integration.graphql.id}"
+}
+
+resource "aws_apigatewayv2_stage" "default" {
+  api_id      = aws_apigatewayv2_api.graphql.id
+  name        = "$default"
+  auto_deploy = true
+
+  tags = local.tags
+}
+
+resource "aws_lambda_permission" "apigateway_invoke" {
+  statement_id  = "AllowAPIGatewayInvoke"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.graphql.function_name
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "${aws_apigatewayv2_api.graphql.execution_arn}/*/*"
 }
