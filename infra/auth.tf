@@ -165,7 +165,7 @@ resource "aws_cognito_user_pool" "main" {
 
 # Bump the value below (e.g. "v2" → "v3") to force pool recreation on next apply.
 resource "terraform_data" "cognito_pool_recreate" {
-  input = "v2"
+  input = "v3"
 }
 
 # App client — public SPA, no client secret
