@@ -56,16 +56,13 @@ resource "aws_cognito_user_pool" "main" {
     temporary_password_validity_days = 7
   }
 
-  # TOTP MFA (preferred when enrolled) + email OTP (fallback for non-enrolled users).
-  # ALLOW_USER_AUTH on the app client lets Cognito pick the right challenge automatically.
-  # No SMS MFA — phone is used for attribute verification only (phone_number attribute).
-  mfa_configuration = "ON"
+  # TOTP MFA optional — users may enroll an authenticator app in account settings.
+  # Users without TOTP sign in with email + password only (no MFA challenge).
+  # Email OTP MFA requires SES (DEVELOPER sending account) — not used here.
+  # No SMS MFA — phone is used for attribute verification only.
+  mfa_configuration = "OPTIONAL"
   software_token_mfa_configuration {
     enabled = true
-  }
-  email_mfa_configuration {
-    message = "Your Building Better Algorithms sign-in code is {####}. This code expires in 10 minutes."
-    subject = "Your Building Better Algorithms sign-in code"
   }
 
   # SNS/SMS — used only to verify the phone_number attribute at sign-up and when
