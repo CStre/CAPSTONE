@@ -310,7 +310,9 @@ export function AccountPage(): ReactElement {
             <button
               type="button"
               className="auth-security-btn"
-              onClick={() => { setShowSecurity(true); }}
+              onClick={() => {
+                setShowSecurity(true);
+              }}
               aria-label="How is my data protected?"
             >
               <LordIcon src={ICONS.securityShield} size={22} trigger="hover" stroke="bold" />
@@ -343,7 +345,9 @@ export function AccountPage(): ReactElement {
                   value={name}
                   required
                   autoComplete="name"
-                  onChange={(e) => { setName(e.target.value); }}
+                  onChange={(e) => {
+                    setName(e.target.value);
+                  }}
                 />
               </label>
               <button type="submit" disabled={savingName}>
@@ -368,7 +372,9 @@ export function AccountPage(): ReactElement {
                   value={email}
                   required
                   autoComplete="email"
-                  onChange={(e) => { setEmail(e.target.value); }}
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                  }}
                 />
               </label>
               <button type="submit" disabled={savingEmail}>
@@ -393,7 +399,9 @@ export function AccountPage(): ReactElement {
                   value={oldPassword}
                   required
                   autoComplete="current-password"
-                  onChange={(e) => { setOldPassword(e.target.value); }}
+                  onChange={(e) => {
+                    setOldPassword(e.target.value);
+                  }}
                 />
               </label>
               <label>
@@ -403,7 +411,9 @@ export function AccountPage(): ReactElement {
                   value={newPassword}
                   required
                   autoComplete="new-password"
-                  onChange={(e) => { setNewPassword(e.target.value); }}
+                  onChange={(e) => {
+                    setNewPassword(e.target.value);
+                  }}
                 />
               </label>
               <PasswordStrength password={newPassword} />

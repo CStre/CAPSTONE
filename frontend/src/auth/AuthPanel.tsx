@@ -37,7 +37,6 @@ type Step = 'signIn' | 'signUp' | 'confirmSignUp' | 'totpSetup' | 'mfaCode' | 'm
 /** Animation phase for the TOTP icon while the mfaCode step is active. */
 type MfaIconPhase = 'in' | 'idle' | 'success';
 
-
 /** Drives the Cognito auth flow and renders the form for the current step. */
 export function AuthPanel(): ReactElement {
   const { reload } = useAuth();
@@ -279,7 +278,7 @@ export function AuthPanel(): ReactElement {
                   onClick={handleRequestEmailMfa}
                   disabled={pending}
                 >
-                Use email instead
+                  Use email instead
                 </button>
               </div>
             }

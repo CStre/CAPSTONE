@@ -47,9 +47,22 @@ export function SignUpForm({
     <form className="auth-form" onSubmit={handleSubmit}>
       <div className="auth-form-header">
         {iconPhase === 'in' ? (
-          <LordIcon key="icon-in" src={ICONS.authSignUp} size={56} trigger="in" state="in-reveal" stroke="bold" />
+          <LordIcon
+            key="icon-in"
+            src={ICONS.authSignUp}
+            size={56}
+            trigger="in"
+            state="in-reveal"
+            stroke="bold"
+          />
         ) : (
-          <LordIcon key="icon-idle" src={ICONS.authSignUp} size={56} trigger="hover" stroke="bold" />
+          <LordIcon
+            key="icon-idle"
+            src={ICONS.authSignUp}
+            size={56}
+            trigger="hover"
+            stroke="bold"
+          />
         )}
         <h2>Create your account</h2>
       </div>
