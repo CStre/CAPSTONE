@@ -1,10 +1,14 @@
 /**
- * @fileoverview Sign-up form — name + email + password with strength indicator.
+ * @fileoverview Sign-up form — first/last name + email + phone + password with strength indicator.
+ *
+ * Validation: names max 20 chars (first letter auto-capitalized), email/password max 50 chars,
+ * phone via PhoneInput (max 10 local digits, E.164 output).
  */
 import { useState } from 'react';
 import type { ReactElement, SyntheticEvent } from 'react';
 import { PasswordStrength, getStrength } from '../components/PasswordStrength/PasswordStrength';
 import { LordIcon, ICONS } from '../components/LordIcon/LordIcon';
+import { PhoneInput } from '../components/PhoneInput/PhoneInput';
 import { useTheme } from '../lib/ThemeContext';
 import { spawnParticles } from '../components/CanvasAnimation/spawnParticles';
 
@@ -12,9 +16,19 @@ interface SignUpFormProps {
   pending: boolean;
   error: string | null;
   iconPhase: 'in' | 'idle';
-  onSubmit: (email: string, password: string, name: string) => void;
+  onSubmit: (
+    email: string,
+    password: string,
+    firstName: string,
+    lastName: string,
+    phone: string,
+  ) => void;
   onSwitchToSignIn: () => void;
   onLearnMore: () => void;
+}
+
+function capitalizeFirst(s: string): string {
+  return s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
 }
 
 /** Presentational sign-up form; the parent owns the async work. */
@@ -26,15 +40,17 @@ export function SignUpForm({
   onSwitchToSignIn,
   onLearnMore,
 }: SignUpFormProps): ReactElement {
-  const [name, setName] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const { theme } = useTheme();
 
   function handleSubmit(event: SyntheticEvent<HTMLFormElement>): void {
     event.preventDefault();
-    onSubmit(email.trim(), password, name.trim());
+    onSubmit(email.trim(), password, firstName.trim(), lastName.trim(), phone);
   }
 
   function handleSubmitClick(e: React.MouseEvent<HTMLButtonElement>): void {
@@ -68,32 +84,52 @@ export function SignUpForm({
       </div>
       <div className="auth-field-row">
         <label>
-          Name
+          First name
           <input
             type="text"
-            autoComplete="name"
+            autoComplete="given-name"
             required
-            placeholder="Your name"
-            value={name}
-            onChange={(event) => {
-              setName(event.target.value);
+            maxLength={20}
+            placeholder="First name"
+            value={firstName}
+            onChange={(e) => {
+              setFirstName(capitalizeFirst(e.target.value.slice(0, 20)));
             }}
           />
         </label>
         <label>
-          Email
+          Last name
           <input
-            type="email"
-            autoComplete="email"
+            type="text"
+            autoComplete="family-name"
             required
-            placeholder="Email address"
-            value={email}
-            onChange={(event) => {
-              setEmail(event.target.value);
+            maxLength={20}
+            placeholder="Last name"
+            value={lastName}
+            onChange={(e) => {
+              setLastName(capitalizeFirst(e.target.value.slice(0, 20)));
             }}
           />
         </label>
       </div>
+      <label>
+        Email
+        <input
+          type="email"
+          autoComplete="email"
+          required
+          maxLength={50}
+          placeholder="Email address"
+          value={email}
+          onChange={(e) => {
+            setEmail(e.target.value.slice(0, 50));
+          }}
+        />
+      </label>
+      <label>
+        Phone number
+        <PhoneInput value={phone} onChange={setPhone} required />
+      </label>
       <label>
         Password
         <div className="auth-input-wrap">
@@ -102,10 +138,11 @@ export function SignUpForm({
             autoComplete="new-password"
             required
             minLength={8}
+            maxLength={50}
             placeholder="Password"
             value={password}
-            onChange={(event) => {
-              setPassword(event.target.value);
+            onChange={(e) => {
+              setPassword(e.target.value.slice(0, 50));
             }}
           />
           <button

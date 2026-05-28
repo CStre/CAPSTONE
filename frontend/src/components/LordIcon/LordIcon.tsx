@@ -59,6 +59,13 @@ export const ICONS = {
   resendCode: '/icons/wired-outline-194-refresh-hover-pinch.json',
   mfaTwoFactor: '/icons/wired-outline-2604-2-factor-authentication-hover-pinch.json',
   mailShield: '/icons/wired-outline-3640-mail-shield-in-assembly.json',
+  fingerprint: '/icons/wired-outline-500-fingerprint-security-hover-pinch.json',
+  trashBin: '/icons/wired-outline-185-trash-bin-morph-trash-in.json',
+
+  // ── Forgot flow ───────────────────────────────────────────────────────────
+  searchAccount: '/icons/search_account.json',
+  chatVerify: '/icons/chat_verify.json',
+  envelopVerifyEmail: '/icons/envelop_verify_email.json',
 } as const;
 
 interface LordIconProps {

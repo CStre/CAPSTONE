@@ -9,6 +9,7 @@
 import {
   AdminDeleteUserCommand,
   CognitoIdentityProviderClient,
+  ListUsersCommand,
 } from '@aws-sdk/client-cognito-identity-provider';
 import { CognitoJwtVerifier } from 'aws-jwt-verify';
 import { config } from './config';
@@ -76,4 +77,28 @@ export async function deleteCognitoUser(email: string): Promise<void> {
       Username: email,
     }),
   );
+}
+
+/**
+ * Look up a Cognito user by their verified phone number.
+ * Returns the user's email (username) or null if no match is found.
+ * Used by the forgot-email recovery flow.
+ * No-op in dev mode — returns a fixed dev email for testing.
+ */
+export async function findUserByPhone(phone: string): Promise<string | null> {
+  if (config.authMode !== 'cognito' || !config.cognitoUserPoolId) {
+    return 'dev@example.com';
+  }
+  adminClient ??= new CognitoIdentityProviderClient({ region: config.awsRegion });
+  const result = await adminClient.send(
+    new ListUsersCommand({
+      UserPoolId: config.cognitoUserPoolId,
+      Filter: `phone_number = "${phone}"`,
+      Limit: 1,
+    }),
+  );
+  const user = result.Users?.[0];
+  if (!user) return null;
+  const emailAttr = user.Attributes?.find((a) => a.Name === 'email');
+  return emailAttr?.Value ?? null;
 }

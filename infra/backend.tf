@@ -99,7 +99,7 @@ resource "aws_iam_role_policy" "lambda_ssm" {
   })
 }
 
-# Cognito — delete user on account deletion
+# Cognito — delete user + list users by phone (forgot-email flow)
 resource "aws_iam_role_policy" "lambda_cognito" {
   name = "cognito"
   role = aws_iam_role.lambda.id
@@ -109,7 +109,7 @@ resource "aws_iam_role_policy" "lambda_cognito" {
     Statement = [
       {
         Effect   = "Allow"
-        Action   = ["cognito-idp:AdminDeleteUser"]
+        Action   = ["cognito-idp:AdminDeleteUser", "cognito-idp:ListUsers"]
         Resource = aws_cognito_user_pool.main.arn
       },
     ]

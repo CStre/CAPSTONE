@@ -260,11 +260,23 @@
   }
 }
 
-/* Very narrow: truncate brand name */
-@media (max-width: 26rem) {
+.di-brand__abbr {
+  display: none;
+}
+
+/* Tablet and below: swap full name for abbreviation before it truncates */
+@media (max-width: 52rem) {
   .di-brand {
-    max-width: 7.5rem;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    max-width: none;
+    overflow: visible;
+    text-overflow: clip;
+  }
+
+  .di-brand__full {
+    display: none;
+  }
+
+  .di-brand__abbr {
+    display: inline;
   }
 }

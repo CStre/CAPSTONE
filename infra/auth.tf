@@ -1,6 +1,39 @@
-# Cognito user pool — handles identity, email verification, and TOTP MFA.
+# Cognito user pool — handles identity, email/phone verification, and MFA.
 # The frontend (Amplify Auth) talks to Cognito directly; no auth endpoints
 # in the GraphQL Lambda.
+
+# IAM role Cognito uses to send SMS via SNS (phone verification + recovery).
+resource "aws_iam_role" "cognito_sms" {
+  name = "${local.prefix}-cognito-sms"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect    = "Allow"
+      Principal = { Service = "cognito-idp.amazonaws.com" }
+      Action    = "sts:AssumeRole"
+      Condition = {
+        StringEquals = { "sts:ExternalId" = "${local.prefix}-sms" }
+      }
+    }]
+  })
+
+  tags = local.tags
+}
+
+resource "aws_iam_role_policy" "cognito_sms_publish" {
+  name = "allow-sns-publish"
+  role = aws_iam_role.cognito_sms.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect   = "Allow"
+      Action   = "sns:Publish"
+      Resource = "*"
+    }]
+  })
+}
 
 resource "aws_cognito_user_pool" "main" {
   name = "${local.prefix}-users"
@@ -23,9 +56,9 @@ resource "aws_cognito_user_pool" "main" {
     temporary_password_validity_days = 7
   }
 
-  # TOTP MFA — no SMS (avoids SNS sandbox / 10DLC and per-message cost).
-  # Email OTP is enabled as a fallback so users can receive a code by email
-  # if their authenticator app is unavailable.
+  # TOTP MFA (preferred when enrolled) + email OTP (fallback for non-enrolled users).
+  # ALLOW_USER_AUTH on the app client lets Cognito pick the right challenge automatically.
+  # No SMS MFA — phone is used for attribute verification only (phone_number attribute).
   mfa_configuration = "ON"
   software_token_mfa_configuration {
     enabled = true
@@ -35,7 +68,17 @@ resource "aws_cognito_user_pool" "main" {
     subject = "Your Building Better Algorithms sign-in code"
   }
 
-  # Required attributes collected at sign-up
+  # SNS/SMS — used only to verify the phone_number attribute at sign-up and when
+  # the user changes their phone in account settings. NOT used for SMS MFA.
+  sms_configuration {
+    external_id    = "${local.prefix}-sms"
+    sns_caller_arn = aws_iam_role.cognito_sms.arn
+  }
+  sms_verification_message = "Your Building Better Algorithms verification code is {####}"
+
+  # Required attributes collected at sign-up.
+  # NOTE: changing required attributes forces Terraform to replace the user pool.
+  # All test users in DEV/QA will be removed on next apply.
   schema {
     name                = "email"
     attribute_data_type = "String"
@@ -58,6 +101,39 @@ resource "aws_cognito_user_pool" "main" {
     }
   }
 
+  schema {
+    name                = "phone_number"
+    attribute_data_type = "String"
+    required            = true
+    mutable             = true
+    string_attribute_constraints {
+      min_length = 0
+      max_length = 2048
+    }
+  }
+
+  schema {
+    name                = "given_name"
+    attribute_data_type = "String"
+    required            = true
+    mutable             = true
+    string_attribute_constraints {
+      min_length = 1
+      max_length = 20
+    }
+  }
+
+  schema {
+    name                = "family_name"
+    attribute_data_type = "String"
+    required            = true
+    mutable             = true
+    string_attribute_constraints {
+      min_length = 1
+      max_length = 20
+    }
+  }
+
   # Email verification message
   verification_message_template {
     default_email_option = "CONFIRM_WITH_CODE"
@@ -65,11 +141,15 @@ resource "aws_cognito_user_pool" "main" {
     email_message        = "Your verification code is {####}"
   }
 
-  # Account recovery via verified email only (no SMS)
+  # Account recovery: email primary, verified phone secondary
   account_recovery_setting {
     recovery_mechanism {
       name     = "verified_email"
       priority = 1
+    }
+    recovery_mechanism {
+      name     = "verified_phone_number"
+      priority = 2
     }
   }
 
@@ -83,8 +163,9 @@ resource "aws_cognito_user_pool_client" "main" {
 
   generate_secret = false
 
-  # SRP-only auth (secure remote password) + refresh tokens.
-  # ALLOW_USER_AUTH enables mid-flow challenge switching (e.g. TOTP → email OTP).
+  # SRP-only auth + refresh tokens.
+  # ALLOW_USER_AUTH enables Cognito to automatically pick TOTP (if enrolled) or
+  # email OTP (if not enrolled) — no mid-flow challenge switching needed on the client.
   explicit_auth_flows = [
     "ALLOW_USER_SRP_AUTH",
     "ALLOW_REFRESH_TOKEN_AUTH",
@@ -103,4 +184,7 @@ resource "aws_cognito_user_pool_client" "main" {
   }
 
   prevent_user_existence_errors = "ENABLED"
+
+  read_attributes  = ["email", "name", "given_name", "family_name", "phone_number"]
+  write_attributes = ["email", "name", "given_name", "family_name", "phone_number"]
 }

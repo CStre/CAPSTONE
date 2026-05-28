@@ -13,6 +13,7 @@ interface SignInFormProps {
   error: string | null;
   onSubmit: (email: string, password: string) => void;
   onSwitchToSignUp: () => void;
+  onForgot: () => void;
   onLearnMore: () => void;
 }
 
@@ -23,6 +24,7 @@ export function SignInForm({
   error,
   onSubmit,
   onSwitchToSignUp,
+  onForgot,
   onLearnMore,
 }: SignInFormProps): ReactElement {
   const [email, setEmail] = useState(initialEmail);
@@ -120,6 +122,9 @@ export function SignInForm({
         </div>
       </label>
       {error !== null && <p className="auth-error">{error}</p>}
+      <button type="button" className="auth-forgot-link" onClick={onForgot}>
+        Forgot something?
+      </button>
       <button type="submit" disabled={pending} onClick={handleSubmitClick}>
         {pending ? 'Signing in…' : 'Sign in'}
       </button>

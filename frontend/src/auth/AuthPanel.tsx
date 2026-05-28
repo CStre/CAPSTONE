@@ -1,41 +1,68 @@
 /**
- * @fileoverview Auth panel — the sign-in / sign-up / MFA flow state machine.
+ * @fileoverview Auth panel — the sign-in / sign-up / MFA / forgot flow state machine.
  *
- * The sign-in and sign-up forms live on opposite faces of a 3-D flip card.
- * Clicking "Sign up" / "Sign in" flips the card; all other step transitions
- * (email confirmation, TOTP setup, MFA code) replace the visible face content
- * without flipping.
- *
- * Front face: signIn · mfaCode · mfaEmail · totpSetup
+ * Front face: signIn · mfaCode · mfaEmail · totpSetup · confirmPhone
+ *             forgotChoice · forgotEmailPhone · forgotEmailCode
+ *             forgotPasswordEmail · forgotPasswordCode
  * Back face:  signUp · confirmSignUp
  */
 import { useState, useRef, useLayoutEffect, useEffect } from 'react';
 import type { ReactElement } from 'react';
+import { useMutation } from 'urql';
 import { useTheme } from '../lib/ThemeContext';
 import { useCanvasAnimation } from '../components/CanvasAnimation/useCanvasAnimation';
 import { useAuth } from './context';
 import {
   beginSignIn,
+  confirmForgotPassword,
+  confirmPhoneVerification,
   confirmRegistration,
+  forgotPassword,
   register,
   requestEmailMfa,
   resendConfirmation,
+  sendPhoneVerification,
   submitSignInCode,
   type NextAction,
 } from './flow';
+import { graphql } from '../gql';
 import { LordIcon, ICONS } from '../components/LordIcon/LordIcon';
 import { SignInForm } from './SignInForm';
 import { SignUpForm } from './SignUpForm';
 import { CodeForm } from './CodeForm';
 import { TotpSetupForm } from './TotpSetupForm';
+import {
+  ForgotChoice,
+  ForgotEmailCode,
+  ForgotEmailPhone,
+  ForgotPasswordCode,
+  ForgotPasswordEmail,
+} from './ForgotPanel';
 import { SecurityInfo } from '../components/SecurityInfo/SecurityInfo';
 import { useCardTilt } from '../components/GlassIsland/useCardTilt';
 import './auth.css';
 
-type Step = 'signIn' | 'signUp' | 'confirmSignUp' | 'totpSetup' | 'mfaCode' | 'mfaEmail';
+const FindEmailByPhoneMutation = graphql(`
+  mutation FindEmailByPhone($phone: String!) {
+    findEmailByPhone(phone: $phone)
+  }
+`);
 
-/** Animation phase for the TOTP icon while the mfaCode step is active. */
-type MfaIconPhase = 'in' | 'idle' | 'success';
+type Step =
+  | 'signIn'
+  | 'signUp'
+  | 'confirmSignUp'
+  | 'confirmPhone'
+  | 'totpSetup'
+  | 'mfaCode'
+  | 'mfaEmail'
+  | 'forgotChoice'
+  | 'forgotEmailPhone'
+  | 'forgotEmailCode'
+  | 'forgotPasswordEmail'
+  | 'forgotPasswordCode';
+
+type MfaIconPhase = 'in' | 'idle';
 
 /** Drives the Cognito auth flow and renders the form for the current step. */
 export function AuthPanel(): ReactElement {
@@ -43,8 +70,10 @@ export function AuthPanel(): ReactElement {
   const { theme } = useTheme();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   useCanvasAnimation(canvasRef, theme);
+
   const [step, setStep] = useState<Step>('signIn');
   const [email, setEmail] = useState('');
+  const [forgotEmail, setForgotEmail] = useState(''); // email found via phone lookup
   const [totp, setTotp] = useState<{ secret: string; uri: string } | null>(null);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -56,8 +85,8 @@ export function AuthPanel(): ReactElement {
   const [codeAttempts, setCodeAttempts] = useState(0);
   const MAX_ATTEMPTS = 3;
 
-  // Only the timer lives in the effect — avoids synchronous setState-in-effect lint error.
-  // The 'in' phase is set in applyAction / goToStep when the step transitions.
+  const [, findEmailByPhone] = useMutation(FindEmailByPhoneMutation);
+
   useEffect(() => {
     if (step !== 'mfaCode') return;
     mfaTimerRef.current = setTimeout(() => {
@@ -70,20 +99,19 @@ export function AuthPanel(): ReactElement {
 
   useEffect(() => {
     if (step !== 'signUp') return;
-    // Wait for the 720ms flip animation to finish before starting the reveal.
     const flipTimer = setTimeout(() => {
       setSignUpIconPhase('in');
       signUpTimerRef.current = setTimeout(() => {
         setSignUpIconPhase('idle');
-      }, 2000);
-    }, 200);
+      }, 3000);
+    }, 250);
     return () => {
       clearTimeout(flipTimer);
       if (signUpTimerRef.current !== null) clearTimeout(signUpTimerRef.current);
     };
   }, [step]);
-  const { ref: sceneRef, rx, ry, isHovered } = useCardTilt(2);
 
+  const { ref: sceneRef, rx, ry, isHovered } = useCardTilt(2);
   const frontCardRef = useRef<HTMLDivElement>(null);
   const backCardRef = useRef<HTMLDivElement>(null);
   const [frontHeight, setFrontHeight] = useState(0);
@@ -103,7 +131,6 @@ export function AuthPanel(): ReactElement {
     };
   }, []);
 
-  // Back face is visible for the sign-up + email-confirmation steps
   const isFlipped = step === 'signUp' || step === 'confirmSignUp';
 
   function applyAction(action: NextAction): void {
@@ -117,6 +144,9 @@ export function AuthPanel(): ReactElement {
       case 'confirmSignUp':
         setCodeAttempts(0);
         setStep('confirmSignUp');
+        break;
+      case 'confirmPhone':
+        setStep('confirmPhone');
         break;
       case 'mfaCode':
         setCodeAttempts(0);
@@ -134,7 +164,6 @@ export function AuthPanel(): ReactElement {
     }
   }
 
-  /** Increments the attempt counter; redirects to sign-in after MAX_ATTEMPTS failures. */
   function handleCodeFailure(err: unknown): void {
     const next = codeAttempts + 1;
     if (next >= MAX_ATTEMPTS) {
@@ -164,16 +193,29 @@ export function AuthPanel(): ReactElement {
     void runStep(() => beginSignIn(emailValue, password));
   }
 
-  function handleSignUp(emailValue: string, password: string, name: string): void {
+  function handleSignUp(
+    emailValue: string,
+    password: string,
+    firstName: string,
+    lastName: string,
+    phone: string,
+  ): void {
     setEmail(emailValue);
-    void runStep(() => register(emailValue, password, name));
+    void runStep(() => register(emailValue, password, firstName, lastName, phone));
   }
 
   async function handleConfirmSignUp(code: string): Promise<void> {
     setError(null);
     setPending(true);
     try {
-      applyAction(await confirmRegistration(email, code));
+      const action = await confirmRegistration(email, code);
+      // After email confirm + autoSignIn, prompt phone verification before proceeding
+      if (action.kind === 'done' || action.kind === 'emailCode' || action.kind === 'mfaCode') {
+        await sendPhoneVerification();
+        setStep('confirmPhone');
+      } else {
+        applyAction(action);
+      }
     } catch (err: unknown) {
       handleCodeFailure(err);
     } finally {
@@ -181,21 +223,24 @@ export function AuthPanel(): ReactElement {
     }
   }
 
-  /** TOTP MFA submit — plays the morph-open animation before reloading.
-   *  Any failure redirects immediately to sign-in: Amplify v6 clears the
-   *  challenge session on error, making retries impossible regardless. */
+  async function handleConfirmPhone(code: string): Promise<void> {
+    setError(null);
+    setPending(true);
+    try {
+      await confirmPhoneVerification(code);
+      void reload();
+    } catch (err: unknown) {
+      handleCodeFailure(err);
+    } finally {
+      setPending(false);
+    }
+  }
+
   async function handleMfaSubmit(code: string): Promise<void> {
     setError(null);
     setPending(true);
     try {
-      const action = await submitSignInCode(code, email);
-      if (action.kind === 'done') {
-        setMfaIconPhase('success');
-        await new Promise<void>((resolve) => setTimeout(resolve, 900));
-        void reload();
-      } else {
-        applyAction(action);
-      }
+      applyAction(await submitSignInCode(code, email));
     } catch (err: unknown) {
       setCodeAttempts(0);
       setError(err instanceof Error ? err.message : 'Incorrect code. Please sign in again.');
@@ -213,8 +258,6 @@ export function AuthPanel(): ReactElement {
     void runStep(() => requestEmailMfa(email));
   }
 
-  /** Email OTP submit — same Amplify session constraint as TOTP; any failure
-   *  redirects to sign-in immediately. */
   async function handleMfaEmailSubmit(code: string): Promise<void> {
     setError(null);
     setPending(true);
@@ -241,12 +284,77 @@ export function AuthPanel(): ReactElement {
     });
   }
 
+  // ── Forgot flows ────────────────────────────────────────────────────────────
+
+  async function handleForgotEmailPhone(phone: string): Promise<void> {
+    setError(null);
+    setPending(true);
+    try {
+      const result = await findEmailByPhone({ phone });
+      const found = result.data?.findEmailByPhone;
+      if (!found) {
+        setError('No account found with that phone number.');
+        return;
+      }
+      setForgotEmail(found);
+      // Trigger a Cognito password-reset code to the found email so the user
+      // can prove email ownership and set a new password in the next step.
+      await forgotPassword(found);
+      setStep('forgotEmailCode');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Something went wrong. Please try again.');
+    } finally {
+      setPending(false);
+    }
+  }
+
+  async function handleForgotEmailCode(code: string, newPassword: string): Promise<void> {
+    setError(null);
+    setPending(true);
+    try {
+      await confirmForgotPassword(forgotEmail, code, newPassword);
+      setEmail(forgotEmail);
+      setError(null);
+      setStep('signIn');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Invalid or expired code. Please try again.');
+    } finally {
+      setPending(false);
+    }
+  }
+
+  async function handleForgotPasswordEmail(emailValue: string): Promise<void> {
+    setError(null);
+    setPending(true);
+    try {
+      await forgotPassword(emailValue);
+      setEmail(emailValue);
+      setStep('forgotPasswordCode');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Something went wrong. Please try again.');
+    } finally {
+      setPending(false);
+    }
+  }
+
+  async function handleForgotPasswordCode(code: string, newPassword: string): Promise<void> {
+    setError(null);
+    setPending(true);
+    try {
+      await confirmForgotPassword(email, code, newPassword);
+      setStep('signIn');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Invalid or expired code. Please try again.');
+    } finally {
+      setPending(false);
+    }
+  }
+
   function goToStep(next: Step): void {
     setError(null);
     setStep(next);
   }
 
-  /** Resolves the right LordIcon element for the TOTP icon based on animation phase. */
   function renderMfaIcon(): ReactElement {
     if (mfaIconPhase === 'in') {
       return <LordIcon src={ICONS.mfaTwoFactor} trigger="in" state="in-reveal" size={56} />;
@@ -254,7 +362,13 @@ export function AuthPanel(): ReactElement {
     return <LordIcon src={ICONS.mfaTwoFactor} trigger="hover" size={56} />;
   }
 
-  /** Content rendered on the front face: sign-in, MFA steps. */
+  /** Mask an email for display: j***@example.com */
+  function maskEmail(e: string): string {
+    const [local, domain] = e.split('@');
+    if (!local || !domain) return e;
+    return `${local[0]}***@${domain}`;
+  }
+
   function renderFront(): ReactElement {
     switch (step) {
       case 'mfaCode':
@@ -309,6 +423,88 @@ export function AuthPanel(): ReactElement {
             onSubmit={handleTotpSetupSubmit}
           />
         );
+      case 'confirmPhone':
+        return (
+          <CodeForm
+            key="confirm-phone"
+            title="Verify your phone"
+            description="Enter the code we texted to your phone number."
+            submitLabel="Verify"
+            pending={pending}
+            error={error}
+            onSubmit={(code) => {
+              void handleConfirmPhone(code);
+            }}
+          />
+        );
+      case 'forgotChoice':
+        return (
+          <ForgotChoice
+            onForgotEmail={() => {
+              goToStep('forgotEmailPhone');
+            }}
+            onForgotPassword={() => {
+              goToStep('forgotPasswordEmail');
+            }}
+            onBack={() => {
+              goToStep('signIn');
+            }}
+          />
+        );
+      case 'forgotEmailPhone':
+        return (
+          <ForgotEmailPhone
+            pending={pending}
+            error={error}
+            onSubmit={(phone) => {
+              void handleForgotEmailPhone(phone);
+            }}
+            onBack={() => {
+              goToStep('forgotChoice');
+            }}
+          />
+        );
+      case 'forgotEmailCode':
+        return (
+          <ForgotEmailCode
+            maskedEmail={maskEmail(forgotEmail)}
+            pending={pending}
+            error={error}
+            onSubmit={(code, pw) => {
+              void handleForgotEmailCode(code, pw);
+            }}
+            onBack={() => {
+              goToStep('forgotEmailPhone');
+            }}
+          />
+        );
+      case 'forgotPasswordEmail':
+        return (
+          <ForgotPasswordEmail
+            pending={pending}
+            error={error}
+            onSubmit={(e) => {
+              void handleForgotPasswordEmail(e);
+            }}
+            onBack={() => {
+              goToStep('forgotChoice');
+            }}
+          />
+        );
+      case 'forgotPasswordCode':
+        return (
+          <ForgotPasswordCode
+            email={email}
+            pending={pending}
+            error={error}
+            onSubmit={(code, pw) => {
+              void handleForgotPasswordCode(code, pw);
+            }}
+            onBack={() => {
+              goToStep('forgotPasswordEmail');
+            }}
+          />
+        );
       default:
         return (
           <SignInForm
@@ -319,6 +515,9 @@ export function AuthPanel(): ReactElement {
             onSwitchToSignUp={() => {
               goToStep('signUp');
             }}
+            onForgot={() => {
+              goToStep('forgotChoice');
+            }}
             onLearnMore={() => {
               setShowSecurity(true);
             }}
@@ -327,7 +526,6 @@ export function AuthPanel(): ReactElement {
     }
   }
 
-  /** Content rendered on the back face: sign-up, email confirmation. */
   function renderBack(): ReactElement {
     if (step === 'confirmSignUp') {
       return (

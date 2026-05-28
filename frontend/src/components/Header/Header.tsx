@@ -152,7 +152,8 @@ export function Header(): ReactElement {
       >
         <LordIcon src={ICONS.aiHeader} trigger="loop" state="loop-cycle" size={36} />
         <NavLink to="/" className="di-brand">
-          Building Better Algorithms
+          <span className="di-brand__full">Building Better Algorithms</span>
+          <span className="di-brand__abbr">B.B.A.</span>
         </NavLink>
       </GlassIsland>
 

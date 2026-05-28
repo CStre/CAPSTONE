@@ -19,7 +19,7 @@ interface SecurityInfoProps {
 }
 
 export function SecurityInfo({ onClose }: SecurityInfoProps): ReactElement {
-  const { ref, rx, ry, isHovered } = useCardTilt(4);
+  const { ref, rx, ry, isHovered } = useCardTilt(1.5);
   const [iconPhase, setIconPhase] = useState<'in' | 'idle'>('in');
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 

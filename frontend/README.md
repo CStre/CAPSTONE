@@ -23,13 +23,14 @@ src/
     SourcesPage/   academic sources and acknowledgements
     TravelPage/    swipe-to-rate photo cards
     DashboardPage/ GeoChart world map of preference scores
-    AccountPage/   profile, password, TOTP re-enrollment, and account deletion
+    AccountPage/   profile (name/email/phone), email-based password reset, phone management, TOTP re-enrollment, and account deletion
     LoginPage/     Amplify Auth sign-in / sign-up shell
     NotFoundPage/  404
-  components/    Header, Loader, GlassIsland, LordIcon, ThemeToggle, CustomCursor, SecurityInfo
+  components/    Header, Loader, GlassIsland, LordIcon, ThemeToggle, CustomCursor, SecurityInfo, PhoneInput
   lib/           urql client, ThemeContext, IntroContext
   gql/           GraphQL Code Generator output (generated — do not edit)
-  auth/          Cognito wrapper + MFA UI (SignInForm, SignUpForm with eye toggle + placeholders)
+  auth/          Cognito wrapper + full auth UI: sign-in/up with phone, email verify, SMS phone verify,
+                 TOTP setup, forgot-email/password flows (ForgotPanel), email-based password reset
   test/          Jest setup + asset mocks
 public/
   icons/         Lordicon JSON files (committed; wired-outline-* saved manually)

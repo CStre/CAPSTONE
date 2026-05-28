@@ -31,7 +31,13 @@ describe('Header', () => {
   it('shows the member links and sign-out when authenticated', () => {
     renderHeader({
       status: 'authenticated',
-      user: { id: '1', email: 'traveler@example.com', name: 'Traveler' },
+      user: {
+        id: '1',
+        email: 'traveler@example.com',
+        firstName: 'Traveler',
+        lastName: 'User',
+        phone: '',
+      },
       ...actions,
     });
 

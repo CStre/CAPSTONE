@@ -150,15 +150,13 @@ resource "aws_cloudtrail" "main" {
 }
 
 # ---------------------------------------------------------------------------
-# Billing alarm — created only in prod (first 2 AWS Budgets are free)
+# Billing alarm — one per environment (first 2 AWS Budgets are free; we have 3
+# environments so there is a small charge for the third budget, but it is cents).
 # Alerts if monthly spend is forecast to exceed $5 or actually exceeds $5.
-# The only expected cost is the Route 53 hosted zone (~$0.50/mo).
 # ---------------------------------------------------------------------------
 
 resource "aws_budgets_budget" "monthly" {
-  count = local.is_prod ? 1 : 0
-
-  name         = "bba-monthly-account-budget"
+  name         = "bba-monthly-${var.environment}-budget"
   budget_type  = "COST"
   limit_amount = "5"
   limit_unit   = "USD"

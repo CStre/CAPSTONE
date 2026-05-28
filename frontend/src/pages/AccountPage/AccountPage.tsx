@@ -1,20 +1,25 @@
 /**
  * @fileoverview Account page — profile and account management, all in one card.
  *
- * Email/TOTP changes open a shared glass popup that reuses the same CodeForm
+ * Email/TOTP/phone changes open a shared glass popup that reuses the same CodeForm
  * and TotpSetupForm components from the auth flow. Account deletion uses a
  * separate danger-styled confirmation modal.
+ *
+ * Validation: names max 20 chars (first letter auto-capitalized), email/password
+ * max 50 chars, phone via PhoneInput (max 10 local digits).
  */
 import React, { useState, useEffect, useRef } from 'react';
 import type { ReactElement, ReactNode, SyntheticEvent } from 'react';
 import { Navigate, useNavigate } from 'react-router';
 import { useMutation } from 'urql';
 import {
+  confirmResetPassword,
   confirmUserAttribute,
   fetchMFAPreference,
+  resetPassword,
   sendUserAttributeVerificationCode,
   setUpTOTP,
-  updatePassword,
+  updateMFAPreference,
   updateUserAttributes,
   verifyTOTPSetup,
 } from 'aws-amplify/auth';
@@ -26,10 +31,11 @@ import { Loader } from '../../components/Loader/Loader';
 import { LordIcon, ICONS } from '../../components/LordIcon/LordIcon';
 import { useCardTilt } from '../../components/GlassIsland/useCardTilt';
 import '../../components/SecurityInfo/SecurityInfo.css';
-import { PasswordStrength } from '../../components/PasswordStrength/PasswordStrength';
+import { PasswordStrength, getStrength } from '../../components/PasswordStrength/PasswordStrength';
 import { SecurityInfo } from '../../components/SecurityInfo/SecurityInfo';
 import { CodeForm } from '../../auth/CodeForm';
 import { TotpSetupForm } from '../../auth/TotpSetupForm';
+import { PhoneInput } from '../../components/PhoneInput/PhoneInput';
 import './AccountPage.css';
 
 const DeleteAccountMutation = graphql(`
@@ -39,10 +45,14 @@ const DeleteAccountMutation = graphql(`
 `);
 
 type Status = { tone: 'ok' | 'error'; message: string } | null;
-type Popup = 'emailVerify' | 'totp' | 'delete' | null;
+type Popup = 'emailVerify' | 'totp' | 'delete' | 'passwordReset' | 'phoneVerify' | null;
 
 function errorMessage(error: unknown): string {
   return error instanceof Error ? error.message : 'Something went wrong. Try again.';
+}
+
+function capitalizeFirst(s: string): string {
+  return s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
 }
 
 /** Glass popup overlay — matches SecurityInfo exactly, including card tilt. */
@@ -50,18 +60,27 @@ function AccountPopup({
   onClose,
   danger,
   icon,
-  iconTrigger,
   title,
   children,
 }: {
   onClose: () => void;
   danger?: boolean;
   icon?: string;
-  iconTrigger?: 'hover' | 'loop' | 'loop-on-hover' | 'click' | 'in';
   title?: string;
   children: ReactNode;
 }): ReactElement {
-  const { ref, rx, ry, isHovered } = useCardTilt(4);
+  const { ref, rx, ry, isHovered } = useCardTilt(1.5);
+  const [iconPhase, setIconPhase] = useState<'in' | 'idle'>('in');
+  const iconTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    iconTimerRef.current = setTimeout(() => {
+      setIconPhase('idle');
+    }, 2000);
+    return () => {
+      if (iconTimerRef.current !== null) clearTimeout(iconTimerRef.current);
+    };
+  }, []);
 
   function handleBackdropClick(e: React.MouseEvent<HTMLDivElement>): void {
     if (e.target === e.currentTarget) onClose();
@@ -82,7 +101,18 @@ function AccountPopup({
         </button>
         {icon && title && (
           <div className="si-header">
-            <LordIcon src={icon} size={64} trigger={iconTrigger ?? 'hover'} stroke="bold" />
+            {iconPhase === 'in' ? (
+              <LordIcon
+                key="popup-icon-in"
+                src={icon}
+                size={64}
+                trigger="in"
+                state="in-reveal"
+                stroke="bold"
+              />
+            ) : (
+              <LordIcon key="popup-icon-idle" src={icon} size={64} trigger="hover" stroke="bold" />
+            )}
             <h2 className="si-heading">{title}</h2>
           </div>
         )}
@@ -105,10 +135,15 @@ export function AccountPage(): ReactElement {
   const [iconPhase, setIconPhase] = useState<'in' | 'idle'>('in');
   const iconTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // ── Display name ─────────────────────────────────────────────────────────
-  const [name, setName] = useState('');
-  const [nameStatus, setNameStatus] = useState<Status>(null);
-  const [savingName, setSavingName] = useState(false);
+  // ── First name ────────────────────────────────────────────────────────────
+  const [firstName, setFirstName] = useState('');
+  const [firstNameStatus, setFirstNameStatus] = useState<Status>(null);
+  const [savingFirstName, setSavingFirstName] = useState(false);
+
+  // ── Last name ─────────────────────────────────────────────────────────────
+  const [lastName, setLastName] = useState('');
+  const [lastNameStatus, setLastNameStatus] = useState<Status>(null);
+  const [savingLastName, setSavingLastName] = useState(false);
 
   // ── Email ─────────────────────────────────────────────────────────────────
   const [email, setEmail] = useState('');
@@ -118,10 +153,18 @@ export function AccountPage(): ReactElement {
   const [emailCodeError, setEmailCodeError] = useState<string | null>(null);
 
   // ── Password ─────────────────────────────────────────────────────────────
-  const [oldPassword, setOldPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [passwordStatus, setPasswordStatus] = useState<Status>(null);
-  const [savingPassword, setSavingPassword] = useState(false);
+  const [sendingResetCode, setSendingResetCode] = useState(false);
+  const [resetCodePending, setResetCodePending] = useState(false);
+  const [resetCodeError, setResetCodeError] = useState<string | null>(null);
+
+  // ── Phone ─────────────────────────────────────────────────────────────────
+  const [phone, setPhone] = useState('');
+  const [phoneStatus, setPhoneStatus] = useState<Status>(null);
+  const [savingPhone, setSavingPhone] = useState(false);
+  const [phoneCodePending, setPhoneCodePending] = useState(false);
+  const [phoneCodeError, setPhoneCodeError] = useState<string | null>(null);
 
   // ── TOTP ──────────────────────────────────────────────────────────────────
   const [totpEnrolled, setTotpEnrolled] = useState<boolean | null>(null);
@@ -160,19 +203,43 @@ export function AccountPage(): ReactElement {
 
   // ── Handlers ──────────────────────────────────────────────────────────────
 
-  async function saveName(event: SyntheticEvent<HTMLFormElement>): Promise<void> {
+  async function saveFirstName(event: SyntheticEvent<HTMLFormElement>): Promise<void> {
     event.preventDefault();
-    setSavingName(true);
-    setNameStatus(null);
+    if (!user) return;
+    setSavingFirstName(true);
+    setFirstNameStatus(null);
     try {
-      await updateUserAttributes({ userAttributes: { name } });
+      const fullName = `${firstName.trim()} ${user.lastName}`;
+      await updateUserAttributes({
+        userAttributes: { given_name: firstName.trim(), name: fullName },
+      });
       await reload();
-      setName('');
-      setNameStatus({ tone: 'ok', message: 'Display name updated.' });
+      setFirstName('');
+      setFirstNameStatus({ tone: 'ok', message: 'First name updated.' });
     } catch (error) {
-      setNameStatus({ tone: 'error', message: errorMessage(error) });
+      setFirstNameStatus({ tone: 'error', message: errorMessage(error) });
     } finally {
-      setSavingName(false);
+      setSavingFirstName(false);
+    }
+  }
+
+  async function saveLastName(event: SyntheticEvent<HTMLFormElement>): Promise<void> {
+    event.preventDefault();
+    if (!user) return;
+    setSavingLastName(true);
+    setLastNameStatus(null);
+    try {
+      const fullName = `${user.firstName} ${lastName.trim()}`;
+      await updateUserAttributes({
+        userAttributes: { family_name: lastName.trim(), name: fullName },
+      });
+      await reload();
+      setLastName('');
+      setLastNameStatus({ tone: 'ok', message: 'Last name updated.' });
+    } catch (error) {
+      setLastNameStatus({ tone: 'error', message: errorMessage(error) });
+    } finally {
+      setSavingLastName(false);
     }
   }
 
@@ -214,19 +281,65 @@ export function AccountPage(): ReactElement {
     }
   }
 
-  async function savePassword(event: SyntheticEvent<HTMLFormElement>): Promise<void> {
+  async function sendPasswordResetCode(event: SyntheticEvent<HTMLFormElement>): Promise<void> {
     event.preventDefault();
-    setSavingPassword(true);
+    if (!user) return;
+    setSendingResetCode(true);
     setPasswordStatus(null);
     try {
-      await updatePassword({ oldPassword, newPassword });
-      setOldPassword('');
-      setNewPassword('');
-      setPasswordStatus({ tone: 'ok', message: 'Password updated.' });
+      await resetPassword({ username: user.email });
+      setPopup('passwordReset');
     } catch (error) {
       setPasswordStatus({ tone: 'error', message: errorMessage(error) });
     } finally {
-      setSavingPassword(false);
+      setSendingResetCode(false);
+    }
+  }
+
+  async function confirmPasswordReset(code: string): Promise<void> {
+    if (!user) return;
+    setResetCodePending(true);
+    setResetCodeError(null);
+    try {
+      await confirmResetPassword({ username: user.email, confirmationCode: code, newPassword });
+      setNewPassword('');
+      setPopup(null);
+      setPasswordStatus({ tone: 'ok', message: 'Password updated.' });
+    } catch (error) {
+      setResetCodeError(errorMessage(error));
+    } finally {
+      setResetCodePending(false);
+    }
+  }
+
+  async function savePhone(event: SyntheticEvent<HTMLFormElement>): Promise<void> {
+    event.preventDefault();
+    setSavingPhone(true);
+    setPhoneStatus(null);
+    try {
+      await updateUserAttributes({ userAttributes: { phone_number: phone } });
+      await sendUserAttributeVerificationCode({ userAttributeKey: 'phone_number' });
+      setPopup('phoneVerify');
+    } catch (error) {
+      setPhoneStatus({ tone: 'error', message: errorMessage(error) });
+    } finally {
+      setSavingPhone(false);
+    }
+  }
+
+  async function confirmPhone(code: string): Promise<void> {
+    setPhoneCodePending(true);
+    setPhoneCodeError(null);
+    try {
+      await confirmUserAttribute({ userAttributeKey: 'phone_number', confirmationCode: code });
+      await reload();
+      setPhone('');
+      setPopup(null);
+      setPhoneStatus({ tone: 'ok', message: 'Phone number updated.' });
+    } catch (error) {
+      setPhoneCodeError(errorMessage(error));
+    } finally {
+      setPhoneCodePending(false);
     }
   }
 
@@ -253,6 +366,7 @@ export function AccountPage(): ReactElement {
     setTotpError(null);
     try {
       await verifyTOTPSetup({ code });
+      await updateMFAPreference({ totp: 'PREFERRED' });
       setTotpEnrolled(true);
       setTotpSuccess(true);
       setTotpSetupDetails(null);
@@ -325,37 +439,70 @@ export function AccountPage(): ReactElement {
             <dl className="account-profile">
               <div>
                 <dt>Name</dt>
-                <dd>{user.name || '—'}</dd>
+                <dd>{[user.firstName, user.lastName].filter(Boolean).join(' ') || '—'}</dd>
               </div>
               <div>
                 <dt>Email</dt>
                 <dd>{user.email}</dd>
               </div>
+              <div>
+                <dt>Phone</dt>
+                <dd>{user.phone || '—'}</dd>
+              </div>
             </dl>
           </div>
 
-          {/* ── Display name ─────────────────────────────────────────── */}
+          {/* ── First name ───────────────────────────────────────────── */}
           <div className="account-section">
-            <h2>Display name</h2>
-            <form className="account-form" onSubmit={(e) => void saveName(e)}>
+            <h2>First name</h2>
+            <form className="account-form" onSubmit={(e) => void saveFirstName(e)}>
               <label>
-                New display name
+                New first name
                 <input
                   type="text"
-                  value={name}
+                  value={firstName}
                   required
-                  autoComplete="name"
+                  maxLength={20}
+                  autoComplete="given-name"
                   onChange={(e) => {
-                    setName(e.target.value);
+                    setFirstName(capitalizeFirst(e.target.value.slice(0, 20)));
                   }}
                 />
               </label>
-              <button type="submit" disabled={savingName}>
-                {savingName ? 'Saving…' : 'Update name'}
+              <button type="submit" disabled={savingFirstName}>
+                {savingFirstName ? 'Saving…' : 'Update first name'}
               </button>
-              {nameStatus && (
-                <p className={`account-status account-status--${nameStatus.tone}`}>
-                  {nameStatus.message}
+              {firstNameStatus && (
+                <p className={`account-status account-status--${firstNameStatus.tone}`}>
+                  {firstNameStatus.message}
+                </p>
+              )}
+            </form>
+          </div>
+
+          {/* ── Last name ────────────────────────────────────────────── */}
+          <div className="account-section">
+            <h2>Last name</h2>
+            <form className="account-form" onSubmit={(e) => void saveLastName(e)}>
+              <label>
+                New last name
+                <input
+                  type="text"
+                  value={lastName}
+                  required
+                  maxLength={20}
+                  autoComplete="family-name"
+                  onChange={(e) => {
+                    setLastName(capitalizeFirst(e.target.value.slice(0, 20)));
+                  }}
+                />
+              </label>
+              <button type="submit" disabled={savingLastName}>
+                {savingLastName ? 'Saving…' : 'Update last name'}
+              </button>
+              {lastNameStatus && (
+                <p className={`account-status account-status--${lastNameStatus.tone}`}>
+                  {lastNameStatus.message}
                 </p>
               )}
             </form>
@@ -371,9 +518,10 @@ export function AccountPage(): ReactElement {
                   type="email"
                   value={email}
                   required
+                  maxLength={50}
                   autoComplete="email"
                   onChange={(e) => {
-                    setEmail(e.target.value);
+                    setEmail(e.target.value.slice(0, 50));
                   }}
                 />
               </label>
@@ -391,38 +539,50 @@ export function AccountPage(): ReactElement {
           {/* ── Password ─────────────────────────────────────────────── */}
           <div className="account-section">
             <h2>Password</h2>
-            <form className="account-form" onSubmit={(e) => void savePassword(e)}>
-              <label>
-                Current password
-                <input
-                  type="password"
-                  value={oldPassword}
-                  required
-                  autoComplete="current-password"
-                  onChange={(e) => {
-                    setOldPassword(e.target.value);
-                  }}
-                />
-              </label>
+            <form className="account-form" onSubmit={(e) => void sendPasswordResetCode(e)}>
               <label>
                 New password
                 <input
                   type="password"
                   value={newPassword}
                   required
+                  minLength={8}
+                  maxLength={50}
                   autoComplete="new-password"
                   onChange={(e) => {
-                    setNewPassword(e.target.value);
+                    setNewPassword(e.target.value.slice(0, 50));
                   }}
                 />
               </label>
               <PasswordStrength password={newPassword} />
-              <button type="submit" disabled={savingPassword}>
-                {savingPassword ? 'Saving…' : 'Update password'}
+              <button
+                type="submit"
+                disabled={sendingResetCode || getStrength(newPassword) === 'weak' || !newPassword}
+              >
+                {sendingResetCode ? 'Sending code…' : 'Send reset code to email'}
               </button>
               {passwordStatus && (
                 <p className={`account-status account-status--${passwordStatus.tone}`}>
                   {passwordStatus.message}
+                </p>
+              )}
+            </form>
+          </div>
+
+          {/* ── Phone number ─────────────────────────────────────────── */}
+          <div className="account-section">
+            <h2>Phone number</h2>
+            <form className="account-form" onSubmit={(e) => void savePhone(e)}>
+              <label>
+                New phone number
+                <PhoneInput value={phone} onChange={setPhone} required />
+              </label>
+              <button type="submit" disabled={savingPhone}>
+                {savingPhone ? 'Sending code…' : 'Update phone'}
+              </button>
+              {phoneStatus && (
+                <p className={`account-status account-status--${phoneStatus.tone}`}>
+                  {phoneStatus.message}
                 </p>
               )}
             </form>
@@ -483,8 +643,7 @@ export function AccountPage(): ReactElement {
       {/* ── Email verification popup ──────────────────────────────────────── */}
       {popup === 'emailVerify' && (
         <AccountPopup
-          icon={ICONS.emailSend}
-          iconTrigger="in"
+          icon={ICONS.mailShield}
           title="Verify new email"
           onClose={() => {
             setPopup(null);
@@ -497,6 +656,44 @@ export function AccountPage(): ReactElement {
             error={emailCodeError}
             onSubmit={(code) => void confirmEmail(code)}
             onResend={() => void resendEmailCode()}
+          />
+        </AccountPopup>
+      )}
+
+      {/* ── Password reset code popup ─────────────────────────────────────── */}
+      {popup === 'passwordReset' && (
+        <AccountPopup
+          icon={ICONS.mailShield}
+          title="Reset password"
+          onClose={() => {
+            setPopup(null);
+          }}
+        >
+          <CodeForm
+            description={`Enter the reset code we sent to ${user.email}.`}
+            submitLabel="Reset password"
+            pending={resetCodePending}
+            error={resetCodeError}
+            onSubmit={(code) => void confirmPasswordReset(code)}
+          />
+        </AccountPopup>
+      )}
+
+      {/* ── Phone verification popup ──────────────────────────────────────── */}
+      {popup === 'phoneVerify' && (
+        <AccountPopup
+          icon={ICONS.fingerprint}
+          title="Verify phone number"
+          onClose={() => {
+            setPopup(null);
+          }}
+        >
+          <CodeForm
+            description={`Enter the code we texted to your new number.`}
+            submitLabel="Verify phone"
+            pending={phoneCodePending}
+            error={phoneCodeError}
+            onSubmit={(code) => void confirmPhone(code)}
           />
         </AccountPopup>
       )}

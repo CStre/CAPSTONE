@@ -9,7 +9,13 @@ import { createMockClient } from '../../test/urql';
 
 const authValue: AuthContextValue = {
   status: 'authenticated',
-  user: { id: 'u1', email: 'ada@example.com', name: 'Ada Lovelace' },
+  user: {
+    id: 'u1',
+    email: 'ada@example.com',
+    firstName: 'Ada',
+    lastName: 'Lovelace',
+    phone: '+15550001234',
+  },
   reload: jest.fn<() => Promise<void>>(),
   logout: jest.fn<() => Promise<void>>(),
 };
@@ -29,7 +35,7 @@ describe('AccountPage', () => {
 
     expect(screen.getByText('ada@example.com')).toBeInTheDocument();
     expect(screen.getByText('Ada Lovelace')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Update password' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Send reset code to email' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Delete my account' })).toBeInTheDocument();
   });
 });

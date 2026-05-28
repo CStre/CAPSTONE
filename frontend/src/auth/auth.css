@@ -441,6 +441,67 @@
   cursor: not-allowed;
 }
 
+/* ── "Forgot something?" inline link above the submit button ────────────────── */
+
+.auth-forgot-link {
+  align-self: flex-end;
+  font: inherit;
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text-muted);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  margin-bottom: -0.15rem;
+  transition: color 0.2s;
+}
+
+.auth-forgot-link:hover {
+  color: var(--color-heading);
+}
+
+/* ── Forgot-choice option buttons (full-width, distinct from submit) ─────────── */
+
+.forgot-option-btn {
+  width: 100%;
+  padding: 0.65rem;
+  font: inherit;
+  font-weight: var(--fw-semibold);
+  color: var(--color-heading);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 10px;
+  cursor: pointer;
+  text-align: center;
+  transition:
+    background 0.2s,
+    border-color 0.2s,
+    transform 0.1s;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.forgot-option-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.forgot-option-btn:active {
+  transform: scale(0.98);
+}
+
+[data-theme='light'] .forgot-option-btn {
+  background: rgba(61, 82, 160, 0.06);
+  border-color: rgba(61, 82, 160, 0.18);
+  color: var(--color-text);
+}
+
+[data-theme='light'] .forgot-option-btn:hover {
+  background: rgba(61, 82, 160, 0.12);
+  border-color: rgba(61, 82, 160, 0.3);
+}
+
 /* ── Password input with eye toggle ─────────────────────────────────────────── */
 
 .auth-input-wrap {

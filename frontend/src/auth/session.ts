@@ -27,7 +27,9 @@ export async function loadCurrentUser(): Promise<AuthUser | null> {
     return {
       id,
       email: attributes.email ?? '',
-      name: attributes.name ?? '',
+      firstName: attributes.given_name ?? '',
+      lastName: attributes.family_name ?? '',
+      phone: attributes.phone_number ?? '',
     };
   } catch {
     return null;

@@ -11,7 +11,7 @@
  */
 import SchemaBuilder from '@pothos/core';
 import { GraphQLError } from 'graphql';
-import { type AuthUser, deleteCognitoUser } from './auth';
+import { type AuthUser, deleteCognitoUser, findUserByPhone } from './auth';
 import { COUNTRIES, isValidCountryCode, type Country } from './countries';
 import { NEUTRAL_PREFERENCE, updatePreferences, type Feedback } from './algorithm';
 import type { TravelImage } from './images';
@@ -117,7 +117,7 @@ builder.queryType({
     travelImages: t.field({
       type: ['TravelImage'],
       nullable: false,
-      description: 'A batch of travel photos, weighted by the user’s preferences.',
+      description: "A batch of travel photos, weighted by the user's preferences.",
       args: { count: t.arg.int({ defaultValue: 8 }) },
       resolve: async (_root, args, ctx) => {
         const user = requireUser(ctx);
@@ -149,12 +149,22 @@ builder.mutationType({
     deleteAccount: t.field({
       type: 'Boolean',
       nullable: false,
-      description: 'Delete the user’s stored data.',
+      description: "Delete the user's stored data.",
       resolve: async (_root, _args, ctx) => {
         const user = requireUser(ctx);
         await db.deletePreferences(user.id);
         await deleteCognitoUser(user.email);
         return true;
+      },
+    }),
+
+    findEmailByPhone: t.string({
+      nullable: true,
+      description:
+        'Look up the email address associated with a verified phone number. Returns null if no account is found. Used for the forgot-email recovery flow — the caller must still complete a Cognito password-reset code to prove email ownership.',
+      args: { phone: t.arg.string({ required: true }) },
+      resolve: async (_root, args) => {
+        return findUserByPhone(args.phone);
       },
     }),
   }),
