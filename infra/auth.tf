@@ -154,6 +154,18 @@ resource "aws_cognito_user_pool" "main" {
   }
 
   tags = local.tags
+
+  # Force pool recreation so a fresh pool is created with all settings in place
+  # (avoids a Cognito constraint: email_mfa_configuration is rejected on an existing pool
+  # that only has verified_email in account_recovery_setting).
+  lifecycle {
+    replace_triggered_by = [terraform_data.cognito_pool_recreate]
+  }
+}
+
+# Bump the value below (e.g. "v2" → "v3") to force pool recreation on next apply.
+resource "terraform_data" "cognito_pool_recreate" {
+  input = "v2"
 }
 
 # App client — public SPA, no client secret
