@@ -14,29 +14,16 @@ Terraform configuration for the AWS deployment — one stack per environment
 ## Architecture
 
 ```mermaid
-architecture-beta
-    group aws(logos:aws)[AWS]
-
-    service browser(internet)[Browser]
-    service unsplash(internet)[Unsplash]
-
-    service cf(logos:aws-cloudfront)[CloudFront] in aws
-    service s3(logos:aws-s3)[S3] in aws
-    service apigw(logos:aws-api-gateway)[API Gateway] in aws
-    service lambda(logos:aws-lambda)[Lambda] in aws
-    service dynamo(logos:aws-dynamodb)[DynamoDB] in aws
-    service cognito(logos:aws-cognito)[Cognito] in aws
-    service ssm(logos:aws-systems-manager)[SSM] in aws
-
-    browser:R --> L:cf
-    browser:T --> B:cognito
-    cf:R --> L:s3
-    cf:B --> T:apigw
-    apigw:R --> L:lambda
-    lambda:T --> B:cognito
-    lambda:R --> L:dynamo
-    lambda:B --> T:ssm
-    lambda:R --> L:unsplash
+flowchart LR
+    Browser["🧑 Browser"] --> CF["CloudFront"]
+    CF -- "/*" --> S3["S3<br/>React SPA"]
+    CF -- "/graphql" --> APIGW["API Gateway<br/>HTTP API"]
+    APIGW --> Lambda["Lambda<br/>(container image)"]
+    Lambda --> Dynamo[("DynamoDB")]
+    Lambda --> SSM["SSM Parameter Store"]
+    Lambda --> Cognito["Cognito"]
+    Browser <-- "Auth + MFA" --> Cognito
+    Lambda --> Unsplash["Unsplash API"]
 ```
 
 All environments use the same single AWS account (`958941188378`, `us-east-1`).

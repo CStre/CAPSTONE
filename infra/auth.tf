@@ -23,10 +23,16 @@ resource "aws_cognito_user_pool" "main" {
     temporary_password_validity_days = 7
   }
 
-  # TOTP MFA — no SMS (avoids SNS sandbox / 10DLC and per-message cost)
+  # TOTP MFA — no SMS (avoids SNS sandbox / 10DLC and per-message cost).
+  # Email OTP is enabled as a fallback so users can receive a code by email
+  # if their authenticator app is unavailable.
   mfa_configuration = "ON"
   software_token_mfa_configuration {
     enabled = true
+  }
+  email_mfa_configuration {
+    message = "Your Building Better Algorithms sign-in code is {####}. This code expires in 10 minutes."
+    subject = "Your Building Better Algorithms sign-in code"
   }
 
   # Required attributes collected at sign-up
@@ -77,10 +83,12 @@ resource "aws_cognito_user_pool_client" "main" {
 
   generate_secret = false
 
-  # SRP-only auth (secure remote password) + refresh tokens
+  # SRP-only auth (secure remote password) + refresh tokens.
+  # ALLOW_USER_AUTH enables mid-flow challenge switching (e.g. TOTP → email OTP).
   explicit_auth_flows = [
     "ALLOW_USER_SRP_AUTH",
     "ALLOW_REFRESH_TOKEN_AUTH",
+    "ALLOW_USER_AUTH",
   ]
 
   # Token validity

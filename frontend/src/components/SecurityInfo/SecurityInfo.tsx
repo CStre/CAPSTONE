@@ -8,6 +8,7 @@
  *
  * Used on the login page (auth forms) and the account page.
  */
+import { useState, useEffect, useRef } from 'react';
 import type { ReactElement } from 'react';
 import { LordIcon, ICONS } from '../LordIcon/LordIcon';
 import { useCardTilt } from '../GlassIsland/useCardTilt';
@@ -19,6 +20,17 @@ interface SecurityInfoProps {
 
 export function SecurityInfo({ onClose }: SecurityInfoProps): ReactElement {
   const { ref, rx, ry, isHovered } = useCardTilt(4);
+  const [iconPhase, setIconPhase] = useState<'in' | 'idle'>('in');
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    timerRef.current = setTimeout(() => {
+      setIconPhase('idle');
+    }, 2000);
+    return () => {
+      if (timerRef.current !== null) clearTimeout(timerRef.current);
+    };
+  }, []);
 
   function handleBackdropClick(e: React.MouseEvent<HTMLDivElement>): void {
     if (e.target === e.currentTarget) onClose();
@@ -50,7 +62,24 @@ export function SecurityInfo({ onClose }: SecurityInfoProps): ReactElement {
         </button>
 
         <div className="si-header">
-          <LordIcon src={ICONS.securityShield} size={64} trigger="hover" stroke="bold" />
+          {iconPhase === 'in' ? (
+            <LordIcon
+              key="shield-in"
+              src={ICONS.securityShield}
+              size={64}
+              trigger="in"
+              state="in-reveal"
+              stroke="bold"
+            />
+          ) : (
+            <LordIcon
+              key="shield-idle"
+              src={ICONS.securityShield}
+              size={64}
+              trigger="hover"
+              stroke="bold"
+            />
+          )}
           <h2 className="si-heading">How your data is protected</h2>
         </div>
 

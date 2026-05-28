@@ -102,6 +102,8 @@ export function AccountPage(): ReactElement {
 
   const [popup, setPopup] = useState<Popup>(null);
   const [showSecurity, setShowSecurity] = useState(false);
+  const [iconPhase, setIconPhase] = useState<'in' | 'idle'>('in');
+  const iconTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // ── Display name ─────────────────────────────────────────────────────────
   const [name, setName] = useState('');
@@ -133,6 +135,15 @@ export function AccountPage(): ReactElement {
 
   // ── Delete ────────────────────────────────────────────────────────────────
   const [deleteError, setDeleteError] = useState<string | null>(null);
+
+  useEffect(() => {
+    iconTimerRef.current = setTimeout(() => {
+      setIconPhase('idle');
+    }, 2000);
+    return () => {
+      if (iconTimerRef.current !== null) clearTimeout(iconTimerRef.current);
+    };
+  }, []);
 
   useEffect(() => {
     void fetchMFAPreference()
@@ -274,12 +285,38 @@ export function AccountPage(): ReactElement {
       <canvas ref={canvasRef} className="auth-canvas" />
 
       <section className="page account">
-        <div className="account-header">
-          <LordIcon src={ICONS.accountPage} size={80} trigger="hover" stroke="bold" />
-          <h1>Account Details</h1>
-        </div>
-
         <div className="account-card">
+          {/* ── Card header ──────────────────────────────────────────── */}
+          <div className="account-card-header">
+            {iconPhase === 'in' ? (
+              <LordIcon
+                key="acct-icon-in"
+                src={ICONS.accountPage}
+                size={64}
+                trigger="in"
+                state="in-reveal"
+                stroke="bold"
+              />
+            ) : (
+              <LordIcon
+                key="acct-icon-idle"
+                src={ICONS.accountPage}
+                size={64}
+                trigger="hover"
+                stroke="bold"
+              />
+            )}
+            <h1>Account</h1>
+            <button
+              type="button"
+              className="auth-security-btn"
+              onClick={() => { setShowSecurity(true); }}
+              aria-label="How is my data protected?"
+            >
+              <LordIcon src={ICONS.securityShield} size={22} trigger="hover" stroke="bold" />
+            </button>
+          </div>
+
           {/* ── Profile ──────────────────────────────────────────────── */}
           <div className="account-section">
             <h2>Profile</h2>
@@ -293,38 +330,23 @@ export function AccountPage(): ReactElement {
                 <dd>{user.email}</dd>
               </div>
             </dl>
-            <p className="account-note">
-              <button
-                type="button"
-                className="account-link"
-                onClick={() => {
-                  setShowSecurity(true);
-                }}
-              >
-                How is my data protected?
-              </button>
-            </p>
           </div>
-
-          <hr className="account-divider" />
 
           {/* ── Display name ─────────────────────────────────────────── */}
           <div className="account-section">
             <h2>Display name</h2>
-            <form onSubmit={(e) => void saveName(e)}>
-              <label className="account-field">
-                <span>New display name</span>
+            <form className="account-form" onSubmit={(e) => void saveName(e)}>
+              <label>
+                New display name
                 <input
                   type="text"
                   value={name}
                   required
                   autoComplete="name"
-                  onChange={(e) => {
-                    setName(e.target.value);
-                  }}
+                  onChange={(e) => { setName(e.target.value); }}
                 />
               </label>
-              <button type="submit" className="account-btn" disabled={savingName}>
+              <button type="submit" disabled={savingName}>
                 {savingName ? 'Saving…' : 'Update name'}
               </button>
               {nameStatus && (
@@ -335,25 +357,21 @@ export function AccountPage(): ReactElement {
             </form>
           </div>
 
-          <hr className="account-divider" />
-
           {/* ── Email ────────────────────────────────────────────────── */}
           <div className="account-section">
             <h2>Email address</h2>
-            <form onSubmit={(e) => void saveEmail(e)}>
-              <label className="account-field">
-                <span>New email address</span>
+            <form className="account-form" onSubmit={(e) => void saveEmail(e)}>
+              <label>
+                New email address
                 <input
                   type="email"
                   value={email}
                   required
                   autoComplete="email"
-                  onChange={(e) => {
-                    setEmail(e.target.value);
-                  }}
+                  onChange={(e) => { setEmail(e.target.value); }}
                 />
               </label>
-              <button type="submit" className="account-btn" disabled={savingEmail}>
+              <button type="submit" disabled={savingEmail}>
                 {savingEmail ? 'Sending code…' : 'Update email'}
               </button>
               {emailStatus && (
@@ -364,38 +382,32 @@ export function AccountPage(): ReactElement {
             </form>
           </div>
 
-          <hr className="account-divider" />
-
           {/* ── Password ─────────────────────────────────────────────── */}
           <div className="account-section">
             <h2>Password</h2>
-            <form onSubmit={(e) => void savePassword(e)}>
-              <label className="account-field">
-                <span>Current password</span>
+            <form className="account-form" onSubmit={(e) => void savePassword(e)}>
+              <label>
+                Current password
                 <input
                   type="password"
                   value={oldPassword}
                   required
                   autoComplete="current-password"
-                  onChange={(e) => {
-                    setOldPassword(e.target.value);
-                  }}
+                  onChange={(e) => { setOldPassword(e.target.value); }}
                 />
               </label>
-              <label className="account-field">
-                <span>New password</span>
+              <label>
+                New password
                 <input
                   type="password"
                   value={newPassword}
                   required
                   autoComplete="new-password"
-                  onChange={(e) => {
-                    setNewPassword(e.target.value);
-                  }}
+                  onChange={(e) => { setNewPassword(e.target.value); }}
                 />
               </label>
               <PasswordStrength password={newPassword} />
-              <button type="submit" className="account-btn" disabled={savingPassword}>
+              <button type="submit" disabled={savingPassword}>
                 {savingPassword ? 'Saving…' : 'Update password'}
               </button>
               {passwordStatus && (
@@ -405,8 +417,6 @@ export function AccountPage(): ReactElement {
               )}
             </form>
           </div>
-
-          <hr className="account-divider" />
 
           {/* ── Two-factor auth ──────────────────────────────────────── */}
           <div className="account-section">
@@ -440,10 +450,8 @@ export function AccountPage(): ReactElement {
             )}
           </div>
 
-          <hr className="account-divider account-divider--danger" />
-
           {/* ── Delete account ───────────────────────────────────────── */}
-          <div className="account-section">
+          <div className="account-section account-section--danger">
             <h2 className="account-section-title--danger">Delete account</h2>
             <p className="account-note">
               Permanently erases your preference data and Cognito account.

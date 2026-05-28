@@ -13,6 +13,10 @@ interface CodeFormProps {
   error: string | null;
   onSubmit: (code: string) => void;
   onResend?: () => void;
+  /** Optional icon rendered above the title in a centred header. */
+  icon?: ReactElement;
+  /** Optional content rendered below the submit button. */
+  footer?: ReactElement;
 }
 
 /** Presentational single-code form; the parent owns the async work. */
@@ -24,17 +28,26 @@ export function CodeForm({
   error,
   onSubmit,
   onResend,
+  icon,
+  footer,
 }: CodeFormProps): ReactElement {
   const [code, setCode] = useState('');
 
   function handleSubmit(event: SyntheticEvent<HTMLFormElement>): void {
     event.preventDefault();
-    onSubmit(code.trim());
+    const trimmed = code.trim();
+    setCode('');
+    onSubmit(trimmed);
   }
 
   return (
     <form className="auth-form" onSubmit={handleSubmit}>
-      {title && <h2>{title}</h2>}
+      {(icon ?? title) && (
+        <div className="auth-form-header">
+          {icon}
+          {title && <h2>{title}</h2>}
+        </div>
+      )}
       <p className="auth-description auth-description--center">{description}</p>
       <label>
         Code
@@ -43,6 +56,7 @@ export function CodeForm({
             type="text"
             inputMode="numeric"
             autoComplete="one-time-code"
+            autoFocus
             required
             value={code}
             onChange={(event) => {
@@ -66,6 +80,7 @@ export function CodeForm({
       <button type="submit" disabled={pending}>
         {pending ? 'Working…' : submitLabel}
       </button>
+      {footer}
     </form>
   );
 }

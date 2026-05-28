@@ -57,6 +57,8 @@ export const ICONS = {
   emailSend: '/icons/wired-outline-177-envelope-send-in-assembly.json',
   qrCode: '/icons/wired-outline-1335-qr-code-hover-pinch.json',
   resendCode: '/icons/wired-outline-194-refresh-hover-pinch.json',
+  mfaTwoFactor: '/icons/wired-outline-2604-2-factor-authentication-hover-pinch.json',
+  mailShield: '/icons/wired-outline-3640-mail-shield-in-assembly.json',
 } as const;
 
 interface LordIconProps {

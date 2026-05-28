@@ -75,41 +75,43 @@ One CloudFront distribution fronts everything — the SPA from S3 at `/*`, and t
 GraphQL API via API Gateway at `/graphql`. Same origin, no CORS, single TLS cert.
 
 ```mermaid
-architecture-beta
-    group aws(logos:aws)[AWS]
+flowchart LR
+    Browser["🧑 Browser"]
 
-    service browser(internet)[Browser]
-    service unsplash(internet)[Unsplash]
+    subgraph CDN["AWS Edge"]
+        CF["CloudFront<br/>(/* + /graphql)"]
+    end
 
-    service cf(logos:aws-cloudfront)[CloudFront] in aws
-    service s3(logos:aws-s3)[S3 React SPA] in aws
-    service apigw(logos:aws-api-gateway)[API Gateway] in aws
-    service lambda(logos:aws-lambda)[Lambda] in aws
-    service dynamo(logos:aws-dynamodb)[DynamoDB] in aws
-    service cognito(logos:aws-cognito)[Cognito] in aws
-    service ssm(logos:aws-systems-manager)[SSM] in aws
+    subgraph Frontend["Frontend (static)"]
+        S3["S3 Bucket<br/>React/Vite build"]
+    end
 
-    browser:R --> L:cf
-    browser:T --> B:cognito
-    cf:R --> L:s3
-    cf:B --> T:apigw
-    apigw:R --> L:lambda
-    lambda:T --> B:cognito
-    lambda:R --> L:dynamo
-    lambda:B --> T:ssm
-    lambda:R --> L:unsplash
+    subgraph API["GraphQL API"]
+        APIGW["API Gateway<br/>HTTP API"]
+        Lambda["Lambda<br/>(container image)<br/>GraphQL Yoga + Pothos"]
+    end
+
+    subgraph Data["Stateful services"]
+        Dynamo[("DynamoDB<br/>per-user prefs")]
+        Cognito["Cognito User Pool<br/>TOTP MFA"]
+        SSM["SSM Parameter Store<br/>Unsplash key, etc."]
+    end
+
+    Unsplash["Unsplash API"]
+
+    Browser -- "HTTPS /*<br/>(SPA assets)" --> CF
+    Browser -- "HTTPS /graphql<br/>POST + JWT" --> CF
+    Browser <-- "Sign-up / sign-in / MFA<br/>(Amplify Auth)" --> Cognito
+
+    CF -- "/*" --> S3
+    CF -- "/graphql" --> APIGW
+    APIGW --> Lambda
+
+    Lambda -- "verify JWT (JWKS)" --> Cognito
+    Lambda --> Dynamo
+    Lambda --> SSM
+    Lambda --> Unsplash
 ```
-
-**Edges shown:**
-
-- `Browser → CloudFront` — HTTPS for both SPA assets (`/*`) and GraphQL (`/graphql`).
-- `Browser → Cognito` — direct sign-up / sign-in / TOTP MFA via Amplify Auth.
-- `CloudFront → S3` — `/*` serves the React/Vite build.
-- `CloudFront → API Gateway → Lambda` — `/graphql` proxies through to the container image (GraphQL Yoga + Pothos).
-- `Lambda → Cognito` — verifies the JWT against the pool's JWKS.
-- `Lambda → DynamoDB` — per-user preference map.
-- `Lambda → SSM` — reads the Unsplash key (KMS-encrypted at rest).
-- `Lambda → Unsplash` — weighted random photo selection for the Travel page.
 
 **Request flow for a typical mutation** (e.g. `submitFeedback`):
 

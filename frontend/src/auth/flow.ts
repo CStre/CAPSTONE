@@ -22,6 +22,7 @@ export type NextAction =
   | { kind: 'signIn' }
   | { kind: 'confirmSignUp' }
   | { kind: 'mfaCode' }
+  | { kind: 'emailCode' }
   | { kind: 'totpSetup'; secret: string; setupUri: string };
 
 function interpretSignIn(nextStep: SignInOutput['nextStep'], email: string): NextAction {
@@ -30,6 +31,8 @@ function interpretSignIn(nextStep: SignInOutput['nextStep'], email: string): Nex
       return { kind: 'done' };
     case 'CONFIRM_SIGN_IN_WITH_TOTP_CODE':
       return { kind: 'mfaCode' };
+    case 'CONFIRM_SIGN_IN_WITH_EMAIL_CODE':
+      return { kind: 'emailCode' };
     case 'CONTINUE_SIGN_IN_WITH_TOTP_SETUP':
       return {
         kind: 'totpSetup',
@@ -79,4 +82,15 @@ export async function confirmRegistration(email: string, code: string): Promise<
 /** Re-send the account-verification email. */
 export async function resendConfirmation(email: string): Promise<void> {
   await resendSignUpCode({ username: email });
+}
+
+/**
+ * Switch the active sign-in challenge from TOTP to email OTP.
+ * Cognito sends a 6-digit code to the user's verified email address.
+ * Requires ALLOW_USER_AUTH on the app client and email_mfa_configuration
+ * on the user pool (configured in infra/auth.tf).
+ */
+export async function requestEmailMfa(email: string): Promise<NextAction> {
+  const { nextStep } = await confirmSignIn({ challengeResponse: 'EMAIL' });
+  return interpretSignIn(nextStep, email);
 }

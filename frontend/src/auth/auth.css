@@ -242,9 +242,14 @@
     border-color 0.2s;
 }
 
-.auth-link:hover {
+.auth-link:hover:not(:disabled) {
   background: rgba(255, 255, 255, 0.14);
   border-color: rgba(255, 255, 255, 0.32);
+}
+
+.auth-link:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
 }
 
 [data-theme='light'] .auth-link {
@@ -253,7 +258,7 @@
   color: var(--color-text);
 }
 
-[data-theme='light'] .auth-link:hover {
+[data-theme='light'] .auth-link:hover:not(:disabled) {
   background: rgba(61, 82, 160, 0.13);
 }
 
@@ -390,6 +395,14 @@
 
 .auth-form-header h2 {
   margin: 0;
+}
+
+/* ── Email-fallback row (right-aligns the pill below the Verify button) ─────── */
+
+.auth-email-fallback {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 0.25rem;
 }
 
 /* ── Resend-code button (inside the code input) ─────────────────────────────── */

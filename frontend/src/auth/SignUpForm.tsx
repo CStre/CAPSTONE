@@ -11,6 +11,7 @@ import { spawnParticles } from '../components/CanvasAnimation/spawnParticles';
 interface SignUpFormProps {
   pending: boolean;
   error: string | null;
+  iconPhase: 'in' | 'idle';
   onSubmit: (email: string, password: string, name: string) => void;
   onSwitchToSignIn: () => void;
   onLearnMore: () => void;
@@ -20,6 +21,7 @@ interface SignUpFormProps {
 export function SignUpForm({
   pending,
   error,
+  iconPhase,
   onSubmit,
   onSwitchToSignIn,
   onLearnMore,
@@ -44,7 +46,11 @@ export function SignUpForm({
   return (
     <form className="auth-form" onSubmit={handleSubmit}>
       <div className="auth-form-header">
-        <LordIcon src={ICONS.authSignUp} size={56} trigger="hover" stroke="bold" />
+        {iconPhase === 'in' ? (
+          <LordIcon key="icon-in" src={ICONS.authSignUp} size={56} trigger="in" state="in-reveal" stroke="bold" />
+        ) : (
+          <LordIcon key="icon-idle" src={ICONS.authSignUp} size={56} trigger="hover" stroke="bold" />
+        )}
         <h2>Create your account</h2>
       </div>
       <div className="auth-field-row">

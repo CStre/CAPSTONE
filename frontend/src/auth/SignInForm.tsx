@@ -1,7 +1,7 @@
 /**
  * @fileoverview Sign-in form — email + password with eye toggle and confetti.
  */
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import type { ReactElement, SyntheticEvent } from 'react';
 import { LordIcon, ICONS } from '../components/LordIcon/LordIcon';
 import { useTheme } from '../lib/ThemeContext';
@@ -28,7 +28,18 @@ export function SignInForm({
   const [email, setEmail] = useState(initialEmail);
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [iconPhase, setIconPhase] = useState<'in' | 'idle'>('in');
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { theme } = useTheme();
+
+  useEffect(() => {
+    timerRef.current = setTimeout(() => {
+      setIconPhase('idle');
+    }, 2000);
+    return () => {
+      if (timerRef.current !== null) clearTimeout(timerRef.current);
+    };
+  }, []);
 
   function handleSubmit(event: SyntheticEvent<HTMLFormElement>): void {
     event.preventDefault();
@@ -44,7 +55,11 @@ export function SignInForm({
   return (
     <form className="auth-form" onSubmit={handleSubmit}>
       <div className="auth-form-header">
-        <LordIcon src={ICONS.authSignIn} size={56} trigger="hover" stroke="bold" />
+        {iconPhase === 'in' ? (
+          <LordIcon key="icon-in" src={ICONS.authSignIn} size={56} trigger="in" state="in-reveal" stroke="bold" />
+        ) : (
+          <LordIcon key="icon-idle" src={ICONS.authSignIn} size={56} trigger="hover" stroke="bold" />
+        )}
         <h2>Sign in</h2>
       </div>
       <label>
@@ -97,7 +112,7 @@ export function SignInForm({
       </button>
       <div className="auth-bottom-row">
         <button type="button" className="auth-link" onClick={onSwitchToSignUp}>
-          Create one
+          Sign up
         </button>
         <button
           type="button"
