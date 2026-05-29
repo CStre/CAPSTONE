@@ -35,6 +35,46 @@ resource "aws_iam_role_policy" "cognito_sms_publish" {
   })
 }
 
+# ── SES domain identity ────────────────────────────────────────────────────────
+# Created once in dev (like the KMS key). QA and prod reuse the same verified
+# domain — the ARN is stable as long as the account and region don't change.
+
+# Route 53 hosted zone — looked up in dev for the SES verification record.
+# Prod uses its own copy in frontend.tf; this avoids a duplicate data source.
+data "aws_route53_zone" "ses" {
+  count        = local.env == "dev" ? 1 : 0
+  name         = local.domain
+  private_zone = false
+}
+
+resource "aws_ses_domain_identity" "main" {
+  count  = local.env == "dev" ? 1 : 0
+  domain = local.domain
+}
+
+resource "aws_route53_record" "ses_verification" {
+  count   = local.env == "dev" ? 1 : 0
+  zone_id = data.aws_route53_zone.ses[0].zone_id
+  name    = "_amazonses.${local.domain}"
+  type    = "TXT"
+  ttl     = 600
+  records = [aws_ses_domain_identity.main[0].verification_token]
+}
+
+# Blocks until AWS confirms the TXT record and marks the domain verified.
+# Route 53 propagates in seconds, so this rarely waits long.
+resource "aws_ses_domain_identity_verification" "main" {
+  count      = local.env == "dev" ? 1 : 0
+  domain     = aws_ses_domain_identity.main[0].id
+  depends_on = [aws_route53_record.ses_verification]
+}
+
+locals {
+  # ARN is the same across environments once the domain is verified in dev.
+  ses_identity_arn = "arn:aws:ses:${local.region}:${local.account_id}:identity/${local.domain}"
+}
+
+# ── Cognito user pool ──────────────────────────────────────────────────────────
 resource "aws_cognito_user_pool" "main" {
   name = "${local.prefix}-users"
 
@@ -54,6 +94,14 @@ resource "aws_cognito_user_pool" "main" {
     require_numbers                  = true
     require_symbols                  = true
     temporary_password_validity_days = 7
+  }
+
+  # SES — required for email MFA (Cognito rejects email_mfa_configuration when
+  # EmailSendingAccount is COGNITO_DEFAULT).
+  email_configuration {
+    email_sending_account = "DEVELOPER"
+    from_email_address    = "Building Better Algorithms <noreply@${local.domain}>"
+    source_arn            = local.ses_identity_arn
   }
 
   # MFA: TOTP (authenticator app) + email OTP as fallback.
@@ -173,6 +221,10 @@ resource "aws_cognito_user_pool" "main" {
   # Force pool recreation so a fresh pool is created with all settings in place
   # (avoids a Cognito constraint: email_mfa_configuration is rejected on an existing pool
   # that only has verified_email in account_recovery_setting).
+  # In dev, wait for SES domain verification before creating the pool.
+  # In QA/prod the domain is already verified (count = 0 → empty dependency list).
+  depends_on = [aws_ses_domain_identity_verification.main]
+
   lifecycle {
     replace_triggered_by = [terraform_data.cognito_pool_recreate]
   }
