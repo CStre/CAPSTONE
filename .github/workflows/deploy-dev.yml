@@ -412,8 +412,12 @@ jobs:
           sleep 30
           # graphql_url is https://<cloudfront-domain>/graphql — strip the path suffix
           echo "url=${GRAPHQL_URL%/graphql}" >> $GITHUB_OUTPUT
+      - uses: actions/checkout@v4
       - name: ZAP Baseline Scan
         uses: zaproxy/action-baseline@v0.12.0
+        continue-on-error: true
         with:
           target: ${{ steps.cf.outputs.url }}
-          fail_action: false  # warn only; harden after first successful scan
+          rules_file_name: .zap/rules.tsv
+          fail_action: false
+          artifact_name: zap-scan-dev

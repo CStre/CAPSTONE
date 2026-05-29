@@ -64,6 +64,16 @@ resource "aws_cloudfront_response_headers_policy" "security" {
       value    = "camera=(), microphone=(), geolocation=(), interest-cohort=()"
       override = true
     }
+    items {
+      header   = "Cross-Origin-Embedder-Policy"
+      value    = "unsafe-none"
+      override = true
+    }
+    items {
+      header   = "Cross-Origin-Opener-Policy"
+      value    = "same-origin-allow-popups"
+      override = true
+    }
   }
 }
 
