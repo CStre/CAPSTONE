@@ -182,6 +182,7 @@ resource "aws_kms_key" "cognito_sms" {
   count                   = var.environment == "dev" ? 1 : 0
   description             = "Cognito custom SMS sender encryption — shared across environments"
   deletion_window_in_days = 7
+  enable_key_rotation     = true
 
   policy = jsonencode({
     Version = "2012-10-17"
