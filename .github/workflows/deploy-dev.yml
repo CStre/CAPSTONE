@@ -401,6 +401,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      issues: write
     steps:
       - name: Derive CloudFront URL
         id: cf
