@@ -30,7 +30,7 @@ describe('HomePage', () => {
   it('does not show the intro card for signed-in users', () => {
     renderHome({
       status: 'authenticated',
-      user: { id: '1', email: 'ada@example.com', name: 'Ada' },
+      user: { id: '1', email: 'ada@example.com', firstName: 'Ada', lastName: '', phone: '' },
       ...actions,
     });
 
