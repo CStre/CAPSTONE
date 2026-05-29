@@ -1,18 +1,19 @@
 /**
  * @fileoverview Cognito custom SMS sender trigger.
  *
- * Cognito encrypts the OTP code with a KMS key before passing it here.
- * We decrypt it, then deliver via Twilio's REST API so we are not blocked
- * by the AWS SNS origination-number registration requirement in the US.
+ * Cognito encrypts the OTP code using the AWS Encryption SDK (not raw KMS)
+ * before passing it to this Lambda. We decrypt it with the same SDK, then
+ * deliver via Twilio's REST API — bypassing the AWS SNS origination-number
+ * registration requirement in the US.
  *
  * Trigger sources handled: any CustomSMSSender_* event (verification codes,
  * MFA codes, forgot-password codes, admin-created password codes).
  */
-import { KMSClient, DecryptCommand } from '@aws-sdk/client-kms';
+import { buildClient, CommitmentPolicy, KmsKeyringNode } from '@aws-crypto/client-node';
 import { SSMClient, GetParameterCommand } from '@aws-sdk/client-ssm';
 import * as https from 'https';
 
-const kms = new KMSClient({});
+const { decrypt } = buildClient(CommitmentPolicy.REQUIRE_ENCRYPT_ALLOW_DECRYPT);
 const ssm = new SSMClient({});
 
 export interface CognitoCustomSMSEvent {
@@ -84,11 +85,12 @@ export async function handleCustomSMS(event: CognitoCustomSMSEvent): Promise<voi
   const phone = event.request.userAttributes.phone_number;
   if (!code || !phone) return;
 
-  const decrypted = await kms.send(
-    new DecryptCommand({ CiphertextBlob: Buffer.from(code, 'base64') }),
-  );
-  if (!decrypted.Plaintext) return;
-  const otp = Buffer.from(decrypted.Plaintext).toString('utf-8');
+  // Cognito encrypts the OTP using the AWS Encryption SDK, not raw KMS.
+  // The key ARN is passed in as an env var set by Terraform.
+  const keyArn = process.env.COGNITO_SMS_KEY_ARN ?? '';
+  const keyring = new KmsKeyringNode({ keyIds: [keyArn] });
+  const { plaintext } = await decrypt(keyring, Buffer.from(code, 'base64'));
+  const otp = plaintext.toString('utf-8');
 
   await sendSMS(phone, `Your Building Better Algorithms code is: ${otp}`);
 }

@@ -180,6 +180,7 @@ resource "aws_lambda_function" "graphql" {
       COGNITO_REGION       = local.region
       DYNAMODB_TABLE       = aws_dynamodb_table.prefs.name
       SSM_PREFIX           = "/bba/${local.env}"
+      COGNITO_SMS_KEY_ARN  = local.cognito_sms_key_arn
       # Passed directly — Lambda env vars are KMS-encrypted at rest. SSM is the
       # stricter option (access logged, zero console exposure) but requires an async
       # init path that is deferred to a future hardening pass.
