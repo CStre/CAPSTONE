@@ -99,6 +99,23 @@ resource "aws_iam_role_policy" "lambda_ssm" {
   })
 }
 
+# KMS — decrypt Cognito-encrypted OTP codes for the custom SMS sender
+resource "aws_iam_role_policy" "lambda_kms" {
+  name = "kms"
+  role = aws_iam_role.lambda.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect   = "Allow"
+        Action   = ["kms:Decrypt"]
+        Resource = local.cognito_sms_key_arn
+      },
+    ]
+  })
+}
+
 # Cognito — delete user + list users by phone (forgot-email flow)
 resource "aws_iam_role_policy" "lambda_cognito" {
   name = "cognito"

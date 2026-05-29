@@ -22,6 +22,30 @@ resource "aws_ssm_parameter" "cognito_user_pool_id" {
   tags = local.tags
 }
 
+resource "aws_ssm_parameter" "twilio_account_sid" {
+  name        = "/bba/${local.env}/twilio_account_sid"
+  description = "Twilio Account SID for custom SMS sender"
+  type        = "SecureString"
+  value       = var.twilio_account_sid
+  tags        = local.tags
+}
+
+resource "aws_ssm_parameter" "twilio_auth_token" {
+  name        = "/bba/${local.env}/twilio_auth_token"
+  description = "Twilio Auth Token for custom SMS sender"
+  type        = "SecureString"
+  value       = var.twilio_auth_token
+  tags        = local.tags
+}
+
+resource "aws_ssm_parameter" "twilio_from_number" {
+  name        = "/bba/${local.env}/twilio_from_number"
+  description = "Twilio origination phone number in E.164 format"
+  type        = "String"
+  value       = var.twilio_from_number
+  tags        = local.tags
+}
+
 resource "aws_ssm_parameter" "cognito_client_id" {
   name        = "/bba/${local.env}/cognito_client_id"
   description = "Cognito app client ID for this environment"

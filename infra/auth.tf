@@ -150,6 +150,16 @@ resource "aws_cognito_user_pool" "main" {
     }
   }
 
+  # Custom SMS sender — routes all Cognito SMS through the GraphQL Lambda + Twilio
+  # instead of SNS, avoiding the US origination-number registration requirement.
+  lambda_config {
+    custom_sms_sender {
+      lambda_arn     = aws_lambda_function.graphql.arn
+      lambda_version = "V1_0"
+    }
+    kms_key_id = local.cognito_sms_key_arn
+  }
+
   tags = local.tags
 
   # Force pool recreation so a fresh pool is created with all settings in place
@@ -160,9 +170,69 @@ resource "aws_cognito_user_pool" "main" {
   }
 }
 
-# Bump the value below (e.g. "v2" → "v3") to force pool recreation on next apply.
+# Bump the value below (e.g. "v3" → "v4") to force pool recreation on next apply.
 resource "terraform_data" "cognito_pool_recreate" {
-  input = "v3"
+  input = "v4"
+}
+
+# KMS key — one shared key across all environments (alias/bba-cognito-sms).
+# Created only in dev; qa and prod look it up via the data source below.
+# This keeps the cost to $1/month regardless of how many environments exist.
+resource "aws_kms_key" "cognito_sms" {
+  count                   = var.environment == "dev" ? 1 : 0
+  description             = "Cognito custom SMS sender encryption — shared across environments"
+  deletion_window_in_days = 7
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid       = "RootFullAccess"
+        Effect    = "Allow"
+        Principal = { AWS = "arn:aws:iam::${local.account_id}:root" }
+        Action    = "kms:*"
+        Resource  = "*"
+      },
+      {
+        Sid       = "CognitoEncrypt"
+        Effect    = "Allow"
+        Principal = { Service = "cognito-idp.amazonaws.com" }
+        Action    = ["kms:GenerateDataKey", "kms:Encrypt"]
+        Resource  = "*"
+      },
+    ]
+  })
+
+  lifecycle {
+    prevent_destroy = true
+  }
+
+  tags = local.tags
+}
+
+resource "aws_kms_alias" "cognito_sms" {
+  count         = var.environment == "dev" ? 1 : 0
+  name          = "alias/bba-cognito-sms"
+  target_key_id = aws_kms_key.cognito_sms[0].key_id
+}
+
+# All environments resolve the shared key ARN via its fixed alias.
+data "aws_kms_alias" "cognito_sms" {
+  name       = "alias/bba-cognito-sms"
+  depends_on = [aws_kms_alias.cognito_sms]
+}
+
+locals {
+  cognito_sms_key_arn = data.aws_kms_alias.cognito_sms.target_key_arn
+}
+
+# Allow Cognito to invoke the GraphQL Lambda as a custom SMS sender trigger.
+resource "aws_lambda_permission" "cognito_custom_sms" {
+  statement_id  = "AllowCognitoCustomSMS"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.graphql.function_name
+  principal     = "cognito-idp.amazonaws.com"
+  source_arn    = aws_cognito_user_pool.main.arn
 }
 
 # App client — public SPA, no client secret

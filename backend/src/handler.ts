@@ -3,25 +3,45 @@
  *
  * Adapts a Lambda Function URL event (API Gateway payload format 2.0) into a Fetch
  * `Request`, runs it through GraphQL Yoga, and converts the `Response` back.
+ * Also routes Cognito CustomSMSSender_* trigger events to the Twilio SMS sender.
  */
-import type { LambdaFunctionURLHandler } from 'aws-lambda';
+import type { LambdaFunctionURLEvent, LambdaFunctionURLResult } from 'aws-lambda';
 import { yoga } from './yoga';
+import { handleCustomSMS, type CognitoCustomSMSEvent } from './smsSender';
 
-export const handler: LambdaFunctionURLHandler = async (event) => {
-  const method = event.requestContext.http.method;
+function isCognitoSMSTrigger(event: unknown): event is CognitoCustomSMSEvent {
+  return (
+    typeof event === 'object' &&
+    event !== null &&
+    'triggerSource' in event &&
+    typeof (event as Record<string, unknown>).triggerSource === 'string' &&
+    ((event as Record<string, unknown>).triggerSource as string).startsWith('CustomSMSSender_')
+  );
+}
+
+export const handler = async (
+  event: LambdaFunctionURLEvent | CognitoCustomSMSEvent,
+): Promise<LambdaFunctionURLResult | CognitoCustomSMSEvent> => {
+  if (isCognitoSMSTrigger(event)) {
+    await handleCustomSMS(event);
+    return event;
+  }
+
+  const urlEvent = event;
+  const method = urlEvent.requestContext.http.method;
 
   const headers: Record<string, string> = {};
-  for (const [key, value] of Object.entries(event.headers)) {
+  for (const [key, value] of Object.entries(urlEvent.headers)) {
     if (value !== undefined) headers[key] = value;
   }
 
   const host = headers.host ?? 'lambda.local';
-  const query = event.rawQueryString ? `?${event.rawQueryString}` : '';
-  const url = `https://${host}${event.rawPath}${query}`;
+  const query = urlEvent.rawQueryString ? `?${urlEvent.rawQueryString}` : '';
+  const url = `https://${host}${urlEvent.rawPath}${query}`;
 
   let body: string | Buffer | undefined;
-  if (method !== 'GET' && method !== 'HEAD' && event.body !== undefined) {
-    body = event.isBase64Encoded ? Buffer.from(event.body, 'base64') : event.body;
+  if (method !== 'GET' && method !== 'HEAD' && urlEvent.body !== undefined) {
+    body = urlEvent.isBase64Encoded ? Buffer.from(urlEvent.body, 'base64') : urlEvent.body;
   }
 
   const response = await yoga.fetch(url, { method, headers, body });

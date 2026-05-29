@@ -14,6 +14,23 @@ variable "unsplash_access_key" {
   sensitive   = true
 }
 
+variable "twilio_account_sid" {
+  description = "Twilio Account SID. Pass via TF_VAR_twilio_account_sid in CI — never commit the value."
+  type        = string
+  sensitive   = true
+}
+
+variable "twilio_auth_token" {
+  description = "Twilio Auth Token. Pass via TF_VAR_twilio_auth_token in CI — never commit the value."
+  type        = string
+  sensitive   = true
+}
+
+variable "twilio_from_number" {
+  description = "Twilio origination phone number in E.164 format (e.g. +19049439891)."
+  type        = string
+}
+
 variable "alert_email" {
   description = "Email address for the monthly billing alarm. Defaults to the owner address."
   type        = string
