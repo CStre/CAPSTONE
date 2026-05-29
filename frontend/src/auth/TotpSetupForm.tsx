@@ -12,6 +12,7 @@ interface TotpSetupFormProps {
   pending: boolean;
   error: string | null;
   onSubmit: (code: string) => void;
+  onSkip?: () => void;
 }
 
 /** Breaks a secret into space-separated groups of 4 for readability. */
@@ -29,6 +30,7 @@ export function TotpSetupForm({
   pending,
   error,
   onSubmit,
+  onSkip,
 }: TotpSetupFormProps): ReactElement {
   const [code, setCode] = useState('');
   const [showKey, setShowKey] = useState(false);
@@ -99,6 +101,13 @@ export function TotpSetupForm({
       <button type="submit" disabled={pending}>
         {pending ? 'Verifying…' : 'Verify'}
       </button>
+      {onSkip !== undefined && (
+        <div className="auth-bottom-row">
+          <button type="button" className="auth-link" disabled={pending} onClick={onSkip}>
+            Set up later
+          </button>
+        </div>
+      )}
     </form>
   );
 }

@@ -13,9 +13,11 @@ import {
   resendSignUpCode,
   resetPassword,
   sendUserAttributeVerificationCode,
+  setUpTOTP,
   signIn,
   signUp,
   updateMFAPreference,
+  verifyTOTPSetup,
   type SignInOutput,
 } from 'aws-amplify/auth';
 
@@ -29,6 +31,7 @@ export type NextAction =
   | { kind: 'confirmPhone' }
   | { kind: 'mfaCode' }
   | { kind: 'emailCode' }
+  | { kind: 'selectMfa' }
   | { kind: 'totpSetup'; secret: string; setupUri: string };
 
 function interpretSignIn(nextStep: SignInOutput['nextStep'], email: string): NextAction {
@@ -39,6 +42,8 @@ function interpretSignIn(nextStep: SignInOutput['nextStep'], email: string): Nex
       return { kind: 'mfaCode' };
     case 'CONFIRM_SIGN_IN_WITH_EMAIL_CODE':
       return { kind: 'emailCode' };
+    case 'CONTINUE_SIGN_IN_WITH_MFA_SELECTION':
+      return { kind: 'selectMfa' };
     case 'CONTINUE_SIGN_IN_WITH_TOTP_SETUP':
       return {
         kind: 'totpSetup',
@@ -50,6 +55,12 @@ function interpretSignIn(nextStep: SignInOutput['nextStep'], email: string): Nex
     default:
       throw new Error(`Unsupported sign-in step: ${nextStep.signInStep}`);
   }
+}
+
+/** Respond to a SELECT_MFA_TYPE challenge by choosing TOTP or EMAIL. */
+export async function selectMfaType(type: 'TOTP' | 'EMAIL', email: string): Promise<NextAction> {
+  const { nextStep } = await confirmSignIn({ challengeResponse: type });
+  return interpretSignIn(nextStep, email);
 }
 
 /** Begin sign-in with email + password. */
@@ -119,6 +130,21 @@ export async function sendPhoneVerification(): Promise<void> {
 /** Confirm the phone_number attribute with the SMS code. */
 export async function confirmPhoneVerification(code: string): Promise<void> {
   await confirmUserAttribute({ userAttributeKey: 'phone_number', confirmationCode: code });
+}
+
+/** Begin optional post-sign-in TOTP enrollment; returns the secret and QR URI. */
+export async function beginTotpEnrollment(email: string): Promise<{ secret: string; uri: string }> {
+  const output = await setUpTOTP();
+  return {
+    secret: output.sharedSecret,
+    uri: output.getSetupUri(APP_NAME, email).toString(),
+  };
+}
+
+/** Confirm optional TOTP enrollment and set TOTP as the preferred MFA method. */
+export async function confirmTotpEnrollment(code: string): Promise<void> {
+  await verifyTOTPSetup({ code });
+  await updateMFAPreference({ totp: 'PREFERRED' });
 }
 
 /** Initiate a password reset — Cognito sends a code to the user's email. */

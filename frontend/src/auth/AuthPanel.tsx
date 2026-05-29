@@ -1,7 +1,7 @@
 /**
  * @fileoverview Auth panel — the sign-in / sign-up / MFA / forgot flow state machine.
  *
- * Front face: signIn · mfaCode · mfaEmail · totpSetup · confirmPhone
+ * Front face: signIn · mfaCode · mfaEmail · totpSetup · phoneConsent · confirmPhone
  *             forgotChoice · forgotEmailPhone · forgotEmailCode
  *             forgotPasswordEmail · forgotPasswordCode
  * Back face:  signUp · confirmSignUp
@@ -14,13 +14,15 @@ import { useCanvasAnimation } from '../components/CanvasAnimation/useCanvasAnima
 import { useAuth } from './context';
 import {
   beginSignIn,
+  beginTotpEnrollment,
   confirmForgotPassword,
   confirmPhoneVerification,
   confirmRegistration,
+  confirmTotpEnrollment,
   forgotPassword,
   register,
-  requestEmailMfa,
   resendConfirmation,
+  selectMfaType,
   sendPhoneVerification,
   submitSignInCode,
   type NextAction,
@@ -39,6 +41,7 @@ import {
   ForgotPasswordEmail,
 } from './ForgotPanel';
 import { SecurityInfo } from '../components/SecurityInfo/SecurityInfo';
+import { PhoneConsentForm } from './PhoneConsentForm';
 import { useCardTilt } from '../components/GlassIsland/useCardTilt';
 import './auth.css';
 
@@ -52,9 +55,12 @@ type Step =
   | 'signIn'
   | 'signUp'
   | 'confirmSignUp'
+  | 'phoneConsent'
   | 'confirmPhone'
   | 'totpSetup'
+  | 'totpEnroll'
   | 'mfaCode'
+  | 'mfaSelect'
   | 'mfaEmail'
   | 'forgotChoice'
   | 'forgotEmailPhone'
@@ -84,6 +90,9 @@ export function AuthPanel(): ReactElement {
   const signUpTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [codeAttempts, setCodeAttempts] = useState(0);
   const MAX_ATTEMPTS = 3;
+  const [storedAction, setStoredAction] = useState<NextAction | null>(null);
+  const [enrollSecret, setEnrollSecret] = useState('');
+  const [enrollUri, setEnrollUri] = useState('');
 
   const [, findEmailByPhone] = useMutation(FindEmailByPhoneMutation);
 
@@ -96,6 +105,23 @@ export function AuthPanel(): ReactElement {
       if (mfaTimerRef.current !== null) clearTimeout(mfaTimerRef.current);
     };
   }, [step]);
+
+  useEffect(() => {
+    if (step !== 'totpEnroll') return;
+    void (async () => {
+      setError(null);
+      setPending(true);
+      try {
+        const { secret, uri } = await beginTotpEnrollment(email);
+        setEnrollSecret(secret);
+        setEnrollUri(uri);
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : 'Could not start 2FA setup.');
+      } finally {
+        setPending(false);
+      }
+    })();
+  }, [step, email]);
 
   useEffect(() => {
     if (step !== 'signUp') return;
@@ -147,6 +173,9 @@ export function AuthPanel(): ReactElement {
         break;
       case 'confirmPhone':
         setStep('confirmPhone');
+        break;
+      case 'selectMfa':
+        setStep('mfaSelect');
         break;
       case 'mfaCode':
         setCodeAttempts(0);
@@ -209,12 +238,58 @@ export function AuthPanel(): ReactElement {
     setPending(true);
     try {
       const action = await confirmRegistration(email, code);
-      // After email confirm + autoSignIn, prompt phone verification before proceeding
-      if (action.kind === 'done' || action.kind === 'emailCode' || action.kind === 'mfaCode') {
-        await sendPhoneVerification();
-        setStep('confirmPhone');
+      setStoredAction(action);
+      setStep('phoneConsent');
+    } catch (err: unknown) {
+      handleCodeFailure(err);
+    } finally {
+      setPending(false);
+    }
+  }
+
+  async function handlePhoneConsentVerify(): Promise<void> {
+    setError(null);
+    setPending(true);
+    try {
+      await sendPhoneVerification();
+      setStep('confirmPhone');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Could not send verification code.');
+    } finally {
+      setPending(false);
+    }
+  }
+
+  function handlePhoneConsentSkip(): void {
+    // If Cognito requires TOTP during auto sign-in, apply that challenge.
+    // Otherwise offer optional TOTP enrollment before entering the app.
+    if (storedAction?.kind === 'totpSetup') {
+      applyAction(storedAction);
+    } else {
+      setStep('totpEnroll');
+    }
+  }
+
+  function handleTotpEnrollSubmit(code: string): void {
+    void runStep(async () => {
+      await confirmTotpEnrollment(code);
+      return { kind: 'done' };
+    });
+  }
+
+  function handleTotpEnrollSkip(): void {
+    void reload();
+  }
+
+  async function handleConfirmPhone(code: string): Promise<void> {
+    setError(null);
+    setPending(true);
+    try {
+      await confirmPhoneVerification(code);
+      if (storedAction?.kind === 'totpSetup') {
+        applyAction(storedAction);
       } else {
-        applyAction(action);
+        setStep('totpEnroll');
       }
     } catch (err: unknown) {
       handleCodeFailure(err);
@@ -223,17 +298,8 @@ export function AuthPanel(): ReactElement {
     }
   }
 
-  async function handleConfirmPhone(code: string): Promise<void> {
-    setError(null);
-    setPending(true);
-    try {
-      await confirmPhoneVerification(code);
-      void reload();
-    } catch (err: unknown) {
-      handleCodeFailure(err);
-    } finally {
-      setPending(false);
-    }
+  function handleSelectMfa(type: 'TOTP' | 'EMAIL'): void {
+    void runStep(() => selectMfaType(type, email));
   }
 
   async function handleMfaSubmit(code: string): Promise<void> {
@@ -254,10 +320,6 @@ export function AuthPanel(): ReactElement {
     void runStep(() => submitSignInCode(code, email));
   }
 
-  function handleRequestEmailMfa(): void {
-    void runStep(() => requestEmailMfa(email));
-  }
-
   async function handleMfaEmailSubmit(code: string): Promise<void> {
     setError(null);
     setPending(true);
@@ -270,12 +332,6 @@ export function AuthPanel(): ReactElement {
     } finally {
       setPending(false);
     }
-  }
-
-  function handleResendEmailMfa(): void {
-    void requestEmailMfa(email).catch((err: unknown) => {
-      setError(err instanceof Error ? err.message : 'Could not resend the code.');
-    });
   }
 
   function handleResend(): void {
@@ -371,6 +427,39 @@ export function AuthPanel(): ReactElement {
 
   function renderFront(): ReactElement {
     switch (step) {
+      case 'mfaSelect':
+        return (
+          <div className="auth-form">
+            <div className="auth-form-header">
+              {renderMfaIcon()}
+              <h2>Verify your identity</h2>
+            </div>
+            <p className="auth-description auth-description--center">
+              Choose how you&apos;d like to verify it&apos;s you.
+            </p>
+            {error !== null && <p className="auth-error">{error}</p>}
+            <button
+              type="button"
+              className="forgot-option-btn"
+              disabled={pending}
+              onClick={() => {
+                handleSelectMfa('TOTP');
+              }}
+            >
+              Authenticator app
+            </button>
+            <button
+              type="button"
+              className="forgot-option-btn"
+              disabled={pending}
+              onClick={() => {
+                handleSelectMfa('EMAIL');
+              }}
+            >
+              Email me a code
+            </button>
+          </div>
+        );
       case 'mfaCode':
         return (
           <CodeForm
@@ -384,18 +473,6 @@ export function AuthPanel(): ReactElement {
               void handleMfaSubmit(code);
             }}
             icon={renderMfaIcon()}
-            footer={
-              <div className="auth-email-fallback">
-                <button
-                  type="button"
-                  className="auth-link"
-                  onClick={handleRequestEmailMfa}
-                  disabled={pending}
-                >
-                  Use email instead
-                </button>
-              </div>
-            }
           />
         );
       case 'mfaEmail':
@@ -410,7 +487,6 @@ export function AuthPanel(): ReactElement {
             onSubmit={(code) => {
               void handleMfaEmailSubmit(code);
             }}
-            onResend={handleResendEmailMfa}
           />
         );
       case 'totpSetup':
@@ -421,6 +497,28 @@ export function AuthPanel(): ReactElement {
             pending={pending}
             error={error}
             onSubmit={handleTotpSetupSubmit}
+          />
+        );
+      case 'phoneConsent':
+        return (
+          <PhoneConsentForm
+            pending={pending}
+            error={error}
+            onVerify={() => {
+              void handlePhoneConsentVerify();
+            }}
+            onSkip={handlePhoneConsentSkip}
+          />
+        );
+      case 'totpEnroll':
+        return (
+          <TotpSetupForm
+            secret={enrollSecret}
+            setupUri={enrollUri}
+            pending={pending}
+            error={error}
+            onSubmit={handleTotpEnrollSubmit}
+            onSkip={handleTotpEnrollSkip}
           />
         );
       case 'confirmPhone':

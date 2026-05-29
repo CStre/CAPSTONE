@@ -26,10 +26,12 @@ src/
     AccountPage/   profile (name/email/phone), email-based password reset, phone management, TOTP re-enrollment, and account deletion
     LoginPage/     Amplify Auth sign-in / sign-up shell
     NotFoundPage/  404
-  components/    Header, Loader, GlassIsland, LordIcon, ThemeToggle, CustomCursor, SecurityInfo, PhoneInput
+  components/    Header, Loader, GlassIsland, LordIcon, ThemeToggle, CustomCursor, SecurityInfo,
+                 PhoneInput, SmsConsent
   lib/           urql client, ThemeContext, IntroContext
   gql/           GraphQL Code Generator output (generated — do not edit)
-  auth/          Cognito wrapper + full auth UI: sign-in/up with phone, email verify, SMS phone verify,
+  auth/          Cognito wrapper + full auth UI: sign-in/up with phone, email verify,
+                 TCPA/CTIA phone-consent step (PhoneConsentForm), SMS phone verify,
                  TOTP setup, forgot-email/password flows (ForgotPanel), email-based password reset
   test/          Jest setup + asset mocks
 public/

@@ -56,13 +56,18 @@ resource "aws_cognito_user_pool" "main" {
     temporary_password_validity_days = 7
   }
 
-  # TOTP MFA optional — users may enroll an authenticator app in account settings.
-  # Users without TOTP sign in with email + password only (no MFA challenge).
-  # Email OTP MFA requires SES (DEVELOPER sending account) — not used here.
-  # No SMS MFA — phone is used for attribute verification only.
+  # MFA: TOTP (authenticator app) + email OTP as fallback.
+  # Users without TOTP enrolled sign in via email OTP automatically (ALLOW_USER_AUTH).
+  # Users with TOTP enrolled see a SELECT_MFA_TYPE challenge offering both options,
+  # so they can fall back to email if they lose their authenticator device.
+  # No SMS MFA — phone is for attribute verification only.
   mfa_configuration = "OPTIONAL"
   software_token_mfa_configuration {
     enabled = true
+  }
+  email_mfa_configuration {
+    message = "Your Building Better Algorithms sign-in code is {####}"
+    subject = "Your Building Better Algorithms sign-in code"
   }
 
   # SNS/SMS — used only to verify the phone_number attribute at sign-up and when
@@ -173,9 +178,9 @@ resource "aws_cognito_user_pool" "main" {
   }
 }
 
-# Bump the value below (e.g. "v3" → "v4") to force pool recreation on next apply.
+# Bump the value below (e.g. "v4" → "v5") to force pool recreation on next apply.
 resource "terraform_data" "cognito_pool_recreate" {
-  input = "v4"
+  input = "v5"
 }
 
 # KMS key — one shared key across all environments (alias/bba-cognito-sms).

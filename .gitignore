@@ -1,6 +1,9 @@
 # === Local working notes (not committed) ===
 CLAUDE.md
 
+# === Local dev/debug scripts (not committed) ===
+backend/scripts/test-*.ts
+
 # === Secrets / environment ===
 .env
 .env.*

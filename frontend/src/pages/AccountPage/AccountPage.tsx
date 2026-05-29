@@ -16,6 +16,7 @@ import {
   confirmResetPassword,
   confirmUserAttribute,
   fetchMFAPreference,
+  fetchUserAttributes,
   resetPassword,
   sendUserAttributeVerificationCode,
   setUpTOTP,
@@ -36,6 +37,7 @@ import { SecurityInfo } from '../../components/SecurityInfo/SecurityInfo';
 import { CodeForm } from '../../auth/CodeForm';
 import { TotpSetupForm } from '../../auth/TotpSetupForm';
 import { PhoneInput } from '../../components/PhoneInput/PhoneInput';
+import { SmsConsent } from '../../components/SmsConsent/SmsConsent';
 import './AccountPage.css';
 
 const DeleteAccountMutation = graphql(`
@@ -165,6 +167,9 @@ export function AccountPage(): ReactElement {
   const [savingPhone, setSavingPhone] = useState(false);
   const [phoneCodePending, setPhoneCodePending] = useState(false);
   const [phoneCodeError, setPhoneCodeError] = useState<string | null>(null);
+  const [phoneVerified, setPhoneVerified] = useState<boolean | null>(null);
+  const [phoneVerifyNow, setPhoneVerifyNow] = useState(true);
+  const [showSmsConsent, setShowSmsConsent] = useState(false);
 
   // ── TOTP ──────────────────────────────────────────────────────────────────
   const [totpEnrolled, setTotpEnrolled] = useState<boolean | null>(null);
@@ -195,6 +200,16 @@ export function AccountPage(): ReactElement {
       })
       .catch(() => {
         setTotpEnrolled(null);
+      });
+  }, []);
+
+  useEffect(() => {
+    void fetchUserAttributes()
+      .then((attrs) => {
+        setPhoneVerified(attrs.phone_number_verified === 'true');
+      })
+      .catch(() => {
+        setPhoneVerified(null);
       });
   }, []);
 
@@ -318,8 +333,17 @@ export function AccountPage(): ReactElement {
     setPhoneStatus(null);
     try {
       await updateUserAttributes({ userAttributes: { phone_number: phone } });
-      await sendUserAttributeVerificationCode({ userAttributeKey: 'phone_number' });
-      setPopup('phoneVerify');
+      if (phoneVerifyNow) {
+        await sendUserAttributeVerificationCode({ userAttributeKey: 'phone_number' });
+        setPopup('phoneVerify');
+      } else {
+        setPhoneVerified(false);
+        setPhone('');
+        setPhoneStatus({
+          tone: 'ok',
+          message: 'Phone number saved. Verify it anytime from this page.',
+        });
+      }
     } catch (error) {
       setPhoneStatus({ tone: 'error', message: errorMessage(error) });
     } finally {
@@ -335,7 +359,8 @@ export function AccountPage(): ReactElement {
       await reload();
       setPhone('');
       setPopup(null);
-      setPhoneStatus({ tone: 'ok', message: 'Phone number updated.' });
+      setPhoneVerified(true);
+      setPhoneStatus({ tone: 'ok', message: 'Phone number verified.' });
     } catch (error) {
       setPhoneCodeError(errorMessage(error));
     } finally {
@@ -572,13 +597,63 @@ export function AccountPage(): ReactElement {
           {/* ── Phone number ─────────────────────────────────────────── */}
           <div className="account-section">
             <h2>Phone number</h2>
+            {phoneVerified !== null && (
+              <div className="account-totp-row">
+                <span
+                  className={`account-totp-badge${phoneVerified ? ' account-totp-badge--on' : ' account-totp-badge--off'}`}
+                >
+                  {phoneVerified ? '✓ Verified' : '✗ Not verified'}
+                </span>
+              </div>
+            )}
             <form className="account-form" onSubmit={(e) => void savePhone(e)}>
               <label>
                 New phone number
                 <PhoneInput value={phone} onChange={setPhone} required />
               </label>
+              <div className="auth-sms-consent">
+                <button
+                  type="button"
+                  className="auth-sms-terms-btn"
+                  onClick={() => {
+                    setShowSmsConsent(true);
+                  }}
+                >
+                  SMS messaging terms ↗
+                </button>
+                <div className="auth-sms-options">
+                  <label className="auth-sms-option">
+                    <input
+                      type="radio"
+                      name="accountPhoneVerify"
+                      checked={phoneVerifyNow}
+                      onChange={() => {
+                        setPhoneVerifyNow(true);
+                      }}
+                    />
+                    <span>Verify now</span>
+                  </label>
+                  <label className="auth-sms-option">
+                    <input
+                      type="radio"
+                      name="accountPhoneVerify"
+                      checked={!phoneVerifyNow}
+                      onChange={() => {
+                        setPhoneVerifyNow(false);
+                      }}
+                    />
+                    <span>Verify later</span>
+                  </label>
+                </div>
+              </div>
               <button type="submit" disabled={savingPhone}>
-                {savingPhone ? 'Sending code…' : 'Update phone'}
+                {savingPhone
+                  ? phoneVerifyNow
+                    ? 'Sending code…'
+                    : 'Saving…'
+                  : phoneVerifyNow
+                    ? 'Update & verify'
+                    : 'Update phone'}
               </button>
               {phoneStatus && (
                 <p className={`account-status account-status--${phoneStatus.tone}`}>
@@ -587,6 +662,13 @@ export function AccountPage(): ReactElement {
               )}
             </form>
           </div>
+          {showSmsConsent && (
+            <SmsConsent
+              onClose={() => {
+                setShowSmsConsent(false);
+              }}
+            />
+          )}
 
           {/* ── Two-factor auth ──────────────────────────────────────── */}
           <div className="account-section">
