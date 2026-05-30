@@ -325,6 +325,6 @@ resource "aws_cognito_user_pool_client" "main" {
 
   prevent_user_existence_errors = "ENABLED"
 
-  read_attributes  = ["email", "name", "given_name", "family_name", "phone_number"]
+  read_attributes  = ["email", "email_verified", "name", "given_name", "family_name", "phone_number", "phone_number_verified"]
   write_attributes = ["email", "name", "given_name", "family_name", "phone_number"]
 }

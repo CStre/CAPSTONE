@@ -14,7 +14,7 @@
 
 .account-panel .page.account {
   width: 100%;
-  max-width: 38rem;
+  max-width: 52rem;
 }
 
 /* ── Single glass card ──────────────────────────────────────────────────── */
@@ -100,28 +100,46 @@
   color: var(--color-error) !important;
 }
 
-/* ── Profile dl ─────────────────────────────────────────────────────────── */
+/* ── Profile display ────────────────────────────────────────────────────── */
 
-.account-profile {
+.account-profile-name {
+  margin: 0 0 0.45rem;
+  font-size: var(--fs-xl);
+  font-weight: var(--fw-extrabold);
+  color: var(--color-heading);
+  text-align: center;
+}
+
+.account-profile-meta {
   display: flex;
+  justify-content: center;
   flex-wrap: wrap;
-  gap: 0.5rem 3rem;
-  margin: 0;
-}
-
-.account-profile dt {
-  font-size: var(--fs-xs);
-  font-weight: var(--fw-bold);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--color-accent);
-}
-
-.account-profile dd {
-  margin: 0.1rem 0 0;
+  gap: 0.25rem 2.5rem;
   font-size: var(--fs-base);
   font-weight: var(--fw-medium);
   color: var(--color-text);
+}
+
+/* ── Update-profile 2-column grid ───────────────────────────────────────── */
+
+.account-section-h2--center {
+  text-align: center;
+}
+
+.account-update-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+}
+
+.account-update-grid .account-form > button[type='submit'] {
+  margin-top: auto;
+}
+
+@media (max-width: 500px) {
+  .account-update-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* ── Forms — mirror auth-form exactly ──────────────────────────────────── */
@@ -243,6 +261,50 @@
   color: var(--color-text-muted);
 }
 
+/* ── Section heading + inline status badge ──────────────────────────────── */
+
+.account-section-title-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.6rem;
+}
+
+.account-section-title-row--center {
+  justify-content: center;
+}
+
+.account-section-title-row h2 {
+  margin: 0;
+}
+
+/* ── Narrow centered content block (≈ 2/3 card width) ───────────────────── */
+
+.account-section-body--narrow {
+  max-width: 67%;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 1rem;
+}
+
+.account-section-body--narrow .account-form {
+  width: 100%;
+  text-align: left;
+}
+
+/* ── Label text + inline status badge ───────────────────────────────────── */
+
+.account-label-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
 /* ── 2FA row ─────────────────────────────────────────────────────────────── */
 
 .account-totp-row {
@@ -255,6 +317,7 @@
 .account-totp-badge {
   display: inline-flex;
   align-items: center;
+  gap: 0.35rem;
   padding: 0.25rem 0.75rem;
   border-radius: 99px;
   font-size: var(--fs-xs);

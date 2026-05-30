@@ -31,6 +31,7 @@ import { useCanvasAnimation } from '../../components/CanvasAnimation/useCanvasAn
 import { Loader } from '../../components/Loader/Loader';
 import { LordIcon, ICONS } from '../../components/LordIcon/LordIcon';
 import { useCardTilt } from '../../components/GlassIsland/useCardTilt';
+import '../../auth/auth.css';
 import '../../components/SecurityInfo/SecurityInfo.css';
 import { PasswordStrength, getStrength } from '../../components/PasswordStrength/PasswordStrength';
 import { SecurityInfo } from '../../components/SecurityInfo/SecurityInfo';
@@ -55,6 +56,18 @@ function errorMessage(error: unknown): string {
 
 function capitalizeFirst(s: string): string {
   return s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
+}
+
+/** Formats an E.164 US number (+17047740581) as +1 (704) 774-0581. */
+function formatPhone(raw: string): string {
+  const digits = raw.replace(/\D/g, '');
+  if (digits.length === 11 && digits.startsWith('1')) {
+    const area = digits.slice(1, 4);
+    const prefix = digits.slice(4, 7);
+    const line = digits.slice(7, 11);
+    return `+1 (${area}) ${prefix}-${line}`;
+  }
+  return raw;
 }
 
 /** Glass popup overlay — matches SecurityInfo exactly, including card tilt. */
@@ -124,6 +137,34 @@ function AccountPopup({
   );
 }
 
+const STATUS_GREEN = 'primary:#48C774,secondary:#48C774';
+const STATUS_RED = 'primary:#FF5050,secondary:#FF5050';
+
+/** Inline pill badge with a lordicon replacing the ✓/✗ symbol. */
+function StatusBadge({
+  on,
+  labelOn,
+  labelOff,
+}: {
+  on: boolean;
+  labelOn: string;
+  labelOff: string;
+}): ReactElement {
+  return (
+    <span
+      className={`account-totp-badge${on ? ' account-totp-badge--on' : ' account-totp-badge--off'}`}
+    >
+      <LordIcon
+        src={on ? ICONS.statusVerified : ICONS.statusUnverified}
+        size={22}
+        trigger="hover"
+        colors={on ? STATUS_GREEN : STATUS_RED}
+      />
+      {on ? labelOn : labelOff}
+    </span>
+  );
+}
+
 export function AccountPage(): ReactElement {
   const { status, user, reload, logout } = useAuth();
   const navigate = useNavigate();
@@ -168,8 +209,11 @@ export function AccountPage(): ReactElement {
   const [phoneCodePending, setPhoneCodePending] = useState(false);
   const [phoneCodeError, setPhoneCodeError] = useState<string | null>(null);
   const [phoneVerified, setPhoneVerified] = useState<boolean | null>(null);
-  const [phoneVerifyNow, setPhoneVerifyNow] = useState(true);
+  const [phoneVerifyNow, setPhoneVerifyNow] = useState(false);
   const [showSmsConsent, setShowSmsConsent] = useState(false);
+
+  // ── Email verified ────────────────────────────────────────────────────────
+  const [emailVerified, setEmailVerified] = useState<boolean | null>(null);
 
   // ── TOTP ──────────────────────────────────────────────────────────────────
   const [totpEnrolled, setTotpEnrolled] = useState<boolean | null>(null);
@@ -207,9 +251,11 @@ export function AccountPage(): ReactElement {
     void fetchUserAttributes()
       .then((attrs) => {
         setPhoneVerified(attrs.phone_number_verified === 'true');
+        setEmailVerified(attrs.email_verified === 'true');
       })
       .catch(() => {
         setPhoneVerified(null);
+        setEmailVerified(null);
       });
   }, []);
 
@@ -279,6 +325,7 @@ export function AccountPage(): ReactElement {
       await confirmUserAttribute({ userAttributeKey: 'email', confirmationCode: code });
       await reload();
       setEmail('');
+      setEmailVerified(true);
       setPopup(null);
       setEmailStatus({ tone: 'ok', message: 'Email updated.' });
     } catch (error) {
@@ -442,6 +489,7 @@ export function AccountPage(): ReactElement {
                 src={ICONS.accountPage}
                 size={64}
                 trigger="hover"
+                state="hover-blocking"
                 stroke="bold"
               />
             )}
@@ -460,207 +508,156 @@ export function AccountPage(): ReactElement {
 
           {/* ── Profile ──────────────────────────────────────────────── */}
           <div className="account-section">
-            <h2>Profile</h2>
-            <dl className="account-profile">
-              <div>
-                <dt>Name</dt>
-                <dd>{[user.firstName, user.lastName].filter(Boolean).join(' ') || '—'}</dd>
-              </div>
-              <div>
-                <dt>Email</dt>
-                <dd>{user.email}</dd>
-              </div>
-              <div>
-                <dt>Phone</dt>
-                <dd>{user.phone || '—'}</dd>
-              </div>
-            </dl>
+            <h2 className="account-section-h2--center">Profile</h2>
+            <p className="account-profile-name">
+              {[user.firstName, user.lastName].filter(Boolean).join(' ') || '—'}
+            </p>
+            <div className="account-profile-meta">
+              <span>{user.email}</span>
+              <span>{user.phone ? formatPhone(user.phone) : '—'}</span>
+            </div>
           </div>
 
-          {/* ── First name ───────────────────────────────────────────── */}
+          {/* ── Update name ───────────────────────────────────────────── */}
           <div className="account-section">
-            <h2>First name</h2>
-            <form className="account-form" onSubmit={(e) => void saveFirstName(e)}>
-              <label>
-                New first name
-                <input
-                  type="text"
-                  value={firstName}
-                  required
-                  maxLength={20}
-                  autoComplete="given-name"
-                  onChange={(e) => {
-                    setFirstName(capitalizeFirst(e.target.value.slice(0, 20)));
-                  }}
-                />
-              </label>
-              <button type="submit" disabled={savingFirstName}>
-                {savingFirstName ? 'Saving…' : 'Update first name'}
-              </button>
-              {firstNameStatus && (
-                <p className={`account-status account-status--${firstNameStatus.tone}`}>
-                  {firstNameStatus.message}
-                </p>
-              )}
-            </form>
-          </div>
-
-          {/* ── Last name ────────────────────────────────────────────── */}
-          <div className="account-section">
-            <h2>Last name</h2>
-            <form className="account-form" onSubmit={(e) => void saveLastName(e)}>
-              <label>
-                New last name
-                <input
-                  type="text"
-                  value={lastName}
-                  required
-                  maxLength={20}
-                  autoComplete="family-name"
-                  onChange={(e) => {
-                    setLastName(capitalizeFirst(e.target.value.slice(0, 20)));
-                  }}
-                />
-              </label>
-              <button type="submit" disabled={savingLastName}>
-                {savingLastName ? 'Saving…' : 'Update last name'}
-              </button>
-              {lastNameStatus && (
-                <p className={`account-status account-status--${lastNameStatus.tone}`}>
-                  {lastNameStatus.message}
-                </p>
-              )}
-            </form>
-          </div>
-
-          {/* ── Email ────────────────────────────────────────────────── */}
-          <div className="account-section">
-            <h2>Email address</h2>
-            <form className="account-form" onSubmit={(e) => void saveEmail(e)}>
-              <label>
-                New email address
-                <input
-                  type="email"
-                  value={email}
-                  required
-                  maxLength={50}
-                  autoComplete="email"
-                  onChange={(e) => {
-                    setEmail(e.target.value.slice(0, 50));
-                  }}
-                />
-              </label>
-              <button type="submit" disabled={savingEmail}>
-                {savingEmail ? 'Sending code…' : 'Update email'}
-              </button>
-              {emailStatus && (
-                <p className={`account-status account-status--${emailStatus.tone}`}>
-                  {emailStatus.message}
-                </p>
-              )}
-            </form>
-          </div>
-
-          {/* ── Password ─────────────────────────────────────────────── */}
-          <div className="account-section">
-            <h2>Password</h2>
-            <form className="account-form" onSubmit={(e) => void sendPasswordResetCode(e)}>
-              <label>
-                New password
-                <input
-                  type="password"
-                  value={newPassword}
-                  required
-                  minLength={8}
-                  maxLength={50}
-                  autoComplete="new-password"
-                  onChange={(e) => {
-                    setNewPassword(e.target.value.slice(0, 50));
-                  }}
-                />
-              </label>
-              <PasswordStrength password={newPassword} />
-              <button
-                type="submit"
-                disabled={sendingResetCode || getStrength(newPassword) === 'weak' || !newPassword}
-              >
-                {sendingResetCode ? 'Sending code…' : 'Send reset code to email'}
-              </button>
-              {passwordStatus && (
-                <p className={`account-status account-status--${passwordStatus.tone}`}>
-                  {passwordStatus.message}
-                </p>
-              )}
-            </form>
-          </div>
-
-          {/* ── Phone number ─────────────────────────────────────────── */}
-          <div className="account-section">
-            <h2>Phone number</h2>
-            {phoneVerified !== null && (
-              <div className="account-totp-row">
-                <span
-                  className={`account-totp-badge${phoneVerified ? ' account-totp-badge--on' : ' account-totp-badge--off'}`}
-                >
-                  {phoneVerified ? '✓ Verified' : '✗ Not verified'}
-                </span>
-              </div>
-            )}
-            <form className="account-form" onSubmit={(e) => void savePhone(e)}>
-              <label>
-                New phone number
-                <PhoneInput value={phone} onChange={setPhone} required />
-              </label>
-              <div className="auth-sms-consent">
-                <button
-                  type="button"
-                  className="auth-sms-terms-btn"
-                  onClick={() => {
-                    setShowSmsConsent(true);
-                  }}
-                >
-                  SMS messaging terms ↗
+            <h2 className="account-section-h2--center">Update name</h2>
+            <div className="account-update-grid">
+              {/* First name */}
+              <form className="account-form" onSubmit={(e) => void saveFirstName(e)}>
+                <label>
+                  First name
+                  <input
+                    type="text"
+                    value={firstName}
+                    required
+                    maxLength={20}
+                    autoComplete="given-name"
+                    onChange={(e) => {
+                      setFirstName(capitalizeFirst(e.target.value.slice(0, 20)));
+                    }}
+                  />
+                </label>
+                <button type="submit" disabled={savingFirstName}>
+                  {savingFirstName ? 'Saving…' : 'Update first name'}
                 </button>
-                <div className="auth-sms-options">
-                  <label className="auth-sms-option">
-                    <input
-                      type="radio"
-                      name="accountPhoneVerify"
-                      checked={phoneVerifyNow}
-                      onChange={() => {
-                        setPhoneVerifyNow(true);
-                      }}
-                    />
-                    <span>Verify now</span>
-                  </label>
-                  <label className="auth-sms-option">
-                    <input
-                      type="radio"
-                      name="accountPhoneVerify"
-                      checked={!phoneVerifyNow}
-                      onChange={() => {
-                        setPhoneVerifyNow(false);
-                      }}
-                    />
-                    <span>Verify later</span>
-                  </label>
+                {firstNameStatus && (
+                  <p className={`account-status account-status--${firstNameStatus.tone}`}>
+                    {firstNameStatus.message}
+                  </p>
+                )}
+              </form>
+
+              {/* Last name */}
+              <form className="account-form" onSubmit={(e) => void saveLastName(e)}>
+                <label>
+                  Last name
+                  <input
+                    type="text"
+                    value={lastName}
+                    required
+                    maxLength={20}
+                    autoComplete="family-name"
+                    onChange={(e) => {
+                      setLastName(capitalizeFirst(e.target.value.slice(0, 20)));
+                    }}
+                  />
+                </label>
+                <button type="submit" disabled={savingLastName}>
+                  {savingLastName ? 'Saving…' : 'Update last name'}
+                </button>
+                {lastNameStatus && (
+                  <p className={`account-status account-status--${lastNameStatus.tone}`}>
+                    {lastNameStatus.message}
+                  </p>
+                )}
+              </form>
+            </div>
+          </div>
+
+          {/* ── Update contact ────────────────────────────────────────── */}
+          <div className="account-section">
+            <h2 className="account-section-h2--center">Update contact</h2>
+            <div className="account-update-grid">
+              {/* Email address */}
+              <form className="account-form" onSubmit={(e) => void saveEmail(e)}>
+                <label>
+                  <span className="account-label-row">
+                    Email address
+                    {emailVerified !== null && (
+                      <StatusBadge on={emailVerified} labelOn="Verified" labelOff="Not verified" />
+                    )}
+                  </span>
+                  <input
+                    type="email"
+                    value={email}
+                    required
+                    maxLength={50}
+                    autoComplete="email"
+                    onChange={(e) => {
+                      setEmail(e.target.value.slice(0, 50));
+                    }}
+                  />
+                </label>
+                <button type="submit" disabled={savingEmail}>
+                  {savingEmail ? 'Sending code…' : 'Update email'}
+                </button>
+                {emailStatus && (
+                  <p className={`account-status account-status--${emailStatus.tone}`}>
+                    {emailStatus.message}
+                  </p>
+                )}
+              </form>
+
+              {/* Phone number */}
+              <form className="account-form" onSubmit={(e) => void savePhone(e)}>
+                <label>
+                  <span className="account-label-row">
+                    Phone number
+                    {phoneVerified !== null && (
+                      <StatusBadge on={phoneVerified} labelOn="Verified" labelOff="Not verified" />
+                    )}
+                  </span>
+                  <PhoneInput value={phone} onChange={setPhone} required />
+                </label>
+                <div className="auth-sms-consent-row">
+                  <button
+                    type="button"
+                    className={`auth-sms-circle-btn${phoneVerifyNow ? ' is-checked' : ''}`}
+                    aria-label={phoneVerifyNow ? 'Unacknowledge terms' : 'Acknowledge terms'}
+                    onClick={() => {
+                      setPhoneVerifyNow((v) => !v);
+                    }}
+                  >
+                    {phoneVerifyNow ? '✓' : ''}
+                  </button>
+                  <span className="auth-sms-acknowledge-label">Acknowledge &amp; verify</span>
+                  <button
+                    type="button"
+                    className="auth-link"
+                    style={{ marginLeft: 'auto' }}
+                    onClick={() => {
+                      setShowSmsConsent(true);
+                    }}
+                  >
+                    Messaging terms
+                  </button>
                 </div>
-              </div>
-              <button type="submit" disabled={savingPhone}>
-                {savingPhone
-                  ? phoneVerifyNow
-                    ? 'Sending code…'
-                    : 'Saving…'
-                  : phoneVerifyNow
-                    ? 'Update & verify'
-                    : 'Update phone'}
-              </button>
-              {phoneStatus && (
-                <p className={`account-status account-status--${phoneStatus.tone}`}>
-                  {phoneStatus.message}
-                </p>
-              )}
-            </form>
+                <button type="submit" disabled={savingPhone}>
+                  {savingPhone
+                    ? phoneVerifyNow
+                      ? 'Sending code…'
+                      : 'Saving…'
+                    : phoneVerifyNow
+                      ? 'Update & verify'
+                      : 'Update phone'}
+                </button>
+                {phoneStatus && (
+                  <p className={`account-status account-status--${phoneStatus.tone}`}>
+                    {phoneStatus.message}
+                  </p>
+                )}
+              </form>
+            </div>
           </div>
           {showSmsConsent && (
             <SmsConsent
@@ -670,54 +667,97 @@ export function AccountPage(): ReactElement {
             />
           )}
 
+          {/* ── Password ─────────────────────────────────────────────── */}
+          <div className="account-section">
+            <h2 className="account-section-h2--center">Change password</h2>
+            <div className="account-section-body--narrow">
+              <form className="account-form" onSubmit={(e) => void sendPasswordResetCode(e)}>
+                <label>
+                  New password
+                  <input
+                    type="password"
+                    value={newPassword}
+                    required
+                    minLength={8}
+                    maxLength={50}
+                    autoComplete="new-password"
+                    onChange={(e) => {
+                      setNewPassword(e.target.value.slice(0, 50));
+                    }}
+                  />
+                </label>
+                <PasswordStrength password={newPassword} />
+                <button
+                  type="submit"
+                  disabled={sendingResetCode || getStrength(newPassword) === 'weak' || !newPassword}
+                >
+                  {sendingResetCode ? 'Sending code…' : 'Send reset code to email'}
+                </button>
+                {passwordStatus && (
+                  <p className={`account-status account-status--${passwordStatus.tone}`}>
+                    {passwordStatus.message}
+                  </p>
+                )}
+              </form>
+            </div>
+          </div>
+
           {/* ── Two-factor auth ──────────────────────────────────────── */}
           <div className="account-section">
-            <h2>Two-factor authentication</h2>
-            {totpEnrolled === null ? (
-              <p className="account-note">Checking status…</p>
-            ) : (
-              <div className="account-totp-row">
-                <span
-                  className={`account-totp-badge${totpEnrolled ? ' account-totp-badge--on' : ' account-totp-badge--off'}`}
-                >
-                  {totpEnrolled ? '✓ TOTP enabled' : '✗ Not enrolled'}
-                </span>
-                {totpSuccess && (
-                  <span className="account-status account-status--ok">Authenticator updated.</span>
-                )}
-                <button
-                  type="button"
-                  className="account-btn"
-                  disabled={totpPending}
-                  onClick={() => void openTotpSetup()}
-                >
-                  {totpPending
-                    ? 'Loading…'
-                    : totpEnrolled
-                      ? 'Re-enroll authenticator'
-                      : 'Set up authenticator'}
-                </button>
-                {totpError && <p className="account-status account-status--error">{totpError}</p>}
-              </div>
-            )}
+            <div className="account-section-title-row account-section-title-row--center">
+              <h2>Two-factor authentication</h2>
+              {totpEnrolled !== null && (
+                <StatusBadge on={totpEnrolled} labelOn="TOTP enabled" labelOff="Not enrolled" />
+              )}
+            </div>
+            <div className="account-section-body--narrow">
+              {totpEnrolled === null ? (
+                <p className="account-note">Checking status…</p>
+              ) : (
+                <div className="account-totp-row">
+                  {totpSuccess && (
+                    <span className="account-status account-status--ok">
+                      Authenticator updated.
+                    </span>
+                  )}
+                  <button
+                    type="button"
+                    className="account-btn"
+                    disabled={totpPending}
+                    onClick={() => void openTotpSetup()}
+                  >
+                    {totpPending
+                      ? 'Loading…'
+                      : totpEnrolled
+                        ? 'Re-enroll authenticator'
+                        : 'Set up authenticator'}
+                  </button>
+                  {totpError && <p className="account-status account-status--error">{totpError}</p>}
+                </div>
+              )}
+            </div>
           </div>
 
           {/* ── Delete account ───────────────────────────────────────── */}
           <div className="account-section account-section--danger">
-            <h2 className="account-section-title--danger">Delete account</h2>
-            <p className="account-note">
-              Permanently erases your preference data and Cognito account.
-            </p>
-            <button
-              type="button"
-              className="account-btn account-btn--danger"
-              onClick={() => {
-                setDeleteError(null);
-                setPopup('delete');
-              }}
-            >
-              Delete my account
-            </button>
+            <h2 className="account-section-title--danger account-section-h2--center">
+              Delete account
+            </h2>
+            <div className="account-section-body--narrow">
+              <p className="account-note">
+                Permanently erases your preference data and entire account.
+              </p>
+              <button
+                type="button"
+                className="account-btn account-btn--danger"
+                onClick={() => {
+                  setDeleteError(null);
+                  setPopup('delete');
+                }}
+              >
+                Delete my account
+              </button>
+            </div>
           </div>
         </div>
       </section>

@@ -23,7 +23,7 @@ export const ICONS = {
   chevronRight: '/icons/wired-outline-31-chevron-right-hover-scale.json',
 
   // ── Page-level ────────────────────────────────────────────────────────────
-  accountPage: '/icons/pwpcutcz.json',
+  accountPage: '/icons/wired-outline-1004-management-team-in-reveal.json',
   notFound: '/icons/usownftb.json',
   home: '/icons/pbbsmkso.json',
   travelDone: '/icons/ymsapbnv.json',
@@ -66,13 +66,25 @@ export const ICONS = {
   searchAccount: '/icons/search_account.json',
   chatVerify: '/icons/chat_verify.json',
   envelopVerifyEmail: '/icons/envelop_verify_email.json',
+
+  // ── Inline status badges ──────────────────────────────────────────────────
+  statusVerified: '/icons/wired-outline-210-chat-message-approved-hover-pinch.json',
+  statusUnverified: '/icons/wired-outline-209-chat-message-cross-hover-pinch.json',
 } as const;
 
 interface LordIconProps {
   src: string;
   /** Uniform width and height in pixels (default 40). */
   size?: number;
-  trigger?: 'hover' | 'loop' | 'loop-on-hover' | 'click' | 'morph' | 'boomerang' | 'in';
+  trigger?:
+    | 'hover'
+    | 'hover-blocking'
+    | 'loop'
+    | 'loop-on-hover'
+    | 'click'
+    | 'morph'
+    | 'boomerang'
+    | 'in';
   stroke?: 'bold' | 'regular' | 'light';
   colors?: string;
   state?: string;

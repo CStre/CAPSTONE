@@ -509,6 +509,7 @@ export function AuthPanel(): ReactElement {
             pending={pending}
             error={error}
             onSubmit={handleTotpSetupSubmit}
+            showHeader
           />
         );
       case 'phoneConsent':
@@ -531,6 +532,7 @@ export function AuthPanel(): ReactElement {
             error={error}
             onSubmit={handleTotpEnrollSubmit}
             onSkip={handleTotpEnrollSkip}
+            showHeader
           />
         );
       case 'confirmPhone':

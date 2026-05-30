@@ -1,10 +1,11 @@
 /**
  * @fileoverview TOTP enrollment form — QR code + manual secret + a code to verify.
  */
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import type { ReactElement, SyntheticEvent } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import { useElasticOffset } from '../components/GlassIsland/useElasticOffset';
+import { LordIcon, ICONS } from '../components/LordIcon/LordIcon';
 
 interface TotpSetupFormProps {
   secret: string;
@@ -13,6 +14,8 @@ interface TotpSetupFormProps {
   error: string | null;
   onSubmit: (code: string) => void;
   onSkip?: () => void;
+  /** When true, renders the QR-code icon + "Set up authenticator" title above the form. */
+  showHeader?: boolean;
 }
 
 /** Breaks a secret into space-separated groups of 4 for readability. */
@@ -31,10 +34,23 @@ export function TotpSetupForm({
   error,
   onSubmit,
   onSkip,
+  showHeader = false,
 }: TotpSetupFormProps): ReactElement {
   const [code, setCode] = useState('');
   const [showKey, setShowKey] = useState(false);
   const { ref: qrRef, tx, ty } = useElasticOffset(0.12, 220);
+  const [iconPhase, setIconPhase] = useState<'in' | 'idle'>('in');
+  const iconTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    if (!showHeader) return;
+    iconTimerRef.current = setTimeout(() => {
+      setIconPhase('idle');
+    }, 2000);
+    return () => {
+      if (iconTimerRef.current !== null) clearTimeout(iconTimerRef.current);
+    };
+  }, [showHeader]);
 
   function handleSubmit(event: SyntheticEvent<HTMLFormElement>): void {
     event.preventDefault();
@@ -43,6 +59,29 @@ export function TotpSetupForm({
 
   return (
     <form className="auth-form" onSubmit={handleSubmit}>
+      {showHeader && (
+        <div className="auth-form-header">
+          {iconPhase === 'in' ? (
+            <LordIcon
+              key="totp-icon-in"
+              src={ICONS.qrCode}
+              size={56}
+              trigger="in"
+              state="in-reveal"
+              stroke="bold"
+            />
+          ) : (
+            <LordIcon
+              key="totp-icon-idle"
+              src={ICONS.qrCode}
+              size={56}
+              trigger="hover"
+              stroke="bold"
+            />
+          )}
+          <h2>Set up authenticator</h2>
+        </div>
+      )}
       <p className="totp-description">
         Open your authenticator app and scan the QR code below.
         <span className="totp-description-apps">

@@ -4,23 +4,26 @@ Everything related to the Cognito authentication flow: the state machine, indivi
 
 ## Files
 
-| File                  | Purpose                                                                            |
-| --------------------- | ---------------------------------------------------------------------------------- |
-| `LoginPage.tsx`       | Route component — guards the `/login` route, redirects authed users to dashboard   |
-| `AuthPanel.tsx`       | State machine — drives the flip-card between sign-in, sign-up, MFA, and TOTP steps |
-| `SignInForm.tsx`      | Presentational sign-in form (email + password, eye toggle, confetti on submit)     |
-| `SignUpForm.tsx`      | Presentational sign-up form (name + email side-by-side, password strength bar)     |
-| `CodeForm.tsx`        | Shared 6-digit code entry (email confirmation and MFA challenge)                   |
-| `TotpSetupForm.tsx`   | TOTP enrollment — QR code display + verification code entry                        |
-| `flow.ts`             | Pure async functions wrapping Amplify Auth calls; return `NextAction` unions       |
-| `context.ts`          | `AuthContext` — exposes `status`, `user`, `reload`, `logout`                       |
-| `AuthProvider.tsx`    | Provider — wraps the app, checks session on mount                                  |
-| `session.ts`          | Low-level session helpers                                                          |
-| `types.ts`            | Shared TypeScript types for auth state and flow results                            |
-| `config.ts`           | Amplify configuration (pool ID, client ID, region from env vars)                   |
-| `auth.css`            | Flip-card, glass card faces, form layout, inputs, submit button, bottom row        |
-| `SignInForm.test.tsx` | RTL tests for the sign-in form                                                     |
-| `context.test.tsx`    | Unit tests for auth context state transitions                                      |
+| File                   | Purpose                                                                                 |
+| ---------------------- | --------------------------------------------------------------------------------------- |
+| `LoginPage.tsx`        | Route component — guards the `/login` route, redirects authed users to dashboard        |
+| `AuthPanel.tsx`        | State machine — drives the flip-card across all sign-in, sign-up, MFA, and forgot steps |
+| `SignInForm.tsx`       | Presentational sign-in form (email + password, eye toggle, confetti on submit)          |
+| `SignUpForm.tsx`       | Presentational sign-up form (name + email side-by-side, password strength bar)          |
+| `CodeForm.tsx`         | Shared 6-digit code entry (email confirmation, MFA challenge, phone verification)       |
+| `TotpSetupForm.tsx`    | TOTP enrollment — QR code display + verification code entry; optional skip button       |
+| `PhoneConsentForm.tsx` | TCPA/CTIA SMS disclosure shown after email verification; user verifies or skips phone   |
+| `ForgotPanel.tsx`      | Presentational sub-forms for the forgot-email and forgot-password recovery flows        |
+| `flow.ts`              | Pure async functions wrapping Amplify Auth calls; return `NextAction` unions            |
+| `context.ts`           | `AuthContext` — exposes `status`, `user`, `reload`, `logout`                            |
+| `AuthProvider.tsx`     | Provider — wraps the app, checks session on mount                                       |
+| `session.ts`           | Low-level session helpers                                                               |
+| `types.ts`             | Shared TypeScript types for auth state and flow results                                 |
+| `config.ts`            | Amplify configuration (pool ID, client ID, region from env vars)                        |
+| `auth.css`             | Flip-card, glass card faces, form layout, inputs, submit button, bottom row             |
+| `AuthPanel.test.tsx`   | RTL integration tests for the AuthPanel state machine (sign-in, MFA, forgot flows)      |
+| `SignInForm.test.tsx`  | RTL tests for the sign-in form                                                          |
+| `context.test.tsx`     | Unit tests for auth context state transitions                                           |
 
 ## Page flow
 
@@ -28,11 +31,34 @@ Everything related to the Cognito authentication flow: the state machine, indivi
 /login
   └── LoginPage (loading → Loader, authed → /dashboard, else → AuthPanel)
         └── AuthPanel (flip-card state machine)
-              ├── front face: SignInForm → CodeForm (MFA) → TotpSetupForm
-              └── back face:  SignUpForm → CodeForm (email confirm)
+              ├── front face (sign-in branch)
+              │     signIn
+              │       ├─→ mfaCode        (TOTP challenge)
+              │       ├─→ mfaEmail       (email OTP challenge)
+              │       ├─→ mfaSelect      (user has both; pick TOTP or email)
+              │       │     ├─→ mfaCode
+              │       │     └─→ mfaEmail
+              │       └─→ totpSetup      (Cognito forces TOTP enroll on first sign-in)
+              │
+              ├── front face (forgot branch — entered via "Forgot?" link)
+              │     forgotChoice
+              │       ├─→ forgotEmailPhone → forgotEmailCode → signIn
+              │       └─→ forgotPasswordEmail → forgotPasswordCode → signIn
+              │
+              ├── front face (post sign-up branch — entered after email confirmation)
+              │     phoneConsent
+              │       ├─→ confirmPhone → totpEnroll
+              │       └─→ (skip)       → totpEnroll
+              │                               ├─→ done  (TOTP enrolled → reload)
+              │                               └─→ (skip, sets email MFA preferred → reload)
+              │
+              └── back face (sign-up branch)
+                    signUp → confirmSignUp → (front face: phoneConsent …)
 ```
 
-Clicking the shield button on either form opens `SecurityInfo` (rendered outside the flip-card so it is not clipped).
+When `beginSignIn` returns `done` with no MFA challenge (account has no MFA preference set), `AuthPanel` silently calls `setEmailMfaPreferred` so every subsequent sign-in requires an email OTP.
+
+Clicking the shield button on either sign-in or sign-up form opens `SecurityInfo` (rendered outside the flip-card so it is not clipped).
 
 ## Flip-card
 
