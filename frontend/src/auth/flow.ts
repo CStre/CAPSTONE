@@ -23,6 +23,25 @@ import {
 
 const APP_NAME = 'Building Better Algorithms';
 
+// Dev-only tracer — Vite tree-shakes this in production builds.
+// Logs the function name, result, and any error to the browser console.
+function traced<T>(label: string, fn: () => Promise<T>): Promise<T> {
+  if (!import.meta.env.DEV) return fn();
+  console.group(`[auth] ${label}`);
+  return fn().then(
+    (result) => {
+      console.log('←', result);
+      console.groupEnd();
+      return result;
+    },
+    (err: unknown) => {
+      console.error('✗', err);
+      console.groupEnd();
+      throw err;
+    },
+  );
+}
+
 /** What the auth UI should do once a flow call returns. */
 export type NextAction =
   | { kind: 'done' }
@@ -58,107 +77,135 @@ function interpretSignIn(nextStep: SignInOutput['nextStep'], email: string): Nex
 }
 
 /** Respond to a SELECT_MFA_TYPE challenge by choosing TOTP or EMAIL. */
-export async function selectMfaType(type: 'TOTP' | 'EMAIL', email: string): Promise<NextAction> {
-  const { nextStep } = await confirmSignIn({ challengeResponse: type });
-  return interpretSignIn(nextStep, email);
+export function selectMfaType(type: 'TOTP' | 'EMAIL', email: string): Promise<NextAction> {
+  return traced(`selectMfaType(${type})`, async () => {
+    const { nextStep } = await confirmSignIn({ challengeResponse: type });
+    return interpretSignIn(nextStep, email);
+  });
 }
 
 /** Begin sign-in with email + password. */
-export async function beginSignIn(email: string, password: string): Promise<NextAction> {
-  const { nextStep } = await signIn({ username: email, password });
-  return interpretSignIn(nextStep, email);
+export function beginSignIn(email: string, password: string): Promise<NextAction> {
+  return traced(`beginSignIn(${email})`, async () => {
+    const { nextStep } = await signIn({ username: email, password });
+    return interpretSignIn(nextStep, email);
+  });
 }
 
 /** Submit a TOTP / email OTP code for the in-progress sign-in. */
-export async function submitSignInCode(code: string, email: string): Promise<NextAction> {
-  const { nextStep } = await confirmSignIn({ challengeResponse: code });
-  return interpretSignIn(nextStep, email);
+export function submitSignInCode(code: string, email: string): Promise<NextAction> {
+  return traced(`submitSignInCode`, async () => {
+    const { nextStep } = await confirmSignIn({ challengeResponse: code });
+    return interpretSignIn(nextStep, email);
+  });
 }
 
 /** Switch the active sign-in challenge from TOTP to email OTP. */
-export async function requestEmailMfa(email: string): Promise<NextAction> {
-  const { nextStep } = await confirmSignIn({ challengeResponse: 'EMAIL' });
-  return interpretSignIn(nextStep, email);
+export function requestEmailMfa(email: string): Promise<NextAction> {
+  return traced(`requestEmailMfa`, async () => {
+    const { nextStep } = await confirmSignIn({ challengeResponse: 'EMAIL' });
+    return interpretSignIn(nextStep, email);
+  });
 }
 
 /** Register a new account (firstName, lastName, email, phone in E.164, password). */
-export async function register(
+export function register(
   email: string,
   password: string,
   firstName: string,
   lastName: string,
   phone: string,
 ): Promise<NextAction> {
-  const { nextStep } = await signUp({
-    username: email,
-    password,
-    options: {
-      userAttributes: {
-        email,
-        name: `${firstName} ${lastName}`,
-        given_name: firstName,
-        family_name: lastName,
-        phone_number: phone,
+  return traced(`register(${email})`, async () => {
+    const { nextStep } = await signUp({
+      username: email,
+      password,
+      options: {
+        userAttributes: {
+          email,
+          name: `${firstName} ${lastName}`,
+          given_name: firstName,
+          family_name: lastName,
+          phone_number: phone,
+        },
+        autoSignIn: true,
       },
-      autoSignIn: true,
-    },
+    });
+    return nextStep.signUpStep === 'CONFIRM_SIGN_UP'
+      ? { kind: 'confirmSignUp' }
+      : { kind: 'signIn' };
   });
-  return nextStep.signUpStep === 'CONFIRM_SIGN_UP' ? { kind: 'confirmSignUp' } : { kind: 'signIn' };
 }
 
 /** Confirm a new account with the emailed verification code, then auto sign-in. */
-export async function confirmRegistration(email: string, code: string): Promise<NextAction> {
-  await confirmSignUp({ username: email, confirmationCode: code });
-  try {
-    const { nextStep } = await autoSignIn();
-    return interpretSignIn(nextStep, email);
-  } catch {
-    return { kind: 'signIn' };
-  }
+export function confirmRegistration(email: string, code: string): Promise<NextAction> {
+  return traced(`confirmRegistration(${email})`, async () => {
+    await confirmSignUp({ username: email, confirmationCode: code });
+    try {
+      const { nextStep } = await autoSignIn();
+      return interpretSignIn(nextStep, email);
+    } catch {
+      return { kind: 'signIn' };
+    }
+  });
 }
 
 /** Re-send the account-verification email. */
-export async function resendConfirmation(email: string): Promise<void> {
-  await resendSignUpCode({ username: email });
+export function resendConfirmation(email: string): Promise<void> {
+  return traced(`resendConfirmation(${email})`, async () => {
+    await resendSignUpCode({ username: email });
+  });
 }
 
 /** Send an SMS code to verify the phone_number attribute (called after sign-in at sign-up). */
-export async function sendPhoneVerification(): Promise<void> {
-  await sendUserAttributeVerificationCode({ userAttributeKey: 'phone_number' });
+export function sendPhoneVerification(): Promise<void> {
+  return traced(`sendPhoneVerification`, async () => {
+    await sendUserAttributeVerificationCode({ userAttributeKey: 'phone_number' });
+  });
 }
 
 /** Confirm the phone_number attribute with the SMS code. */
-export async function confirmPhoneVerification(code: string): Promise<void> {
-  await confirmUserAttribute({ userAttributeKey: 'phone_number', confirmationCode: code });
+export function confirmPhoneVerification(code: string): Promise<void> {
+  return traced(`confirmPhoneVerification`, async () => {
+    await confirmUserAttribute({ userAttributeKey: 'phone_number', confirmationCode: code });
+  });
 }
 
 /** Begin optional post-sign-in TOTP enrollment; returns the secret and QR URI. */
-export async function beginTotpEnrollment(email: string): Promise<{ secret: string; uri: string }> {
-  const output = await setUpTOTP();
-  return {
-    secret: output.sharedSecret,
-    uri: output.getSetupUri(APP_NAME, email).toString(),
-  };
+export function beginTotpEnrollment(email: string): Promise<{ secret: string; uri: string }> {
+  return traced(`beginTotpEnrollment(${email})`, async () => {
+    const output = await setUpTOTP();
+    return {
+      secret: output.sharedSecret,
+      uri: output.getSetupUri(APP_NAME, email).toString(),
+    };
+  });
 }
 
 /** Confirm optional TOTP enrollment and set TOTP as the preferred MFA method. */
-export async function confirmTotpEnrollment(code: string): Promise<void> {
-  await verifyTOTPSetup({ code });
-  await updateMFAPreference({ totp: 'PREFERRED' });
+export function confirmTotpEnrollment(code: string): Promise<void> {
+  return traced(`confirmTotpEnrollment`, async () => {
+    await verifyTOTPSetup({ code });
+    await updateMFAPreference({ totp: 'PREFERRED' });
+  });
 }
 
 /** Initiate a password reset — Cognito sends a code to the user's email. */
-export async function forgotPassword(email: string): Promise<void> {
-  await resetPassword({ username: email });
+export function forgotPassword(email: string): Promise<void> {
+  return traced(`forgotPassword(${email})`, async () => {
+    await resetPassword({ username: email });
+  });
 }
 
 /** Complete a password reset with the emailed code and the new password. */
-export async function confirmForgotPassword(
+export function confirmForgotPassword(
   email: string,
   code: string,
   newPassword: string,
 ): Promise<void> {
-  await confirmResetPassword({ username: email, confirmationCode: code, newPassword });
+  return traced(`confirmForgotPassword(${email})`, async () => {
+    await confirmResetPassword({ username: email, confirmationCode: code, newPassword });
+  });
 }
 
 /**
@@ -166,6 +213,22 @@ export async function confirmForgotPassword(
  * Without this, Cognito knows TOTP is verified but doesn't set it as preferred,
  * causing fetchMFAPreference() to show "not enrolled" after re-login.
  */
-export async function setTotpPreferred(): Promise<void> {
-  await updateMFAPreference({ totp: 'PREFERRED' });
+export function setTotpPreferred(): Promise<void> {
+  return traced(`setTotpPreferred`, async () => {
+    await updateMFAPreference({ totp: 'PREFERRED' });
+  });
+}
+
+/**
+ * Set email OTP as the preferred MFA method.
+ *
+ * Cognito does not apply email MFA automatically — a user without any
+ * MFA preference set will pass `ALLOW_USER_AUTH` sign-in with no challenge.
+ * Call this for users who skip TOTP enrollment and for any existing account
+ * that signs in without an MFA challenge.
+ */
+export function setEmailMfaPreferred(): Promise<void> {
+  return traced(`setEmailMfaPreferred`, async () => {
+    await updateMFAPreference({ email: 'PREFERRED' });
+  });
 }

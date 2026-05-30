@@ -24,6 +24,7 @@ import {
   resendConfirmation,
   selectMfaType,
   sendPhoneVerification,
+  setEmailMfaPreferred,
   submitSignInCode,
   type NextAction,
 } from './flow';
@@ -219,7 +220,15 @@ export function AuthPanel(): ReactElement {
 
   function handleSignIn(emailValue: string, password: string): void {
     setEmail(emailValue);
-    void runStep(() => beginSignIn(emailValue, password));
+    void runStep(async () => {
+      const action = await beginSignIn(emailValue, password);
+      // If Cognito issued no MFA challenge the user has no preference set.
+      // Silently register email OTP so every future sign-in requires it.
+      if (action.kind === 'done') {
+        await setEmailMfaPreferred().catch(() => undefined);
+      }
+      return action;
+    });
   }
 
   function handleSignUp(
@@ -278,7 +287,10 @@ export function AuthPanel(): ReactElement {
   }
 
   function handleTotpEnrollSkip(): void {
-    void reload();
+    // Register email OTP as the fallback MFA method before entering the app.
+    void setEmailMfaPreferred()
+      .catch(() => undefined)
+      .then(() => reload());
   }
 
   async function handleConfirmPhone(code: string): Promise<void> {
