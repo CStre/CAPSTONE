@@ -21,7 +21,7 @@ const config: JestConfigWithTsJest = {
     '\\.(css|svg|png|jpe?g|gif|webp)$': '<rootDir>/src/test/assetMock.ts',
   },
   transform: {
-    '^.+\\.tsx?$': ['ts-jest', { useESM: true, tsconfig: 'tsconfig.app.json' }],
+    '^.+\\.tsx?$': ['ts-jest', { useESM: true, tsconfig: 'tsconfig.test.json' }],
   },
 };
 
