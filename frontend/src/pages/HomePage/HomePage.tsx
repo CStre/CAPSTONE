@@ -3,7 +3,8 @@
  *
  * Unauthenticated visitors see a glass card that cycles through intro slides
  * (manually advanced via a chevron button) before revealing the CTA.
- * Authenticated visitors skip the card entirely — just the canvas animation.
+ * Authenticated visitors see a personalised greeting card that auto-advances
+ * and can be dismissed to leave only the canvas animation.
  */
 import { useEffect, useRef, useState } from 'react';
 import type { ReactElement } from 'react';
@@ -16,12 +17,14 @@ import { useIntroStage } from '../../lib/IntroContext';
 import { useIntroSlides } from './useIntroSlides';
 import { spawnParticles } from '../../components/CanvasAnimation/spawnParticles';
 import { IntroCard } from './IntroCard';
+import { AuthGreetingCard } from './AuthGreetingCard';
 import './HomePage.css';
 
 /** Landing page with the canvas neural-net hero. */
 export function HomePage(): ReactElement {
-  const { status } = useAuth();
+  const { status, user } = useAuth();
   const authenticated = status === 'authenticated';
+  const [showGreeting, setShowGreeting] = useState(true);
   const [showLoader, setShowLoader] = useState(true);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const navigate = useNavigate();
@@ -75,6 +78,15 @@ export function HomePage(): ReactElement {
       )}
 
       <canvas ref={canvasRef} className="home-canvas" />
+
+      {authenticated && showGreeting && !showLoader && (
+        <AuthGreetingCard
+          firstName={user?.firstName ?? ''}
+          onDismiss={() => {
+            setShowGreeting(false);
+          }}
+        />
+      )}
 
       {!authenticated && (
         <IntroCard

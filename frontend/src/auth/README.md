@@ -4,26 +4,28 @@ Everything related to the Cognito authentication flow: the state machine, indivi
 
 ## Files
 
-| File                   | Purpose                                                                                 |
-| ---------------------- | --------------------------------------------------------------------------------------- |
-| `LoginPage.tsx`        | Route component — guards the `/login` route, redirects authed users to dashboard        |
-| `AuthPanel.tsx`        | State machine — drives the flip-card across all sign-in, sign-up, MFA, and forgot steps |
-| `SignInForm.tsx`       | Presentational sign-in form (email + password, eye toggle, confetti on submit)          |
-| `SignUpForm.tsx`       | Presentational sign-up form (name + email side-by-side, password strength bar)          |
-| `CodeForm.tsx`         | Shared 6-digit code entry (email confirmation, MFA challenge, phone verification)       |
-| `TotpSetupForm.tsx`    | TOTP enrollment — QR code display + verification code entry; optional skip button       |
-| `PhoneConsentForm.tsx` | TCPA/CTIA SMS disclosure shown after email verification; user verifies or skips phone   |
-| `ForgotPanel.tsx`      | Presentational sub-forms for the forgot-email and forgot-password recovery flows        |
-| `flow.ts`              | Pure async functions wrapping Amplify Auth calls; return `NextAction` unions            |
-| `context.ts`           | `AuthContext` — exposes `status`, `user`, `reload`, `logout`                            |
-| `AuthProvider.tsx`     | Provider — wraps the app, checks session on mount                                       |
-| `session.ts`           | Low-level session helpers                                                               |
-| `types.ts`             | Shared TypeScript types for auth state and flow results                                 |
-| `config.ts`            | Amplify configuration (pool ID, client ID, region from env vars)                        |
-| `auth.css`             | Flip-card, glass card faces, form layout, inputs, submit button, bottom row             |
-| `AuthPanel.test.tsx`   | RTL integration tests for the AuthPanel state machine (sign-in, MFA, forgot flows)      |
-| `SignInForm.test.tsx`  | RTL tests for the sign-in form                                                          |
-| `context.test.tsx`     | Unit tests for auth context state transitions                                           |
+| File                   | Purpose                                                                               |
+| ---------------------- | ------------------------------------------------------------------------------------- |
+| `LoginPage.tsx`        | Route component — guards the `/login` route, redirects authed users to dashboard      |
+| `AuthPanel.tsx`        | Render shell — owns canvas, card-tilt, flip-card layout, and step→component mapping   |
+| `useAuthFlow.ts`       | State machine hook — all auth state, side effects, and handler functions              |
+| `MfaSelectForm.tsx`    | MFA method selector shown on `SELECT_MFA_TYPE` challenge (TOTP vs email OTP)          |
+| `SignInForm.tsx`       | Presentational sign-in form (email + password, eye toggle, confetti on submit)        |
+| `SignUpForm.tsx`       | Presentational sign-up form (name + email side-by-side, password strength bar)        |
+| `CodeForm.tsx`         | Shared 6-digit code entry (email confirmation, MFA challenge, phone verification)     |
+| `TotpSetupForm.tsx`    | TOTP enrollment — QR code display + verification code entry; optional skip button     |
+| `PhoneConsentForm.tsx` | TCPA/CTIA SMS disclosure shown after email verification; user verifies or skips phone |
+| `ForgotPanel.tsx`      | Presentational sub-forms for the forgot-email and forgot-password recovery flows      |
+| `flow.ts`              | Pure async functions wrapping Amplify Auth calls; return `NextAction` unions          |
+| `context.ts`           | `AuthContext` — exposes `status`, `user`, `reload`, `logout`                          |
+| `AuthProvider.tsx`     | Provider — wraps the app, checks session on mount                                     |
+| `session.ts`           | Low-level session helpers                                                             |
+| `types.ts`             | Shared TypeScript types for auth state and flow results                               |
+| `config.ts`            | Amplify configuration (pool ID, client ID, region from env vars)                      |
+| `auth.css`             | Flip-card, glass card faces, form layout, inputs, submit button, bottom row           |
+| `AuthPanel.test.tsx`   | RTL integration tests for the AuthPanel state machine (sign-in, MFA, forgot flows)    |
+| `SignInForm.test.tsx`  | RTL tests for the sign-in form                                                        |
+| `context.test.tsx`     | Unit tests for auth context state transitions                                         |
 
 ## Page flow
 
@@ -56,13 +58,17 @@ Everything related to the Cognito authentication flow: the state machine, indivi
                     signUp → confirmSignUp → (front face: phoneConsent …)
 ```
 
-When `beginSignIn` returns `done` with no MFA challenge (account has no MFA preference set), `AuthPanel` silently calls `setEmailMfaPreferred` so every subsequent sign-in requires an email OTP.
+When `beginSignIn` returns `done` with no MFA challenge (account has no MFA preference set), `useAuthFlow` silently calls `setEmailMfaPreferred` so every subsequent sign-in requires an email OTP.
 
 Clicking the shield button on either sign-in or sign-up form opens `SecurityInfo` (rendered outside the flip-card so it is not clipped).
 
+## Architecture
+
+`useAuthFlow` is the single source of truth for auth state — it owns every `useState`, `useEffect`, and handler function. `AuthPanel` imports it and is a pure render shell: it receives a `flow` object from the hook and maps `flow.step` to the right form component.
+
 ## Flip-card
 
-`AuthPanel` renders a 3-D flip card: the front face shows sign-in / MFA steps; the back face shows sign-up / email confirmation. `isFlipped = step === 'signUp' || step === 'confirmSignUp'`.
+`AuthPanel` renders a 3-D flip card: the front face shows sign-in / MFA steps; the back face shows sign-up / email confirmation. `isFlipped = step === 'signUp' || step === 'confirmSignUp'` is computed in `useAuthFlow` and exposed on the return value.
 
 Card height is **dynamic** — a `ResizeObserver` in `AuthPanel` measures each face's content height and applies it as an inline `height` on the inner div, keeping the glass card tight to its content at all times. The `height` transition is synchronized with the flip rotation (both 0.72 s).
 

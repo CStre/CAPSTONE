@@ -70,6 +70,11 @@ export const ICONS = {
   // ── Inline status badges ──────────────────────────────────────────────────
   statusVerified: '/icons/wired-outline-210-chat-message-approved-hover-pinch.json',
   statusUnverified: '/icons/wired-outline-209-chat-message-cross-hover-pinch.json',
+
+  // ── Home greeting (authenticated) ────────────────────────────────────────
+  greetingWave: '/icons/wired-outline-2319-wave-hello-hand-in-reveal.json',
+  greetingBrain: '/icons/wired-outline-426-brain-in-reveal.json',
+  greetingBulb: '/icons/wired-outline-36-bulb-in-reveal.json',
 } as const;
 
 interface LordIconProps {
