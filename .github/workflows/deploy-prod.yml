@@ -88,6 +88,18 @@ jobs:
             docker tag public.ecr.aws/lambda/nodejs:20 $ECR_URL:placeholder
             docker push $ECR_URL:placeholder
           fi
+      # Apply the CloudFront distribution first so any removed origin-request-policy
+      # resources are detached before Terraform tries to delete them in the full apply.
+      # (Deleting a custom policy while the distribution still references it returns 409.)
+      - name: Terraform Apply — CloudFront
+        working-directory: infra
+        env:
+          TF_VAR_environment: ${{ env.ENVIRONMENT }}
+          TF_VAR_unsplash_access_key: ${{ secrets.UNSPLASH_ACCESS_KEY }}
+          TF_VAR_twilio_account_sid: ${{ secrets.TWILIO_ACCOUNT_SID }}
+          TF_VAR_twilio_auth_token: ${{ secrets.TWILIO_AUTH_TOKEN }}
+          TF_VAR_twilio_from_number: ${{ secrets.TWILIO_FROM_NUMBER }}
+        run: terraform apply -auto-approve -target=aws_cloudfront_distribution.main
       - name: Terraform Apply
         working-directory: infra
         env:
