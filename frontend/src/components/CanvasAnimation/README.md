@@ -1,13 +1,15 @@
 # CanvasAnimation
 
-Hook and particle-burst utility for the neural-net / spider canvas animation used on the home page, login page, and 404 page.
+Hook and particle-burst utility for the neural-net / spider canvas animation, plus a separate strings animation hook used on the Sources page.
 
 ## Files
 
-| File                    | Purpose                                                                    |
-| ----------------------- | -------------------------------------------------------------------------- |
-| `useCanvasAnimation.ts` | Hook — starts animation loop, handles resize + theme, cleans up on unmount |
-| `spawnParticles.ts`     | Utility — Web Animations API particle burst fired on button clicks         |
+| File                    | Purpose                                                            |
+| ----------------------- | ------------------------------------------------------------------ |
+| `useCanvasAnimation.ts` | Hook — tentacle / spider animation loop                            |
+| `spawnParticles.ts`     | Utility — Web Animations API particle burst fired on button clicks |
+
+The strings animation lives in its own directory: [`../StringsAnimation/`](../StringsAnimation/).
 
 ## useCanvasAnimation
 
@@ -18,7 +20,7 @@ useCanvasAnimation(canvasRef, theme);
 return <canvas ref={canvasRef} className="my-canvas" />;
 ```
 
-The `theme` string (`'light'` or `'dark'`) comes from `ThemeContext`. The hook re-runs its `useEffect` whenever `theme` changes so colors update without a page reload.
+`theme` (`'light'` | `'dark'`) comes from `ThemeContext`. Theme changes **recolour tentacles in-place** without restarting the animation — the main loop runs once on mount (`[canvasRef]` dependency) and a separate effect patches live colours on `[theme]` change.
 
 Style the canvas as `position: fixed; inset: 0; z-index: 0` so it sits behind all page content.
 
@@ -26,27 +28,36 @@ Style the canvas as `position: fixed; inset: 0; z-index: 0` so it sits behind al
 
 **1 000 `Tentacle` objects** are scattered across the canvas. Each tentacle is an inverse-kinematics chain of 30 `Segment` objects that all reach toward the current target point.
 
-The **target** follows the mouse while it is over the canvas. When the mouse leaves, the target auto-orbits on a superellipse path centered on the viewport — exponent `p = 8` gives a rounded-rectangle orbit that frames the glass card.
+The **target** follows the mouse wherever it is on the page (listener on `window`, using `clientX`/`clientY` so scrolling never introduces an offset). When the mouse leaves the viewport, the target auto-orbits on a superellipse path centered on the viewport — exponent `p = 8` gives a rounded-rectangle orbit that frames the glass card.
 
 Each animation frame:
 
 1. All tentacles update their segment chain (`move`).
 2. Nodes (dots) are drawn first.
-3. Tentacle strokes are drawn as smooth quadratic-bezier curves through segment midpoints (no kinks).
+3. Tentacle strokes are drawn as smooth quadratic-bezier curves through segment midpoints.
 4. A glowing head circle is drawn last, on top of everything.
 
-Up to `maxConnections = 20` tentacles draw their strokes per frame — the rest are capped so dense areas don't over-render.
+Up to `maxConnections = 20` tentacles draw per frame — the rest are capped so dense areas don't over-render.
 
 **Device pixel ratio** — the canvas is scaled by `window.devicePixelRatio` so lines and dots are crisp on retina displays.
 
 ### Color palette
 
-Colors are read from CSS custom properties at initialization time:
+Colors are read from CSS custom properties. Each `Tentacle` stores a `strokeIndex` (0–2) so the colour-sync effect can patch it without knowing the random pick at construction time.
 
 | Theme | Variables used               |
 | ----- | ---------------------------- |
 | dark  | `--dp-3`, `--dp-4`, `--dp-5` |
 | light | `--lp-1`, `--lp-2`, `--lp-3` |
+
+### Where it is used
+
+| Page           | Canvas class                                                                            |
+| -------------- | --------------------------------------------------------------------------------------- |
+| `HomePage`     | `home-canvas`                                                                           |
+| `LoginPage`    | `login-canvas`                                                                          |
+| `NotFoundPage` | `notfound-canvas`                                                                       |
+| `SourcesPage`  | `sources-canvas` (swap with `useStringsAnimation` to use the strings animation instead) |
 
 ## spawnParticles
 

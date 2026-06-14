@@ -4,15 +4,19 @@
  * Extracted from HomePage so the page file stays focused on layout and
  * interaction. The hook takes a ref to a <canvas> element, starts the
  * animation on mount, and cleans up on unmount.
+ *
+ * Theme changes update colours in-place without restarting the animation.
  */
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 
-function getPaletteColors(theme: string): {
+interface Palette {
   strokes: readonly [string, string, string];
   cursor: string;
   nodeActive: string;
   nodeIdle: string;
-} {
+}
+
+function getPaletteColors(theme: string): Palette {
   const s = getComputedStyle(document.documentElement);
   const get = (v: string) => s.getPropertyValue(v).trim();
   return theme === 'light'
@@ -83,6 +87,7 @@ class Tentacle {
   l: number;
   n: number;
   rand: number;
+  strokeIndex: number;
   color: string;
   nodeActive: string;
   nodeIdle: string;
@@ -102,7 +107,8 @@ class Tentacle {
     this.l = l;
     this.n = segments;
     this.rand = Math.random();
-    this.color = strokes[Math.floor(Math.random() * strokes.length)] ?? strokes[0];
+    this.strokeIndex = Math.floor(Math.random() * strokes.length);
+    this.color = strokes[this.strokeIndex] ?? strokes[0];
     this.nodeActive = nodeActive;
     this.nodeIdle = nodeIdle;
     this.segments = [new Segment({ x, y }, l / segments, 0, true)];
@@ -137,7 +143,6 @@ class Tentacle {
     }
   }
 
-  // Draws the tentacle as a smooth quadratic-bezier curve through segment midpoints.
   show(
     target: Point,
     c: CanvasRenderingContext2D,
@@ -149,7 +154,6 @@ class Tentacle {
 
     activeConnections++;
 
-    // Collect spine points: base → each segment end
     const pts: Point[] = [{ x: this.x, y: this.y }];
     for (let i = 0; i < this.n; i++) {
       const seg = this.segments[i];
@@ -162,7 +166,6 @@ class Tentacle {
     c.beginPath();
     c.moveTo(first.x, first.y);
 
-    // Smooth curve: quadratic bezier through midpoints so the line never kinks
     for (let i = 1; i < pts.length - 1; i++) {
       const cur = pts[i];
       const nxt = pts[i + 1];
@@ -202,11 +205,26 @@ class Tentacle {
   }
 }
 
-/** Starts and tears down the tentacle canvas animation. Re-initializes when `theme` changes. */
+/** Starts and tears down the tentacle canvas animation. Theme changes recolour in-place. */
 export function useCanvasAnimation(
   canvasRef: React.RefObject<HTMLCanvasElement | null>,
   theme: string,
 ): void {
+  const paletteRef = useRef<Palette>(getPaletteColors(theme));
+  const tentsRef = useRef<Tentacle[]>([]);
+
+  // Recolour live tentacles whenever the theme changes — no restart needed.
+  useEffect(() => {
+    const pal = getPaletteColors(theme);
+    paletteRef.current = pal;
+    for (const t of tentsRef.current) {
+      t.color = pal.strokes[t.strokeIndex] ?? pal.strokes[0];
+      t.nodeActive = pal.nodeActive;
+      t.nodeIdle = pal.nodeIdle;
+    }
+  }, [theme]);
+
+  // Main animation — runs once on mount, never restarts.
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -215,9 +233,6 @@ export function useCanvasAnimation(
     if (!ctxOrNull) return;
     const c: CanvasRenderingContext2D = ctxOrNull;
 
-    const { strokes, cursor, nodeActive, nodeIdle } = getPaletteColors(theme);
-
-    // Scale canvas to device pixel ratio so lines and dots are crisp on retina displays
     const dpr = window.devicePixelRatio || 1;
     let w = window.innerWidth;
     let h = window.innerHeight;
@@ -239,6 +254,7 @@ export function useCanvasAnimation(
     const lastTarget = { x: w / 2, y: h / 2 };
     const target = { x: w / 2, y: h / 2, errx: 0, erry: 0 };
 
+    const { strokes, nodeActive, nodeIdle } = paletteRef.current;
     const tent: Tentacle[] = [];
     for (let i = 0; i < numt; i++) {
       tent.push(
@@ -253,6 +269,7 @@ export function useCanvasAnimation(
         ),
       );
     }
+    tentsRef.current = tent;
 
     function draw(): void {
       let activeConnections = 0;
@@ -261,8 +278,6 @@ export function useCanvasAnimation(
         target.errx = mouse.x - target.x;
         target.erry = mouse.y - target.y;
       } else {
-        // Superellipse orbit — traces a box-shaped path around the center card.
-        // Exponent p: higher = squarer corners (8 ≈ very square with soft corners).
         const p = 8;
         const orbitW = Math.min(w * 0.32, 400);
         const orbitH = Math.min(h * 0.26, 260);
@@ -277,10 +292,8 @@ export function useCanvasAnimation(
       target.y += target.erry / 10;
       t += 0.01;
 
-      // Move all tentacles first
       for (let i = 0; i < numt; i++) tent[i]?.move(lastTarget, target);
 
-      // Draw nodes (dots), then strokes — tentacles fully rendered before head
       for (let i = 0; i < numt; i++)
         tent[i]?.showNode(target, c, maxConnections, activeConnections);
       for (let i = 0; i < numt; i++) {
@@ -288,7 +301,8 @@ export function useCanvasAnimation(
           tent[i]?.show(target, c, maxConnections, activeConnections) ?? activeConnections;
       }
 
-      // Draw the head last so it sits on top of all tentacles
+      // Read cursor colour live from the palette ref so theme changes take effect instantly
+      const cursor = paletteRef.current.cursor;
       const headR = Math.max(dist(lastTarget.x, lastTarget.y, target.x, target.y) + 5, 8);
       c.shadowBlur = 18;
       c.shadowColor = cursor;
@@ -309,34 +323,48 @@ export function useCanvasAnimation(
     }
 
     const onMouseMove = (e: MouseEvent): void => {
-      mouse.x = e.pageX - canvas.offsetLeft;
-      mouse.y = e.pageY - canvas.offsetTop;
+      if (e.clientX >= 0 && e.clientX <= w && e.clientY >= 0 && e.clientY <= h) {
+        mouse.x = e.clientX;
+        mouse.y = e.clientY;
+      } else {
+        mouse.x = false;
+        mouse.y = false;
+      }
     };
     const onMouseLeave = (): void => {
       mouse.x = false;
       mouse.y = false;
     };
     const onResize = (): void => {
+      const oldW = w;
+      const oldH = h;
       w = window.innerWidth;
       h = window.innerHeight;
       canvas.width = w * dpr;
       canvas.height = h * dpr;
       canvas.style.width = `${w}px`;
       canvas.style.height = `${h}px`;
-      // canvas.width assignment resets all canvas state — re-apply the DPR scale
       c.setTransform(dpr, 0, 0, dpr, 0, 0);
+      // Rescale all anchor positions proportionally so tentacles cover the full
+      // new viewport — prevents blank areas when the window expands.
+      const sx = w / oldW;
+      const sy = h / oldH;
+      for (const ten of tent) {
+        ten.x *= sx;
+        ten.y *= sy;
+      }
     };
 
-    canvas.addEventListener('mousemove', onMouseMove);
-    canvas.addEventListener('mouseleave', onMouseLeave);
+    window.addEventListener('mousemove', onMouseMove);
+    document.documentElement.addEventListener('mouseleave', onMouseLeave);
     window.addEventListener('resize', onResize);
     loop();
 
     return () => {
       cancelAnimationFrame(rafId);
-      canvas.removeEventListener('mousemove', onMouseMove);
-      canvas.removeEventListener('mouseleave', onMouseLeave);
+      window.removeEventListener('mousemove', onMouseMove);
+      document.documentElement.removeEventListener('mouseleave', onMouseLeave);
       window.removeEventListener('resize', onResize);
     };
-  }, [canvasRef, theme]);
+  }, [canvasRef]);
 }

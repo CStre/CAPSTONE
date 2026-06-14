@@ -19,3 +19,13 @@ Object.defineProperty(window, 'matchMedia', {
   }),
 });
 /* eslint-enable @typescript-eslint/no-empty-function */
+
+// IntersectionObserver is absent in jsdom — stub it so components that use it
+// mount without throwing. The stub never fires intersection callbacks.
+/* eslint-disable @typescript-eslint/no-empty-function */
+global.IntersectionObserver = class {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+} as unknown as typeof IntersectionObserver;
+/* eslint-enable @typescript-eslint/no-empty-function */

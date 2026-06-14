@@ -4,12 +4,13 @@ Reusable frosted-glass pill used in the `Header` and anywhere a glass surface is
 
 ## Files
 
-| File                  | Purpose                                                             |
-| --------------------- | ------------------------------------------------------------------- |
-| `GlassIsland.tsx`     | Component — renders the island with an elastic cursor pull          |
-| `GlassIsland.css`     | Glass surface, pill shape, dark/light theme variants                |
-| `useElasticOffset.ts` | Hook — gentle `top`/`left` offset toward the cursor within a radius |
-| `useCardTilt.ts`      | Hook — 3-D `rotateX`/`rotateY` tilt for the home-page intro card    |
+| File                  | Purpose                                                               |
+| --------------------- | --------------------------------------------------------------------- |
+| `GlassIsland.tsx`     | Component — elastic pull, gooey stretch, and ripple on press          |
+| `GlassIsland.css`     | Glass surface, pill shape, dark/light theme variants, ripple keyframe |
+| `useElasticOffset.ts` | Hook — gentle `top`/`left` offset toward the cursor within a radius   |
+| `useGooeyEffect.ts`   | Hook — spring squash-and-stretch `transform` toward the cursor        |
+| `useCardTilt.ts`      | Hook — 3-D `rotateX`/`rotateY` tilt for the home-page intro card      |
 
 ## Usage
 
@@ -26,16 +27,26 @@ Props:
 | `elasticRange`    | `number`        | `180`   | Mouse proximity radius in px that activates the pull |
 | `style`           | `CSSProperties` | —       | Inline styles merged onto the island                 |
 
-## `backdrop-filter` constraint
+## Effects
 
-`GlassIsland` uses `useElasticOffset` which moves the element via `top`/`left` offsets — **not `transform`**. This is intentional: applying `transform` to an ancestor of a `backdrop-filter` element breaks the blur in Chrome and Safari. If you need motion on a glass element, use `top`/`left` offsets.
+### Elastic offset (`useElasticOffset`)
 
-`useCardTilt` (used by `IntroCard`) applies `transform: rotateY` on the card itself and is safe because `backdrop-filter` lives on that same element, not on a child.
+Moves the island toward the cursor using `top`/`left` offsets (not `transform`). The offset is applied only while the cursor is within `elasticRange` px and snaps back to zero on mouse leave. Returns `tx`/`ty` pixel values applied via `style.left`/`style.top`.
 
-## `useElasticOffset`
+### Gooey squash-and-stretch (`useGooeyEffect`)
 
-Tracks mouse position relative to the element, applies the offset only while the cursor is within `elasticRange` pixels, and snaps back to `(0, 0)` when the mouse leaves. The offset is returned as pixel strings (`tx`, `ty`) ready to pass directly to `style.left` / `style.top`.
+Spring-physics deformation toward the cursor. When the mouse is within 260 px, the island elongates up to 9% along the cursor axis and compresses ~4% on the perpendicular, creating a cartoon squash-and-stretch feel. The spring (K=0.2, damping=0.55) provides a visible bounce on engage and disengage. Runs in a `requestAnimationFrame` loop writing `transform: scaleX() scaleY()` directly to the DOM — zero React re-renders. The loop pauses automatically when settled.
+
+### Ripple on press
+
+`mousedown` spawns a `.gi-ripple` span inside `.gi-glass`, which clips it to the pill shape via `overflow: hidden`. The ripple scales from 12 px to 22× over 0.65 s and fades out, then self-removes via `animationend`.
+
+## `backdrop-filter` note
+
+`useElasticOffset` uses `top`/`left` offsets instead of `transform` to avoid breaking `backdrop-filter` on the `.gi-glass` child (a Chrome/Safari compositing constraint). `useGooeyEffect` does apply `transform` to the island and briefly degrades the glass blur during active deformation; modern browsers (Chrome 120+, Safari 17+) handle this well.
+
+`useCardTilt` (used by `IntroCard`) is safe because `backdrop-filter` lives on that same element, not on a child.
 
 ## `useCardTilt`
 
-Normalises cursor position to `−1 … 1` relative to the element center and maps it to a small `rotateX`/`rotateY` angle (default max `3°`). Returns `rx`, `ry`, `isHovered`, and a `ref` to attach to the target element. Used by `IntroCard` on the home page.
+Normalises cursor position to `−1 … 1` relative to the element center and maps it to `rotateX`/`rotateY` (default max `3°`). Returns `ref`, `rx`, `ry`, and `isHovered`. Used by `IntroCard` and `SecurityInfo`.

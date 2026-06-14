@@ -28,22 +28,6 @@ export const ICONS = {
   home: '/icons/pbbsmkso.json',
   travelDone: '/icons/ymsapbnv.json',
 
-  // ── Learn — tech section ─────────────────────────────────────────────────
-  learnTech: '/icons/jdalicnn.json',
-
-  // ── Learn — essay panels (in order) ─────────────────────────────────────
-  learnPanel1: '/icons/piakqbri.json',
-  learnPanel2: '/icons/oilwhjud.json',
-  learnPanel3: '/icons/unukghxb.json',
-  learnPanel4: '/icons/pjkwunvs.json',
-  learnPanel5: '/icons/auvlcjep.json',
-  learnPanel6: '/icons/qqzotrmm.json',
-  learnPanel7: '/icons/eulazqty.json',
-  learnPanel8: '/icons/ynijyuos.json',
-  learnPanel9: '/icons/uktwwckg.json',
-  learnPanel10: '/icons/rqdzxkkr.json',
-  learnPanel11: '/icons/kzmcbjzi.json',
-
   // ── Password strength ────────────────────────────────────────────────────
   passwordWeak: '/icons/wired-outline-25-error-cross-hover-loading.json',
   passwordStrong: '/icons/wired-outline-24-approved-checked-hover-loading.json',
@@ -75,6 +59,19 @@ export const ICONS = {
   greetingWave: '/icons/wired-outline-2319-wave-hello-hand-in-reveal.json',
   greetingBrain: '/icons/wired-outline-426-brain-in-reveal.json',
   greetingBulb: '/icons/wired-outline-36-bulb-in-reveal.json',
+
+  // ── Sources page ─────────────────────────────────────────────────────────
+  sourceLink: '/icons/wired-outline-11-link-unlink-hover-bounce.json',
+
+  // ── Learn page ───────────────────────────────────────────────────────────
+  // Temporary placeholder for every Learn-page slide until per-slide icons are
+  // chosen. Each slide carries a `TODO(icon)` comment with its intended icon.
+  // Same file as greetingBrain — swap this one line to change the global default.
+  slidePlaceholder: '/icons/wired-outline-426-brain-in-reveal.json',
+  // Revealed below a slide once it has been completed.
+  slideComplete: '/icons/wired-outline-24-approved-checked-in-reveal.json',
+  // Shown on a section's outro slide when the section is not yet complete.
+  slideIncomplete: '/icons/wired-outline-25-error-cross-hover-pinch.json',
 } as const;
 
 interface LordIconProps {

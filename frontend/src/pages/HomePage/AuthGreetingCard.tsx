@@ -38,7 +38,7 @@ export function AuthGreetingCard({ firstName, onDismiss }: AuthGreetingCardProps
       icon: ICONS.greetingBrain,
       hoverState: 'hover-pinch',
     },
-    { title: 'Click on the Learn page', icon: ICONS.greetingBulb, hoverState: 'hover-blink' },
+    { title: 'Click on the Learn Page', icon: ICONS.greetingBulb, hoverState: 'hover-blink' },
   ];
 
   const [slideIndex, setSlideIndex] = useState(0);

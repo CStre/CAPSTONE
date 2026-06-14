@@ -19,9 +19,27 @@ input FeedbackInput {
   liked: Boolean!
 }
 
+"""Which slides of a Learn-page section a user has viewed."""
+type LearnSectionProgress {
+  sectionId: ID!
+
+  """Viewed slide indices (ascending). Completion is derived client-side."""
+  viewedSlides: [Int!]!
+}
+
 type Mutation {
-  """Delete the user’s stored data."""
+  """Delete the user's stored data."""
   deleteAccount: Boolean!
+
+  """
+  Look up the email address associated with a verified phone number. Returns null if no account is found. Used for the forgot-email recovery flow — the caller must still complete a Cognito password-reset code to prove email ownership.
+  """
+  findEmailByPhone(phone: String!): String
+
+  """
+  Record that a Learn-page slide was viewed; returns the full updated progress.
+  """
+  recordSlideView(sectionId: ID!, slideIndex: Int!): [LearnSectionProgress!]!
 
   """
   Run a batch of like/dislike feedback through the algorithm and persist it.
@@ -36,7 +54,7 @@ type Query {
   """The authenticated user, or null if not signed in."""
   me: User
 
-  """A batch of travel photos, weighted by the user’s preferences."""
+  """A batch of travel photos, weighted by the user's preferences."""
   travelImages(count: Int = 8): [TravelImage!]!
 }
 
@@ -53,6 +71,9 @@ The authenticated user. Identity comes from Cognito; preferences from DynamoDB.
 type User {
   email: String!
   id: ID!
+
+  """Per-section Learn-page progress (sparse — only touched sections)."""
+  learnProgress: [LearnSectionProgress!]!
   name: String!
 
   """

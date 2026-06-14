@@ -32,15 +32,22 @@ CSS grid `1fr auto 1fr` keeps the center island truly page-centred regardless of
 
 **Stage −2** is set by `NotFoundPage` on mount and reset to −1 on unmount, leaving only the theme toggle visible while the 404 card is on screen.
 
-Nav items use `max-width: 0 → 160px` + `overflow: hidden` with a CSS transition to slide in without affecting the surrounding layout. The center island uses `opacity` + `pointerEvents` for its all-or-nothing hide. The account dropdown uses opacity-only reveal to avoid clipping its menu.
+Nav items use `max-width: 0 → 160px` + `overflow: hidden` with a spring `cubic-bezier(0.34, 1.56, 0.64, 1)` transition to bounce into place. The center island uses `opacity` + `pointerEvents` for its all-or-nothing hide. The account dropdown uses opacity-only reveal to avoid clipping its menu.
 
 ## Account dropdown
 
-The Account nav item is a hover dropdown (`di-nav-account`) containing links to `/account`, `/dashboard`, and a Sign Out button. Sign Out calls `logout()` from `AuthContext` and navigates to `/`.
+The Account nav item is a click-toggle dropdown built on the shared
+[`DropdownMenu`](../DropdownMenu/README.md) (bouncy open + staggered items +
+outside-click/Escape close), containing links to `/account`, `/dashboard`, and a
+Sign Out button. Sign Out calls `logout()` from `AuthContext` and navigates to `/`.
+
+## Brand colour
+
+The brand name uses `--color-text` (dark: `#d3d9d4`, light: `#3d52a0`) rather than `--color-accent` so it is always clearly legible across themes.
 
 ## Dependencies
 
-- `GlassIsland` — all three islands
+- `GlassIsland` — all three islands (elastic pull + gooey stretch + ripple)
 - `LordIcon` / `ICONS` — nav icons
 - `ThemeToggle` — right island content
 - `useIntroStage` from `IntroContext` — progressive reveal and 404 minimal mode

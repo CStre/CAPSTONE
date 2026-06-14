@@ -27,6 +27,11 @@ interface CountryPreferenceModel {
   value: number;
 }
 
+interface LearnSectionProgressModel {
+  sectionId: string;
+  viewedSlides: number[];
+}
+
 const builder = new SchemaBuilder<{
   Context: GraphQLContext;
   Objects: {
@@ -34,6 +39,7 @@ const builder = new SchemaBuilder<{
     CountryPreference: CountryPreferenceModel;
     TravelImage: TravelImage;
     User: AuthUser;
+    LearnSectionProgress: LearnSectionProgressModel;
   };
 }>({});
 
@@ -72,6 +78,19 @@ builder.objectType('TravelImage', {
   }),
 });
 
+builder.objectType('LearnSectionProgress', {
+  description: 'Which slides of a Learn-page section a user has viewed.',
+  fields: (t) => ({
+    sectionId: t.exposeID('sectionId', { nullable: false }),
+    viewedSlides: t.field({
+      type: ['Int'],
+      nullable: false,
+      description: 'Viewed slide indices (ascending). Completion is derived client-side.',
+      resolve: (p) => p.viewedSlides,
+    }),
+  }),
+});
+
 builder.objectType('User', {
   description: 'The authenticated user. Identity comes from Cognito; preferences from DynamoDB.',
   fields: (t) => ({
@@ -87,6 +106,18 @@ builder.objectType('User', {
         return COUNTRIES.map((country) => ({
           country,
           value: stored[country.code] ?? NEUTRAL_PREFERENCE,
+        }));
+      },
+    }),
+    learnProgress: t.field({
+      type: ['LearnSectionProgress'],
+      nullable: false,
+      description: 'Per-section Learn-page progress (sparse — only touched sections).',
+      resolve: async (user) => {
+        const map = await db.getLearnProgress(user.id);
+        return Object.entries(map).map(([sectionId, viewedSlides]) => ({
+          sectionId,
+          viewedSlides,
         }));
       },
     }),
@@ -155,6 +186,24 @@ builder.mutationType({
         await db.deletePreferences(user.id);
         await deleteCognitoUser(user.email);
         return true;
+      },
+    }),
+
+    recordSlideView: t.field({
+      type: ['LearnSectionProgress'],
+      nullable: false,
+      description: 'Record that a Learn-page slide was viewed; returns the full updated progress.',
+      args: {
+        sectionId: t.arg.id({ required: true }),
+        slideIndex: t.arg.int({ required: true }),
+      },
+      resolve: async (_root, args, ctx) => {
+        const user = requireUser(ctx);
+        const map = await db.recordLearnSlideView(user.id, args.sectionId, args.slideIndex);
+        return Object.entries(map).map(([sectionId, viewedSlides]) => ({
+          sectionId,
+          viewedSlides,
+        }));
       },
     }),
 

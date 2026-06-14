@@ -19,15 +19,23 @@ src/
   App.tsx        root component
   pages/
     HomePage/      canvas hero + intro slide sequence
-    LearnPage/     essay with scroll-scale panels
-    SourcesPage/   academic sources and acknowledgements
+    LearnPage/     section-driven course — one section at a time as a controlled
+                   carousel (LearnDeck), menu-driven navigation + progress, 5s-dwell
+                   completion; sections/ data, copy from plan/*.md; see plan/ for the plan
+    SourcesPage/   glass index-card carousel (scroll-driven scale/fade + cursor tilt) over the
+                   strings canvas; org-logo marquee, AMA references (generated references.ts) +
+                   tooling credits
     TravelPage/    swipe-to-rate photo cards
     DashboardPage/ GeoChart world map of preference scores
     AccountPage/   profile (name/email/phone), email-based password reset, phone management, TOTP re-enrollment, and account deletion
     LoginPage/     Amplify Auth sign-in / sign-up shell
     NotFoundPage/  404
   components/    Header, Loader, GlassIsland, LordIcon, ThemeToggle, CustomCursor, SecurityInfo,
-                 PhoneInput, SmsConsent
+                 PhoneInput, SmsConsent, GooeyButton (gooey+ripple button), Typewriter (typed text),
+                 DropdownMenu (shared bouncy dropdown — header + Learn menus),
+                 StringsAnimation, CanvasAnimation, StarfieldAnimation (parallax stars
+                 + shooting stars — Learn page background), Scrollbar, PasswordStrength
+                 (global `.hover-grow` text utility lives in index.css)
   lib/           urql client, ThemeContext, IntroContext
   gql/           GraphQL Code Generator output (generated — do not edit)
   auth/          Cognito wrapper + full auth UI: sign-in/up with phone, email verify,
@@ -37,6 +45,8 @@ src/
 public/
   icons/         Lordicon JSON files (committed; wired-outline-* saved manually)
                  Includes: login, logout, eye, avatar-user, avatar-plus, shield-lock, cross icons
+  logos/         Organisation logo images (PNG/SVG) shown in the Sources page marquee
+                 See public/logos/README.md for the full file → organisation mapping
 ```
 
 ## Home page intro sequence

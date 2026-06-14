@@ -5,6 +5,7 @@ import { Navigate, Outlet, Route, Routes } from 'react-router';
 import type { ReactElement } from 'react';
 import { Header } from './components/Header/Header';
 import { CustomCursor } from './components/CustomCursor/CustomCursor';
+import { Scrollbar } from './components/Scrollbar/Scrollbar';
 import { Loader } from './components/Loader/Loader';
 import { useAuth } from './auth/context';
 import { HomePage } from './pages/HomePage/HomePage';
@@ -24,6 +25,7 @@ function Layout(): ReactElement {
   return (
     <IntroProvider>
       <CustomCursor />
+      <Scrollbar />
       <Header />
       {status === 'loading' && <Loader />}
       <main className="app-main">

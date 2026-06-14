@@ -140,20 +140,32 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Scrollbar — dark track, green thumb (v1 styling). */
-body::-webkit-scrollbar {
-  width: 8px;
-}
-
-body::-webkit-scrollbar-track {
-  background: var(--color-bg);
-}
-
-body::-webkit-scrollbar-thumb {
-  background: var(--color-accent);
-  border-radius: 8px;
-}
-
 a {
   color: var(--color-accent);
+}
+
+/* ── Global text utilities ───────────────────────────────────────────────────
+   Reusable "living text" theme: text grows slightly when hovered. Works on block
+   elements (h1–h6, p) directly; add `.hover-grow--inline` for inline spans.
+   Transform-based, so growing never reflows neighbouring content. */
+.hover-grow {
+  transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transform-origin: center;
+}
+
+.hover-grow--inline {
+  display: inline-block;
+}
+
+.hover-grow:hover {
+  transform: scale(1.06);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hover-grow {
+    transition: none;
+  }
+  .hover-grow:hover {
+    transform: none;
+  }
 }

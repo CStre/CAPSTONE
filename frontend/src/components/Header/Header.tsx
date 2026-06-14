@@ -10,7 +10,7 @@
  *   Stage 3   : Sources slides in
  */
 import { NavLink, useNavigate } from 'react-router';
-import { useState, useEffect, useRef } from 'react';
+import { useState } from 'react';
 import type { ReactElement } from 'react';
 import { useAuth } from '../../auth/context';
 import { ICONS, LordIcon } from '../LordIcon/LordIcon';
@@ -18,6 +18,7 @@ import { ThemeToggle } from '../ThemeToggle/ThemeToggle';
 import { useTheme } from '../../lib/ThemeContext';
 import { useIntroStage } from '../../lib/IntroContext';
 import { GlassIsland } from '../GlassIsland/GlassIsland';
+import { DropdownMenu } from '../DropdownMenu/DropdownMenu';
 import './Header.css';
 
 function Icon({
@@ -55,20 +56,6 @@ export function Header(): ReactElement {
   const navigate = useNavigate();
   const authenticated = status === 'authenticated';
   const [menuOpen, setMenuOpen] = useState(false);
-  const accountRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!menuOpen) return;
-    function handleOutside(e: MouseEvent) {
-      if (accountRef.current && !accountRef.current.contains(e.target as Node)) {
-        setMenuOpen(false);
-      }
-    }
-    document.addEventListener('mousedown', handleOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleOutside);
-    };
-  }, [menuOpen]);
   const { introStage } = useIntroStage();
   const isMinimal = introStage === -2; // 404 page: right island only
   const inIntro = introStage >= 0;
@@ -100,7 +87,7 @@ export function Header(): ReactElement {
       opacity: show ? 1 : 0,
       padding: show ? undefined : '0',
       pointerEvents: show ? 'auto' : 'none',
-      transition: `max-width 0.5s ease ${show ? delay : '0s'}, opacity 0.4s ease ${show ? delay : '0s'}, padding 0.4s ease`,
+      transition: `max-width 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) ${show ? delay : '0s'}, opacity 0.4s ease ${show ? delay : '0s'}, padding 0.4s ease`,
       flexShrink: 0,
     };
   }
@@ -197,52 +184,62 @@ export function Header(): ReactElement {
 
         {/* Sign In / Account — always visible */}
         {authenticated ? (
-          <div
-            ref={accountRef}
-            className={`di-nav-item di-nav-account${menuOpen ? ' is-open' : ''}`}
-            style={accountReveal(true)}
-            onClick={() => {
-              setMenuOpen((o) => !o);
+          <DropdownMenu
+            open={menuOpen}
+            onClose={() => {
+              setMenuOpen(false);
             }}
+            align="center"
+            ariaLabel="Account menu"
+            trigger={
+              <span
+                className="di-nav-item di-nav-account-trigger"
+                style={accountReveal(true)}
+                role="button"
+                tabIndex={0}
+                onClick={() => {
+                  setMenuOpen((o) => !o);
+                }}
+              >
+                <span className="di-nav-item-face">
+                  <Icon src={ICONS.account} />
+                  <span>Account</span>
+                </span>
+              </span>
+            }
           >
-            <span className="di-nav-item-face">
-              <Icon src={ICONS.account} />
-              <span>Account</span>
-            </span>
-            <div className="di-menu">
-              <NavLink
-                to="/account"
-                className="di-menu-link"
-                onClick={() => {
-                  setMenuOpen(false);
-                }}
-              >
-                <Icon src={ICONS.account} small />
-                Account
-              </NavLink>
-              <NavLink
-                to="/dashboard"
-                className="di-menu-link"
-                onClick={() => {
-                  setMenuOpen(false);
-                }}
-              >
-                <Icon src={ICONS.dashboard} small />
-                Dashboard
-              </NavLink>
-              <button
-                type="button"
-                className="di-menu-link di-menu-logout"
-                onClick={() => {
-                  setMenuOpen(false);
-                  handleLogout();
-                }}
-              >
-                <Icon src={ICONS.signOut} small danger />
-                Sign out
-              </button>
-            </div>
-          </div>
+            <NavLink
+              to="/account"
+              className="di-menu-link"
+              onClick={() => {
+                setMenuOpen(false);
+              }}
+            >
+              <Icon src={ICONS.account} small />
+              Account
+            </NavLink>
+            <NavLink
+              to="/dashboard"
+              className="di-menu-link"
+              onClick={() => {
+                setMenuOpen(false);
+              }}
+            >
+              <Icon src={ICONS.dashboard} small />
+              Dashboard
+            </NavLink>
+            <button
+              type="button"
+              className="di-menu-link di-menu-logout"
+              onClick={() => {
+                setMenuOpen(false);
+                handleLogout();
+              }}
+            >
+              <Icon src={ICONS.signOut} small danger />
+              Sign out
+            </button>
+          </DropdownMenu>
         ) : (
           <NavLink to="/login" className="di-nav-item" style={navReveal(true)}>
             <Icon src={ICONS.signIn} />

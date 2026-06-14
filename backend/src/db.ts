@@ -71,6 +71,60 @@ export async function persistPreferences(userId: string, changed: PreferenceMap)
   );
 }
 
+/**
+ * Learn-page progress: a Map of `sectionId -> sorted list of viewed slide
+ * indices`, stored on the same user item as `learnProgress`. Stored sparsely —
+ * only sections the user has touched appear. The frontend derives completion
+ * from its own slide counts; the backend only records which slides were viewed.
+ */
+export type LearnProgressMap = Record<string, number[]>;
+
+/** Fetch a user's learn-progress map (empty object if none). */
+export async function getLearnProgress(userId: string): Promise<LearnProgressMap> {
+  const res = await doc.send(new GetCommand({ TableName: config.dynamoTable, Key: { userId } }));
+  return (res.Item?.learnProgress as LearnProgressMap | undefined) ?? {};
+}
+
+/**
+ * Record that a slide was viewed (idempotent). Read-modify-write: small maps and
+ * single-user writes make this simpler and clearer than a conditional ADD; the
+ * returned map reflects the new state.
+ */
+export async function recordLearnSlideView(
+  userId: string,
+  sectionId: string,
+  slideIndex: number,
+): Promise<LearnProgressMap> {
+  const current = await getLearnProgress(userId);
+  const seen = current[sectionId] ?? [];
+  if (seen.includes(slideIndex)) return current;
+
+  const updated = [...seen, slideIndex].sort((a, b) => a - b);
+  const next: LearnProgressMap = { ...current, [sectionId]: updated };
+
+  // Step 1 — ensure the item and its `learnProgress` map exist (mirrors persistPreferences).
+  await doc.send(
+    new UpdateCommand({
+      TableName: config.dynamoTable,
+      Key: { userId },
+      UpdateExpression:
+        'SET learnProgress = if_not_exists(learnProgress, :empty), createdAt = if_not_exists(createdAt, :now)',
+      ExpressionAttributeValues: { ':empty': {}, ':now': new Date().toISOString() },
+    }),
+  );
+  // Step 2 — set just this section's list.
+  await doc.send(
+    new UpdateCommand({
+      TableName: config.dynamoTable,
+      Key: { userId },
+      UpdateExpression: 'SET learnProgress.#s = :arr',
+      ExpressionAttributeNames: { '#s': sectionId },
+      ExpressionAttributeValues: { ':arr': updated },
+    }),
+  );
+  return next;
+}
+
 /** Delete a user's record entirely (used by the deleteAccount mutation). */
 export async function deletePreferences(userId: string): Promise<void> {
   await doc.send(new DeleteCommand({ TableName: config.dynamoTable, Key: { userId } }));

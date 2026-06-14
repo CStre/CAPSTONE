@@ -6,7 +6,7 @@ GraphQL Yoga, deployed as an AWS Lambda container image.
 ## Stack
 
 - **GraphQL Yoga** (server) + **Pothos** (code-first schema)
-- **AWS SDK v3** — DynamoDB, holding per-user preference maps
+- **AWS SDK v3** — DynamoDB, holding per-user preference maps + Learn-page progress
 - **aws-jwt-verify** — Cognito ID-token verification
 - **Jest** (tests), **esbuild** (Lambda bundle), **tsx** (dev runner)
 
@@ -17,7 +17,7 @@ src/
   config.ts      environment configuration
   countries.ts   the country catalog (static config)
   algorithm.ts   preference-learning logic (ported from v1)
-  db.ts          DynamoDB data access
+  db.ts          DynamoDB data access (preferences + learnProgress)
   auth.ts        Cognito token verification (+ local dev bypass)
   images.ts      weighted country selection + Unsplash client
   schema.ts      Pothos GraphQL schema

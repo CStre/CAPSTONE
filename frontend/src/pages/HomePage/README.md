@@ -19,7 +19,7 @@ Landing page: canvas neural-net animation + an intro slide sequence for unauthen
 
 **Unauthenticated** — a frosted-glass `IntroCard` sits in the viewport center. The user manually advances through six slides with a circular chevron button. After the last slide is fully visible, the **Get Started** CTA fades in. Clicking it fires a particle burst then navigates to `/login`.
 
-**Authenticated** — an `AuthGreetingCard` is shown instead. It auto-advances through three slides (4 s each): "Hello, {firstName}!" → "Welcome to Building Better Algorithms" → "Click on the Learn page". The final slide reveals a **Play with Phil** button (same style as Get Started) that dismisses the card, leaving only the canvas animation. The greeting reappears on each visit to the home page.
+**Authenticated** — an `AuthGreetingCard` is shown instead. It auto-advances through three slides (4 s each): "Hello, {firstName}!" → "Welcome to Building Better Algorithms" → "Click on the Learn Page". The final slide reveals a **Play with Phil** button (same style as Get Started) that dismisses the card, leaving only the canvas animation. The greeting reappears on each visit to the home page.
 
 ## Slide sequence
 

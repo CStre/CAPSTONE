@@ -1,91 +1,286 @@
-.credits {
+/* ──────────────────────────────────────────────────────────────────────────
+   Sources page — glass index-card carousel + organisation logo marquee.
+   Cards grow toward the viewport centre via the --card-scale custom property the
+   scroll engine sets each frame (default keeps them full-size without JS).
+   Transparency is constant — no opacity fade. The source-card deck overlaps so
+   the centred card overlays its neighbours; everything else is spaced.
+   All prose content — including the hero and section headings — lives inside
+   glass cards so no text floats uncontained against the canvas backdrop.
+   ────────────────────────────────────────────────────────────────────────── */
+
+.sources-page {
+  position: relative;
+  z-index: 1;
   min-height: 100vh;
-  background: var(--color-bg);
-  padding-bottom: 6rem;
+  padding-bottom: 8rem;
+  overflow-x: clip;
 }
 
-/* ── Title ──────────────────────────────────────────────────────────────── */
+/* Canvas behind everything (see StringsAnimation). */
+.sources-canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 0;
+}
 
-.credits-title {
+/* ── Shared glass surface (index cards) ──────────────────────────────────── */
+
+/* Glass recipe applied directly on the card (matching .auth-card) so the frost
+   renders identically to the login panels.
+
+   The carousel scale/fade uses the independent `scale:` + `opacity:` properties
+   (set per-frame by the scroll engine), NOT `transform`. This is deliberate: a
+   `transform` on the card — or on any ancestor — silently disables its own
+   `backdrop-filter` glass, so the scale must stay off the transform property.
+   The cursor tilt then owns `transform` exclusively, free to transition smoothly
+   without the scroll scaling lagging behind it. */
+.credit-card {
+  position: relative;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  box-shadow:
+    0 12px 40px rgba(0, 0, 0, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.18);
+  overflow: hidden;
+  color: var(--color-text);
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(18px) saturate(180%);
+  -webkit-backdrop-filter: blur(18px) saturate(180%);
+  /* Carousel growth only — transparency stays constant (no opacity fade). */
+  scale: var(--card-scale, 1);
+  transform-origin: center;
+  will-change: transform, scale;
+}
+
+[data-theme='light'] .credit-card {
+  border-color: rgba(255, 255, 255, 0.8);
+  box-shadow:
+    0 12px 40px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95),
+    inset 0 -1px 0 rgba(61, 82, 160, 0.08);
+  background: rgba(255, 255, 255, 0.28);
+}
+
+/* Static cards (hero, disclosure) opt out of the carousel scaling — the scroll
+   engine skips them, and this pins them at full size regardless. */
+.credit-card--static {
+  scale: 1;
+  will-change: auto;
+}
+
+.credit-card > *:not(.cc-source-btn) {
+  position: relative;
+  z-index: 1;
+}
+
+/* ── Hero glass card ─────────────────────────────────────────────────────── */
+
+.sources-intro {
+  display: flex;
+  justify-content: center;
+  padding: 7rem 1.5rem 2rem;
+}
+
+.credit-card.sources-hero-card {
+  width: min(75vw, 96vw);
+  padding: 3rem 2.8rem;
+  border-radius: 1.5rem;
   text-align: center;
-  padding: 8rem 1.5rem 4rem;
 }
 
-.credits-title h1 {
-  margin: 0 0 1rem;
-  font-size: var(--fs-5xl);
+.sources-hero-title {
+  margin: 0 0 1.1rem;
+  font-size: var(--fs-4xl);
+  font-weight: var(--fw-black);
+  color: var(--color-heading);
+  line-height: 1.2;
+}
+
+.sources-hero-sub {
+  margin: 0;
+  font-size: var(--fs-base);
+  font-weight: var(--fw-normal);
+  color: var(--color-text);
+  opacity: 0.78;
+  line-height: 1.85;
+  max-width: 44rem;
+  margin-inline: auto;
+}
+
+/* ── Organisation marquee (left → right) ─────────────────────────────────── */
+
+.org-marquee {
+  width: 100%;
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
+}
+
+.org-track {
+  display: flex;
+  align-items: center;
+  gap: 4rem;
+  width: max-content;
+  animation: org-scroll 60s linear infinite;
+}
+
+.org-marquee:hover .org-track {
+  animation-play-state: paused;
+}
+
+@keyframes org-scroll {
+  from {
+    transform: translateX(-50%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.org-chip {
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+}
+
+.org-logo {
+  height: 14rem;
+  width: auto;
+  max-width: 20rem;
+  object-fit: contain;
+  display: block;
+}
+
+/* ── Sections + category structure ──────────────────────────────────────── */
+
+.sources-section {
+  padding-top: 3.5rem;
+}
+
+/* Section header — 3/4 page width for visual hierarchy over citation cards. */
+.credit-card.sources-section-header {
+  width: min(75vw, 96vw);
+  padding: 2rem 2.4rem;
+  border-radius: 1.5rem;
+  text-align: center;
+}
+
+.sources-section-title {
+  margin: 0 0 0.7rem;
+  font-size: var(--fs-2xl);
   font-weight: var(--fw-black);
   color: var(--color-heading);
 }
 
-.credits-title h2 {
+.sources-section-sub {
   margin: 0;
-  font-size: var(--fs-md);
-  font-weight: var(--fw-normal);
+  font-size: var(--fs-base);
   color: var(--color-text);
-  opacity: 0.75;
+  opacity: 0.65;
+  line-height: 1.75;
 }
 
-/* ── Section titles ─────────────────────────────────────────────────────── */
+.credits-category {
+  margin-top: 2.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.4rem;
+}
 
-.credits-section-title {
+.credit-card.credits-category-card {
+  width: min(46rem, 92vw);
+  padding: 1.1rem 2rem;
+  border-radius: 1.25rem;
   text-align: center;
-  padding: 4rem 1.5rem 2rem;
 }
 
-.credits-section-title h2 {
+.credits-category-title {
   margin: 0;
-  font-size: var(--fs-2xl);
+  font-size: var(--fs-xl);
   font-weight: var(--fw-extrabold);
   color: var(--color-accent);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.03em;
 }
 
-/* ── Source cards ───────────────────────────────────────────────────────── */
+/* ── Card column + carousel cards ───────────────────────────────────────── */
 
-.credits-sources {
+.credits-list {
   display: flex;
   flex-direction: column;
   align-items: center;
+  gap: 1.4rem;
+}
+
+/* Source-card deck: cards overlap so the centred (largest, top z-index) card
+   overlays its neighbours, which recede behind it as they shrink. The negative
+   margin pulls each card up over the previous one; z-index (set per-frame by the
+   scroll engine) decides which sits in front. */
+.credits-list--stack {
   gap: 0;
 }
 
-.source {
-  width: min(60rem, 100%);
-  padding: 1.5rem 10%;
-  font-family: inherit;
+.credits-list--stack > .credit-card:not(:first-child) {
+  margin-top: -2.6rem;
+}
+
+.credit-card {
+  width: min(46rem, 92vw);
+  padding: 1.6rem 1.9rem;
+  border-radius: 1.25rem;
+  text-align: center;
+}
+
+.cc-citation {
+  margin: 0;
   font-size: var(--fs-base);
   font-weight: var(--fw-semibold);
-  color: var(--color-text);
-  text-align: center;
   line-height: 1.7;
-  transform-origin: center;
-  will-change: transform, opacity;
-}
-
-.source a {
-  display: block;
-  margin-top: 0.2rem;
   color: var(--color-text);
-  text-decoration: underline;
-  overflow-wrap: anywhere;
-  transition: color 0.2s;
 }
 
-.source a:hover {
-  color: var(--color-accent);
+/* Cards with a source button get extra bottom padding so citation text
+   never hides behind the absolutely-positioned icon. */
+.credit-card--linked {
+  padding-bottom: 3.2rem;
 }
 
-/* ── Disclaimer card ────────────────────────────────────────────────────── */
-
-.credits-disclaimer {
-  margin-top: 3rem;
-  padding: 2rem 10%;
-  border-top: 1px solid var(--color-border);
+/* Source-link button — bottom-right corner of each citation/credit card. */
+.cc-source-btn {
+  position: absolute;
+  bottom: 0.55rem;
+  right: 0.65rem;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.3rem;
+  border-radius: 8px;
+  background: none;
+  text-decoration: none;
+  color: inherit;
+  transition: background 0.18s ease;
 }
 
-.credits-disclaimer h2 {
+.cc-source-btn:hover {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+[data-theme='light'] .cc-source-btn:hover {
+  background: rgba(61, 82, 160, 0.09);
+}
+
+/* ── Disclosure card ─────────────────────────────────────────────────────── */
+
+.credit-card.credits-disclaimer {
+  width: min(75vw, 96vw);
+  margin-top: 4rem;
+  text-align: left;
+}
+
+.credits-disclaimer h3 {
   margin: 0 0 0.9rem;
   font-size: var(--fs-lg);
   font-weight: var(--fw-extrabold);
@@ -96,14 +291,33 @@
   margin: 0;
   font-size: var(--fs-base);
   font-weight: var(--fw-normal);
+  line-height: 1.85;
   color: var(--color-text);
-  line-height: 1.8;
   opacity: 0.85;
-  text-align: left;
 }
 
+/* ── Responsive + motion ─────────────────────────────────────────────────── */
+
 @media (max-width: 40rem) {
-  .source {
-    padding: 1.2rem 5%;
+  .credit-card.sources-hero-card,
+  .credit-card.sources-section-header,
+  .credit-card.credits-category-card,
+  .credit-card {
+    padding: 1.3rem 1.3rem;
+  }
+
+  .sources-hero-title {
+    font-size: var(--fs-2xl);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .org-track {
+    animation: none;
+  }
+
+  .credit-card {
+    scale: 1 !important;
+    transform: none !important;
   }
 }

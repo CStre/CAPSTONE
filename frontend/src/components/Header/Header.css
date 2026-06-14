@@ -60,7 +60,7 @@
   display: block;
   font-size: var(--fs-sm);
   font-weight: var(--fw-extrabold);
-  color: var(--color-accent);
+  color: var(--color-text);
   text-decoration: none;
   white-space: nowrap;
   letter-spacing: 0.01em;
@@ -133,54 +133,9 @@
   flex-shrink: 0;
 }
 
-/* ── Account dropdown ──────────────────────────────────────────────────────── */
-
-.di-nav-account {
-  position: relative;
-}
-
-.di-menu {
-  position: absolute;
-  top: calc(100% + 0.55rem);
-  left: 50%;
-  transform: translateX(-50%) translateY(-6px);
-  min-width: 11rem;
-  padding: 0.35rem;
-  border-radius: 16px;
-  z-index: 10;
-
-  background: rgba(46, 57, 68, 0.38);
-  backdrop-filter: blur(44px) saturate(2) brightness(0.82);
-  -webkit-backdrop-filter: blur(44px) saturate(2) brightness(0.82);
-  border: 1px solid rgba(211, 217, 212, 0.16);
-  box-shadow:
-    0 16px 52px rgba(0, 0, 0, 0.55),
-    inset 0 1px 0 rgba(255, 255, 255, 0.18),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.3);
-
-  opacity: 0;
-  pointer-events: none;
-  transition:
-    opacity 0.2s ease,
-    transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-[data-theme='light'] .di-menu {
-  background: rgba(255, 255, 255, 0.32);
-  backdrop-filter: blur(44px) saturate(1.8) brightness(1.1);
-  -webkit-backdrop-filter: blur(44px) saturate(1.8) brightness(1.1);
-  border-color: rgba(255, 255, 255, 0.75);
-  box-shadow:
-    0 16px 52px rgba(0, 0, 0, 0.12),
-    inset 0 1px 0 rgba(255, 255, 255, 0.95),
-    inset 0 -1px 0 rgba(61, 82, 160, 0.06);
-}
-
-.di-nav-account.is-open .di-menu {
-  opacity: 1;
-  transform: translateX(-50%) translateY(0);
-  pointer-events: auto;
-}
+/* ── Account dropdown ──────────────────────────────────────────────────────
+   The dropdown panel + open animation come from the shared DropdownMenu; only the
+   row (link) styling is header-specific. */
 
 .di-menu-link {
   display: flex;
