@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from 'react';
 import type { ReactElement } from 'react';
 import { useNavigate } from 'react-router';
 import { LordIcon, ICONS } from '../../components/LordIcon/LordIcon';
-import { useCardTilt } from '../../components/GlassIsland/useCardTilt';
+import { GlassCard } from '../../components/GlassCard/GlassCard';
 import { useCanvasAnimation } from '../../components/CanvasAnimation/useCanvasAnimation';
 import { useTheme } from '../../lib/ThemeContext';
 import { useIntroStage } from '../../lib/IntroContext';
@@ -17,7 +17,6 @@ export function NotFoundPage(): ReactElement {
   const { theme } = useTheme();
   const { setIntroStage } = useIntroStage();
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const { ref: cardRef, rx, ry, isHovered } = useCardTilt(4);
 
   useCanvasAnimation(canvasRef, theme);
 
@@ -48,14 +47,7 @@ export function NotFoundPage(): ReactElement {
       <canvas ref={canvasRef} className="nf-canvas" />
 
       <div className="nf-panel">
-        <div
-          ref={cardRef}
-          className="nf-card"
-          style={{
-            transform: `perspective(900px) rotateX(${rx}deg) rotateY(${ry}deg)`,
-            transition: isHovered ? 'transform 0.12s ease-out' : 'transform 0.5s ease-out',
-          }}
-        >
+        <GlassCard className="nf-card">
           <LordIcon src={ICONS.notFound} size={160} trigger="loop" delay="1500" stroke="bold" />
           <span className="nf-code">Error 404</span>
           <p className="nf-message">
@@ -64,7 +56,7 @@ export function NotFoundPage(): ReactElement {
           </p>
           <p className="nf-sub">You will be redirected to the homepage.</p>
           <p className="nf-countdown">{countdown > 0 ? String(countdown) : 'Blast Off'}</p>
-        </div>
+        </GlassCard>
       </div>
     </div>
   );

@@ -30,9 +30,10 @@ src/
     AccountPage/   profile (name/email/phone), email-based password reset, phone management, TOTP re-enrollment, and account deletion
     LoginPage/     Amplify Auth sign-in / sign-up shell
     NotFoundPage/  404
-  components/    Header, Loader, GlassIsland, LordIcon, ThemeToggle, CustomCursor, SecurityInfo,
-                 PhoneInput, SmsConsent, GooeyButton (gooey+ripple button), Typewriter (typed text),
-                 DropdownMenu (shared bouncy dropdown — header + Learn menus),
+  components/    Header, Loader, GlassIsland, GlassCard (unified frosted-glass card + cursor tilt —
+                 the .glass-card CSS recipe lives in index.css), LordIcon, ThemeToggle, CustomCursor,
+                 SecurityInfo, PhoneInput, SmsConsent, GooeyButton (gooey+ripple button),
+                 Typewriter (typed text), DropdownMenu (shared bouncy dropdown — header + Learn menus),
                  StringsAnimation, CanvasAnimation, StarfieldAnimation (parallax stars
                  + shooting stars — Learn page background), Scrollbar, PasswordStrength
                  (global `.hover-grow` text utility lives in index.css)

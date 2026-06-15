@@ -1,6 +1,4 @@
-/* Frosted glass card. backdrop-filter lives on this element directly — NOT on
-   a child — so transform: rotateX/rotateY on the same element is safe and
-   doesn't break the blur (only ancestor-transform → child-backdrop-filter does). */
+/* Glass recipe and tilt come from <GlassCard> + .glass-card (index.css). */
 .intro-card {
   position: relative;
   display: flex;
@@ -13,26 +11,8 @@
   width: calc(100% - 3rem);
   text-align: center;
   z-index: 10;
-
   border-radius: 28px;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.22);
-  box-shadow:
-    0 12px 40px rgba(0, 0, 0, 0.25),
-    inset 0 1px 0 rgba(255, 255, 255, 0.4),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.18);
-  background: rgba(255, 255, 255, 0.06);
-  backdrop-filter: blur(18px) saturate(180%);
-  -webkit-backdrop-filter: blur(18px) saturate(180%);
-}
-
-[data-theme='light'] .intro-card {
-  border-color: rgba(255, 255, 255, 0.8);
-  box-shadow:
-    0 12px 40px rgba(0, 0, 0, 0.1),
-    inset 0 1px 0 rgba(255, 255, 255, 0.95),
-    inset 0 -1px 0 rgba(61, 82, 160, 0.08);
-  background: rgba(255, 255, 255, 0.28);
 }
 
 /* Fixed height matches the tallest slide so the card never resizes */

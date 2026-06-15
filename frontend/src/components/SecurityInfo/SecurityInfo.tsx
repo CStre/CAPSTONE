@@ -11,7 +11,7 @@
 import { useState, useEffect, useRef } from 'react';
 import type { ReactElement } from 'react';
 import { LordIcon, ICONS } from '../LordIcon/LordIcon';
-import { useCardTilt } from '../GlassIsland/useCardTilt';
+import { GlassCard } from '../GlassCard/GlassCard';
 import './SecurityInfo.css';
 
 interface SecurityInfoProps {
@@ -19,7 +19,6 @@ interface SecurityInfoProps {
 }
 
 export function SecurityInfo({ onClose }: SecurityInfoProps): ReactElement {
-  const { ref, rx, ry, isHovered } = useCardTilt(1.5);
   const [iconPhase, setIconPhase] = useState<'in' | 'idle'>('in');
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -44,14 +43,7 @@ export function SecurityInfo({ onClose }: SecurityInfoProps): ReactElement {
       aria-label="Security information"
       onClick={handleBackdropClick}
     >
-      <div
-        ref={ref}
-        className="si-card"
-        style={{
-          transform: `perspective(900px) rotateX(${rx}deg) rotateY(${ry}deg)`,
-          transition: isHovered ? 'transform 0.12s ease-out' : 'transform 0.5s ease-out',
-        }}
-      >
+      <GlassCard className="si-card" maxDeg={1.5}>
         <button
           type="button"
           className="si-close"
@@ -127,7 +119,7 @@ export function SecurityInfo({ onClose }: SecurityInfoProps): ReactElement {
             in one step. No leftover data remains anywhere in the system.
           </p>
         </section>
-      </div>
+      </GlassCard>
     </div>
   );
 }

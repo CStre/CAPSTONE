@@ -8,7 +8,7 @@
 import type { ReactElement } from 'react';
 import { SLIDES, FADE_MS } from './useIntroSlides';
 import type { IntroSlidesState } from './useIntroSlides';
-import { useCardTilt } from '../../components/GlassIsland/useCardTilt';
+import { GlassCard } from '../../components/GlassCard/GlassCard';
 import { ICONS, LordIcon } from '../../components/LordIcon/LordIcon';
 import './IntroCard.css';
 
@@ -31,17 +31,8 @@ export function IntroCard({
   onNext,
   onExplore,
 }: IntroCardProps): ReactElement {
-  const { ref, ry, isHovered } = useCardTilt();
-
   return (
-    <div
-      ref={ref}
-      className="intro-card"
-      style={{
-        transform: `perspective(900px) rotateY(${ry}deg)`,
-        transition: isHovered ? 'transform 0.12s ease-out' : 'transform 0.5s ease-out',
-      }}
-    >
+    <GlassCard className="intro-card" perspective={900}>
       <div
         className="intro-slide"
         style={{ opacity: contentOpacity, transition: `opacity ${FADE_MS}ms ease` }}
@@ -95,6 +86,6 @@ export function IntroCard({
           </button>
         </div>
       )}
-    </div>
+    </GlassCard>
   );
 }

@@ -7,7 +7,7 @@
  * The untyped remainder is rendered invisibly so the final layout is reserved
  * from the start — the text never reflows as it types or when the check appears.
  */
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import type { ReactElement } from 'react';
 import { LordIcon, ICONS } from '../../../components/LordIcon/LordIcon';
 import { useTypewriter } from '../../../components/Typewriter/useTypewriter';
@@ -31,6 +31,25 @@ export function LearnSlide({
 }): ReactElement {
   const { isSlideViewed } = useLearnProgress();
   const complete = isSlideViewed(sectionId, index);
+
+  // Play the in-reveal animation when the slide becomes active, then switch to
+  // hover mode so the icon responds to cursor interaction.
+  // All setState calls go through setTimeout to avoid synchronous state updates
+  // in the effect body (which can cause cascading renders).
+  const [revealing, setRevealing] = useState(false);
+  useEffect(() => {
+    if (!active) return;
+    const startT = setTimeout(() => {
+      setRevealing(true);
+    }, 0);
+    const endT = setTimeout(() => {
+      setRevealing(false);
+    }, 2200);
+    return () => {
+      clearTimeout(startT);
+      clearTimeout(endT);
+    };
+  }, [active]);
 
   const isString = typeof slide.body === 'string';
   const bodyText = typeof slide.body === 'string' ? slide.body : '';
@@ -56,7 +75,27 @@ export function LearnSlide({
 
   return (
     <section className="learn-panel" data-slide-index={index}>
-      <LordIcon src={slide.icon} size={180} trigger="in" state="in-reveal" stroke="bold" />
+      {revealing ? (
+        <LordIcon
+          key="reveal"
+          src={slide.icon}
+          size={180}
+          trigger="in"
+          state={slide.inState ?? 'in-reveal'}
+          stroke="bold"
+          colors={slide.colors}
+        />
+      ) : (
+        <LordIcon
+          key="hover"
+          src={slide.icon}
+          size={180}
+          trigger="hover"
+          state={slide.hoverState}
+          stroke="bold"
+          colors={slide.colors}
+        />
+      )}
       <h2 className="hover-grow">{slide.title}</h2>
       <p className="hover-grow">
         {isString ? (

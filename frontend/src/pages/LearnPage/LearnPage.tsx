@@ -16,6 +16,7 @@
 import { useCallback, useRef, useState } from 'react';
 import type { ReactElement } from 'react';
 import { GooeyButton } from '../../components/GooeyButton/GooeyButton';
+import { GlassCard } from '../../components/GlassCard/GlassCard';
 import { StarfieldAnimation } from '../../components/StarfieldAnimation/StarfieldAnimation';
 import { useTheme } from '../../lib/ThemeContext';
 import { LEARN_SECTIONS } from './sections';
@@ -84,7 +85,7 @@ function LearnPageInner(): ReactElement {
 
       {/* Hero banner — a glass index card matching the rest of the site */}
       <section className="learn-banner">
-        <div className="learn-banner-card">
+        <GlassCard className="learn-banner-card">
           <p className="learn-banner-kicker hover-grow">An interactive course</p>
           <h1 className="hover-grow">Building Better Algorithms</h1>
           <p className="learn-banner-sub hover-grow">
@@ -93,7 +94,7 @@ function LearnPageInner(): ReactElement {
             engagement, and — most importantly — how the same technology can be rebuilt to put the
             user first. Scroll down to begin, or jump to any section from the menu.
           </p>
-        </div>
+        </GlassCard>
       </section>
 
       {/* The active section deck (remounts per section for clean slide state) */}

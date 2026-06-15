@@ -10,7 +10,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import type { ReactElement } from 'react';
 import { LordIcon, ICONS } from '../LordIcon/LordIcon';
-import { useCardTilt } from '../GlassIsland/useCardTilt';
+import { GlassCard } from '../GlassCard/GlassCard';
 import '../SecurityInfo/SecurityInfo.css';
 
 interface SmsConsentProps {
@@ -18,7 +18,6 @@ interface SmsConsentProps {
 }
 
 export function SmsConsent({ onClose }: SmsConsentProps): ReactElement {
-  const { ref, rx, ry, isHovered } = useCardTilt(1.5);
   const [iconPhase, setIconPhase] = useState<'in' | 'idle'>('in');
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -43,16 +42,7 @@ export function SmsConsent({ onClose }: SmsConsentProps): ReactElement {
       aria-label="SMS messaging terms"
       onClick={handleBackdropClick}
     >
-      <div
-        ref={ref}
-        className="si-card"
-        style={{
-          maxWidth: '52rem',
-          background: 'rgba(255, 255, 255, 0.13)',
-          transform: `perspective(900px) rotateX(${rx}deg) rotateY(${ry}deg)`,
-          transition: isHovered ? 'transform 0.12s ease-out' : 'transform 0.5s ease-out',
-        }}
-      >
+      <GlassCard className="si-card" maxDeg={1.5} style={{ maxWidth: '52rem' }}>
         <button type="button" className="si-close" onClick={onClose} aria-label="Close SMS terms">
           <LordIcon src={ICONS.securityClose} size={50} trigger="hover" stroke="bold" />
         </button>
@@ -122,7 +112,7 @@ export function SmsConsent({ onClose }: SmsConsentProps): ReactElement {
           <h3>Carriers</h3>
           <p>Carriers are not liable for delayed or undelivered messages.</p>
         </section>
-      </div>
+      </GlassCard>
     </div>,
     document.body,
   );

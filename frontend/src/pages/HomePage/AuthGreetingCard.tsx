@@ -9,7 +9,7 @@
  */
 import { useEffect, useState } from 'react';
 import type { ReactElement } from 'react';
-import { useCardTilt } from '../../components/GlassIsland/useCardTilt';
+import { GlassCard } from '../../components/GlassCard/GlassCard';
 import { LordIcon, ICONS } from '../../components/LordIcon/LordIcon';
 import { FADE_MS } from './useIntroSlides';
 import './IntroCard.css';
@@ -46,7 +46,6 @@ export function AuthGreetingCard({ firstName, onDismiss }: AuthGreetingCardProps
   // Tracks the last slide whose in-reveal animation has finished.
   // isRevealing = revealedSlide < slideIndex (derived — no sync setState needed).
   const [revealedSlide, setRevealedSlide] = useState(-1);
-  const { ref, ry, isHovered } = useCardTilt();
 
   const slide: SlideConfig = slides[slideIndex] ??
     slides[0] ?? {
@@ -107,14 +106,7 @@ export function AuthGreetingCard({ firstName, onDismiss }: AuthGreetingCardProps
   }, [phase]);
 
   return (
-    <div
-      ref={ref}
-      className="intro-card"
-      style={{
-        transform: `perspective(900px) rotateY(${ry}deg)`,
-        transition: isHovered ? 'transform 0.12s ease-out' : 'transform 0.5s ease-out',
-      }}
-    >
+    <GlassCard className="intro-card" perspective={900}>
       <div
         className="intro-slide"
         style={{ opacity: contentOpacity, transition: `opacity ${FADE_MS}ms ease` }}
@@ -170,6 +162,6 @@ export function AuthGreetingCard({ firstName, onDismiss }: AuthGreetingCardProps
           <span className="button-text">Play with Phil</span>
         </button>
       </div>
-    </div>
+    </GlassCard>
   );
 }

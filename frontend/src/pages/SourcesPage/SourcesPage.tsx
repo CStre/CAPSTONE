@@ -15,10 +15,10 @@
  * and below. Research references render in AMA (11th ed.) style from `references.ts`.
  */
 import { useEffect, useRef, useState } from 'react';
-import type { ReactElement, ReactNode, RefObject } from 'react';
+import type { ReactElement, RefObject } from 'react';
 import { useStringsAnimation } from '../../components/StringsAnimation/useStringsAnimation';
 import { ICONS, LordIcon } from '../../components/LordIcon/LordIcon';
-import { useCardTilt } from '../../components/GlassIsland/useCardTilt';
+import { GlassCard } from '../../components/GlassCard/GlassCard';
 import { useTheme } from '../../lib/ThemeContext';
 import { RESEARCH_REFERENCES } from './references';
 import './SourcesPage.css';
@@ -347,50 +347,6 @@ function OrgMarquee(): ReactElement {
   );
 }
 
-/**
- * Glass card with a cursor-reactive 3-D tilt matching the login card.
- *
- * The carousel scale/fade is driven by the scroll engine via the independent
- * `scale:` + `opacity:` CSS properties (set per-frame), while the cursor tilt
- * lives on the `transform` property with its own transition. Keeping the two on
- * separate CSS properties means the tilt can ease smoothly without the scroll
- * scaling lagging — and, critically, the scale is no longer a transform on an
- * ancestor, so the card's `backdrop-filter` glass renders (a transformed
- * ancestor silently disables it). Static cards opt out of the scroll scale.
- */
-function TiltCard({
-  className,
-  innerRef,
-  staticCard,
-  children,
-}: {
-  className?: string;
-  innerRef?: (node: HTMLDivElement | null) => void;
-  /** Opt out of the scroll-driven carousel scale/fade (the scroll engine skips it). */
-  staticCard?: boolean;
-  children: ReactNode;
-}): ReactElement {
-  const { ref, rx, ry, isHovered } = useCardTilt(4);
-  const setRef = (node: HTMLDivElement | null): void => {
-    ref.current = node;
-    innerRef?.(node);
-  };
-  return (
-    <div
-      ref={setRef}
-      className={['credit-card', staticCard && 'credit-card--static', className]
-        .filter(Boolean)
-        .join(' ')}
-      style={{
-        transform: `perspective(1000px) rotateX(${rx}deg) rotateY(${ry}deg)`,
-        transition: isHovered ? 'transform 0.12s ease-out' : 'transform 0.5s ease-out',
-      }}
-    >
-      {children}
-    </div>
-  );
-}
-
 function Card({ citation, url }: Credit & { kind: 'reference' | 'credit' }): ReactElement {
   const cardRef = useRef<HTMLDivElement>(null);
   // 'idle' = hover trigger; 'in' = playing the in-reveal animation
@@ -423,11 +379,9 @@ function Card({ citation, url }: Credit & { kind: 'reference' | 'credit' }): Rea
   }, [url]);
 
   return (
-    <TiltCard
-      className={url ? 'credit-card--linked' : undefined}
-      innerRef={(node) => {
-        cardRef.current = node;
-      }}
+    <GlassCard
+      ref={cardRef}
+      className={['credit-card', url ? 'credit-card--linked' : undefined].filter(Boolean).join(' ')}
     >
       <p className="cc-citation">{citation}</p>
       {url ? (
@@ -448,7 +402,7 @@ function Card({ citation, url }: Credit & { kind: 'reference' | 'credit' }): Rea
           />
         </a>
       ) : null}
-    </TiltCard>
+    </GlassCard>
   );
 }
 
@@ -464,9 +418,9 @@ function CategoryBlock({
   return (
     <div className="credits-category">
       <div className="credits-list">
-        <TiltCard className="credits-category-card">
+        <GlassCard className="credit-card credits-category-card">
           <h3 className="credits-category-title">{title}</h3>
-        </TiltCard>
+        </GlassCard>
       </div>
       <div className="credits-list credits-list--stack">
         {items.map((it) => (
@@ -498,7 +452,7 @@ export function SourcesPage(): ReactElement {
 
       {/* ── Hero — contained within a glass card ──────────────────────── */}
       <div className="sources-intro">
-        <TiltCard className="sources-hero-card" staticCard>
+        <GlassCard className="credit-card credit-card--static sources-hero-card">
           <h1 className="sources-hero-title">
             Scholarly Foundations &amp; Intellectual Attributions
           </h1>
@@ -508,7 +462,7 @@ export function SourcesPage(): ReactElement {
             project. Each citation reflects a debt of intellectual gratitude owed to the broader
             scientific and engineering communities.
           </p>
-        </TiltCard>
+        </GlassCard>
       </div>
 
       <OrgMarquee />
@@ -516,7 +470,7 @@ export function SourcesPage(): ReactElement {
       {/* ── Academic references ────────────────────────────────────────── */}
       <section className="sources-section" aria-labelledby="refs-heading">
         <div className="credits-list">
-          <TiltCard className="sources-section-header">
+          <GlassCard className="credit-card sources-section-header">
             <h2 id="refs-heading" className="sources-section-title">
               Peer-Reviewed Sources &amp; Academic References
             </h2>
@@ -524,7 +478,7 @@ export function SourcesPage(): ReactElement {
               The scholarly corpus informing this project&rsquo;s foundational premises, rendered in
               accordance with AMA (11th edition) citation standards.
             </p>
-          </TiltCard>
+          </GlassCard>
         </div>
         {RESEARCH_REFERENCES.map((cat) => (
           <CategoryBlock key={cat.title} title={cat.title} items={cat.items} kind="reference" />
@@ -534,7 +488,7 @@ export function SourcesPage(): ReactElement {
       {/* ── Technical credits ──────────────────────────────────────────── */}
       <section className="sources-section" aria-labelledby="credits-heading">
         <div className="credits-list">
-          <TiltCard className="sources-section-header">
+          <GlassCard className="credit-card sources-section-header">
             <h2 id="credits-heading" className="sources-section-title">
               Technical Attributions &amp; Open-Source Acknowledgements
             </h2>
@@ -544,7 +498,7 @@ export function SourcesPage(): ReactElement {
               dependency represents a collective contribution to the broader software engineering
               commons.
             </p>
-          </TiltCard>
+          </GlassCard>
         </div>
         {TECH_CREDITS.map((cat) => (
           <CategoryBlock key={cat.title} title={cat.title} items={cat.items} kind="credit" />
@@ -553,7 +507,7 @@ export function SourcesPage(): ReactElement {
 
       {/* ── Disclosure ─────────────────────────────────────────────────── */}
       <div className="credits-list">
-        <TiltCard className="credits-disclaimer" staticCard>
+        <GlassCard className="credit-card credit-card--static credits-disclaimer">
           <h3>Development Methodology Disclosure</h3>
           <p>
             The research corpus underlying this project was independently conceived, curated, and
@@ -571,7 +525,7 @@ export function SourcesPage(): ReactElement {
             author. All open-source dependencies are employed in strict accordance with their
             respective licensing agreements.
           </p>
-        </TiltCard>
+        </GlassCard>
       </div>
     </div>
   );

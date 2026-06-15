@@ -9,14 +9,28 @@
 import type { ReactElement } from 'react';
 
 export interface Slide {
-  /**
-   * Icon path. Currently every slide uses `ICONS.slidePlaceholder` (the brain
-   * in-reveal); each slide carries a `TODO(icon)` comment with the intended icon.
-   */
+  /** Path to the Lordicon JSON file. */
   icon: string;
   title: string;
   /** Plain string or JSX (for lists / emphasis), matching the original panels. */
   body: string | ReactElement;
+  /**
+   * Lordicon state to play on initial reveal. Defaults to 'in-reveal', which
+   * all icons support. Use 'in-oscillate' for the question-bubble icon.
+   */
+  inState?: string;
+  /**
+   * Lordicon state to activate on hover after the reveal. Omit to use the
+   * icon's default hover animation. Must be specified for icons whose default
+   * animation is 'in-reveal' (books, stairs, portrait-photo, puzzle) — otherwise
+   * they would replay the reveal animation on every hover.
+   */
+  hoverState?: string;
+  /**
+   * Lordicon colors override (e.g. 'primary:#8930e8,secondary:#16a9c7').
+   * Omit to use the palette-correct theme colors from useLordIconColors.
+   */
+  colors?: string;
 }
 
 export interface LearnSection {

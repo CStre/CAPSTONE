@@ -301,10 +301,10 @@ export function AuthPanel(): ReactElement {
             className={`auth-flipcard-inner${flow.isFlipped ? ' is-flipped' : ''}`}
             style={{ height: (flow.isFlipped ? backHeight : frontHeight) || undefined }}
           >
-            <div className="auth-card auth-card--front" ref={frontCardRef}>
+            <div className="glass-card auth-card auth-card--front" ref={frontCardRef}>
               {renderFront()}
             </div>
-            <div className="auth-card auth-card--back" ref={backCardRef}>
+            <div className="glass-card auth-card auth-card--back" ref={backCardRef}>
               {renderBack()}
             </div>
           </div>

@@ -46,8 +46,13 @@
   transform: rotateY(180deg);
 }
 
-/* ── Card faces — glass recipe matching .intro-card / .gi-glass ─────────────── */
+/* ── Card faces — glass recipe from .glass-card (index.css) ─────────────────── */
 
+/* NOTE: the auth card cannot use <GlassCard> because it lives inside
+   .auth-flipcard-inner which has transform-style:preserve-3d. Chrome silently
+   drops backdrop-filter on children of preserve-3d contexts; the .glass-card
+   opacity (0.14 dark / 0.28 light) ensures the card reads without the blur.
+   The class is applied directly in AuthPanel.tsx instead. */
 .auth-card {
   position: absolute;
   top: 0;
@@ -57,24 +62,6 @@
   border-radius: 30px;
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
-
-  border: 1px solid rgba(255, 255, 255, 0.22);
-  box-shadow:
-    0 12px 40px rgba(0, 0, 0, 0.25),
-    inset 0 1px 0 rgba(255, 255, 255, 0.4),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.18);
-  background: rgba(255, 255, 255, 0.06);
-  backdrop-filter: blur(18px) saturate(180%);
-  -webkit-backdrop-filter: blur(18px) saturate(180%);
-}
-
-[data-theme='light'] .auth-card {
-  border-color: rgba(255, 255, 255, 0.8);
-  box-shadow:
-    0 12px 40px rgba(0, 0, 0, 0.1),
-    inset 0 1px 0 rgba(255, 255, 255, 0.95),
-    inset 0 -1px 0 rgba(61, 82, 160, 0.08);
-  background: rgba(255, 255, 255, 0.28);
 }
 
 /* Back face is pre-rotated — the flip reveal turns it right-way-up */
@@ -469,7 +456,7 @@
   font: inherit;
   font-weight: var(--fw-semibold);
   color: var(--color-heading);
-  background: rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.12);
   border: 1px solid rgba(255, 255, 255, 0.18);
   border-radius: 10px;
   cursor: pointer;

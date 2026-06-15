@@ -30,7 +30,7 @@ import { useTheme } from '../../lib/ThemeContext';
 import { useCanvasAnimation } from '../../components/CanvasAnimation/useCanvasAnimation';
 import { Loader } from '../../components/Loader/Loader';
 import { LordIcon, ICONS } from '../../components/LordIcon/LordIcon';
-import { useCardTilt } from '../../components/GlassIsland/useCardTilt';
+import { GlassCard } from '../../components/GlassCard/GlassCard';
 import '../../auth/auth.css';
 import '../../components/SecurityInfo/SecurityInfo.css';
 import { PasswordStrength, getStrength } from '../../components/PasswordStrength/PasswordStrength';
@@ -84,7 +84,6 @@ function AccountPopup({
   title?: string;
   children: ReactNode;
 }): ReactElement {
-  const { ref, rx, ry, isHovered } = useCardTilt(1.5);
   const [iconPhase, setIconPhase] = useState<'in' | 'idle'>('in');
   const iconTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -103,13 +102,9 @@ function AccountPopup({
 
   return (
     <div className="account-popup-overlay" onClick={handleBackdropClick}>
-      <div
-        ref={ref}
+      <GlassCard
         className={`account-popup-card${danger ? ' account-popup-card--danger' : ''}`}
-        style={{
-          transform: `perspective(900px) rotateX(${rx}deg) rotateY(${ry}deg)`,
-          transition: isHovered ? 'transform 0.12s ease-out' : 'transform 0.5s ease-out',
-        }}
+        maxDeg={1.5}
       >
         <button type="button" className="si-close" onClick={onClose} aria-label="Close">
           <LordIcon src={ICONS.securityClose} size={50} trigger="hover" stroke="bold" />
@@ -132,7 +127,7 @@ function AccountPopup({
           </div>
         )}
         {children}
-      </div>
+      </GlassCard>
     </div>
   );
 }
@@ -471,7 +466,7 @@ export function AccountPage(): ReactElement {
       <canvas ref={canvasRef} className="auth-canvas" />
 
       <section className="page account">
-        <div className="account-card">
+        <GlassCard className="account-card" maxDeg={0}>
           {/* ── Card header ──────────────────────────────────────────── */}
           <div className="account-card-header">
             {iconPhase === 'in' ? (
@@ -759,7 +754,7 @@ export function AccountPage(): ReactElement {
               </button>
             </div>
           </div>
-        </div>
+        </GlassCard>
       </section>
 
       {/* ── Email verification popup ──────────────────────────────────────── */}
