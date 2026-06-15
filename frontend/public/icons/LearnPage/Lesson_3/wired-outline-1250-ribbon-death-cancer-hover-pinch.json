@@ -1,240 +1,16 @@
 {
-  "v": "5.12.1",
+  "v": "5.8.1",
   "fr": 60,
   "ip": 70,
   "op": 250,
   "w": 430,
   "h": 430,
-  "nm": "wired-gradient-1250-ribbon-death-cancer",
+  "nm": "wired-outline-1250-ribbon-death-cancer",
   "ddd": 0,
   "assets": [
     {
       "id": "comp_0",
       "nm": "in-reveal",
-      "fr": 60,
-      "layers": [
-        {
-          "ddd": 0,
-          "ind": 1,
-          "ty": 0,
-          "nm": "mask-i",
-          "td": 1,
-          "refId": "comp_1",
-          "sr": 1,
-          "ks": {
-            "o": { "a": 0, "k": 100, "ix": 11 },
-            "r": { "a": 0, "k": 0, "ix": 10 },
-            "p": { "a": 0, "k": [215, 215, 0], "ix": 2, "l": 2 },
-            "a": { "a": 0, "k": [215, 215, 0], "ix": 1, "l": 2 },
-            "s": { "a": 0, "k": [100, 100, 100], "ix": 6, "l": 2 }
-          },
-          "ao": 0,
-          "w": 430,
-          "h": 430,
-          "ip": 0,
-          "op": 844,
-          "st": 0,
-          "bm": 0
-        },
-        {
-          "ddd": 0,
-          "ind": 2,
-          "ty": 4,
-          "nm": "gradient",
-          "tt": 1,
-          "tp": 1,
-          "sr": 1,
-          "ks": {
-            "o": { "a": 0, "k": 100, "ix": 11 },
-            "r": {
-              "a": 1,
-              "k": [
-                {
-                  "i": { "x": [0.4], "y": [1] },
-                  "o": { "x": [0.167], "y": [0.167] },
-                  "t": 0,
-                  "s": [-94]
-                },
-                { "t": 60, "s": [266] }
-              ],
-              "ix": 10
-            },
-            "p": { "a": 0, "k": [271.941, 219.46, 0], "ix": 2, "l": 2 },
-            "a": { "a": 0, "k": [0, 0, 0], "ix": 1, "l": 2 },
-            "s": { "a": 0, "k": [240, 240, 100], "ix": 6, "l": 2 }
-          },
-          "ao": 0,
-          "ef": [
-            {
-              "ty": 29,
-              "nm": "Gaussian Blur",
-              "np": 5,
-              "mn": "ADBE Gaussian Blur 2",
-              "ix": 1,
-              "en": 1,
-              "ef": [
-                {
-                  "ty": 0,
-                  "nm": "Blurriness",
-                  "mn": "ADBE Gaussian Blur 2-0001",
-                  "ix": 1,
-                  "v": { "a": 0, "k": 175, "ix": 1 }
-                },
-                {
-                  "ty": 7,
-                  "nm": "Blur Dimensions",
-                  "mn": "ADBE Gaussian Blur 2-0002",
-                  "ix": 2,
-                  "v": { "a": 0, "k": 1, "ix": 2 }
-                },
-                {
-                  "ty": 7,
-                  "nm": "Repeat Edge Pixels",
-                  "mn": "ADBE Gaussian Blur 2-0003",
-                  "ix": 3,
-                  "v": { "a": 0, "k": 1, "ix": 3 }
-                }
-              ]
-            }
-          ],
-          "shapes": [
-            {
-              "ty": "gr",
-              "it": [
-                {
-                  "ind": 0,
-                  "ty": "sh",
-                  "ix": 1,
-                  "ks": {
-                    "a": 0,
-                    "k": {
-                      "i": [
-                        [-97.478, 0],
-                        [0, -97.478],
-                        [97.478, 0],
-                        [30.894, 26.574],
-                        [0, 53.531]
-                      ],
-                      "o": [
-                        [97.478, 0],
-                        [0, 97.478],
-                        [-43.948, 0],
-                        [-37.631, -32.369],
-                        [0, -97.478]
-                      ],
-                      "v": [
-                        [0, -176.5],
-                        [176.5, 0],
-                        [0, 176.5],
-                        [-105.29, 115.869],
-                        [-176.5, 0]
-                      ],
-                      "c": true
-                    },
-                    "ix": 2
-                  },
-                  "nm": "Path 1",
-                  "mn": "ADBE Vector Shape - Group",
-                  "hd": false
-                },
-                {
-                  "ty": "fl",
-                  "c": {
-                    "a": 0,
-                    "k": [0.086, 0.663, 0.78, 1],
-                    "ix": 4,
-                    "x": "var $bm_rt;\n$bm_rt = comp('wired-gradient-1250-ribbon-death-cancer').layer('control').effect('secondary')('Color');"
-                  },
-                  "o": { "a": 0, "k": 100, "ix": 5 },
-                  "r": 1,
-                  "bm": 0,
-                  "nm": ".secondary",
-                  "mn": "ADBE Vector Graphic - Fill",
-                  "hd": false,
-                  "cl": "secondary"
-                },
-                {
-                  "ty": "tr",
-                  "p": { "a": 0, "k": [113.242, -118.884], "ix": 2 },
-                  "a": { "a": 0, "k": [0, 0], "ix": 1 },
-                  "s": { "a": 0, "k": [100, 100], "ix": 3 },
-                  "r": { "a": 0, "k": 0, "ix": 6 },
-                  "o": { "a": 0, "k": 100, "ix": 7 },
-                  "sk": { "a": 0, "k": 0, "ix": 4 },
-                  "sa": { "a": 0, "k": 0, "ix": 5 },
-                  "nm": "Transform"
-                }
-              ],
-              "nm": "primary.design",
-              "np": 2,
-              "cix": 2,
-              "bm": 0,
-              "ix": 1,
-              "mn": "ADBE Vector Group",
-              "hd": false,
-              "cl": "design"
-            },
-            {
-              "ty": "gr",
-              "it": [
-                {
-                  "d": 1,
-                  "ty": "el",
-                  "s": { "a": 0, "k": [500, 500], "ix": 2 },
-                  "p": { "a": 0, "k": [0, 0], "ix": 3 },
-                  "nm": "Ellipse Path 1",
-                  "mn": "ADBE Vector Shape - Ellipse",
-                  "hd": false
-                },
-                {
-                  "ty": "fl",
-                  "c": {
-                    "a": 0,
-                    "k": [0.537, 0.188, 0.91, 1],
-                    "ix": 4,
-                    "x": "var $bm_rt;\n$bm_rt = comp('wired-gradient-1250-ribbon-death-cancer').layer('control').effect('primary')('Color');"
-                  },
-                  "o": { "a": 0, "k": 100, "ix": 5 },
-                  "r": 1,
-                  "bm": 0,
-                  "nm": ".primary",
-                  "mn": "ADBE Vector Graphic - Fill",
-                  "hd": false,
-                  "cl": "primary"
-                },
-                {
-                  "ty": "tr",
-                  "p": { "a": 0, "k": [0, 0], "ix": 2 },
-                  "a": { "a": 0, "k": [0, 0], "ix": 1 },
-                  "s": { "a": 0, "k": [100, 100], "ix": 3 },
-                  "r": { "a": 0, "k": 0, "ix": 6 },
-                  "o": { "a": 0, "k": 100, "ix": 7 },
-                  "sk": { "a": 0, "k": 0, "ix": 4 },
-                  "sa": { "a": 0, "k": 0, "ix": 5 },
-                  "nm": "Transform"
-                }
-              ],
-              "nm": "secondary.design",
-              "np": 2,
-              "cix": 2,
-              "bm": 0,
-              "ix": 2,
-              "mn": "ADBE Vector Group",
-              "hd": false,
-              "cl": "design"
-            }
-          ],
-          "ip": 0,
-          "op": 300,
-          "st": 0,
-          "ct": 1,
-          "bm": 0
-        }
-      ]
-    },
-    {
-      "id": "comp_1",
-      "nm": "mask-i",
       "fr": 60,
       "layers": [
         {
@@ -316,15 +92,16 @@
                   "ty": "st",
                   "c": {
                     "a": 0,
-                    "k": [0.031372550875, 0.658823549747, 0.541176497936, 1],
-                    "ix": 3
+                    "k": [0.031, 0.659, 0.541, 1],
+                    "ix": 3,
+                    "x": "var $bm_rt;\n$bm_rt = comp('wired-outline-1250-ribbon-death-cancer').layer('control').effect('secondary')('Color');"
                   },
                   "o": { "a": 0, "k": 100, "ix": 4 },
                   "w": {
                     "a": 0,
-                    "k": 18,
+                    "k": 12,
                     "ix": 5,
-                    "x": "var $bm_rt;\n$bm_rt = $bm_mul($bm_div(value, 3), comp('wired-gradient-1250-ribbon-death-cancer').layer('control').effect('stroke')('Menu'));"
+                    "x": "var $bm_rt;\n$bm_rt = $bm_mul($bm_div(value, 2), comp('wired-outline-1250-ribbon-death-cancer').layer('control').effect('stroke')('Menu'));"
                   },
                   "lc": 2,
                   "lj": 2,
@@ -580,15 +357,16 @@
                       "ty": "st",
                       "c": {
                         "a": 0,
-                        "k": [0.070588238537, 0.074509806931, 0.192156866193, 1],
-                        "ix": 3
+                        "k": [0.071, 0.075, 0.192, 1],
+                        "ix": 3,
+                        "x": "var $bm_rt;\n$bm_rt = comp('wired-outline-1250-ribbon-death-cancer').layer('control').effect('primary')('Color');"
                       },
                       "o": { "a": 0, "k": 100, "ix": 4 },
                       "w": {
                         "a": 0,
-                        "k": 18,
+                        "k": 12,
                         "ix": 5,
-                        "x": "var $bm_rt;\n$bm_rt = $bm_mul($bm_div(value, 3), comp('wired-gradient-1250-ribbon-death-cancer').layer('control').effect('stroke')('Menu'));"
+                        "x": "var $bm_rt;\n$bm_rt = $bm_mul($bm_div(value, 2), comp('wired-outline-1250-ribbon-death-cancer').layer('control').effect('stroke')('Menu'));"
                       },
                       "lc": 2,
                       "lj": 2,
@@ -642,7 +420,6 @@
           "ip": 1,
           "op": 844,
           "st": 0,
-          "ct": 1,
           "bm": 0
         },
         {
@@ -761,7 +538,6 @@
           "ip": 0,
           "op": 844,
           "st": 0,
-          "ct": 1,
           "bm": 0
         },
         {
@@ -771,7 +547,6 @@
           "nm": "Bottom",
           "parent": 4,
           "tt": 2,
-          "tp": 2,
           "sr": 1,
           "ks": {
             "o": { "a": 0, "k": 100, "ix": 11 },
@@ -1100,15 +875,16 @@
                       "ty": "st",
                       "c": {
                         "a": 0,
-                        "k": [0.070588238537, 0.074509806931, 0.192156866193, 1],
-                        "ix": 3
+                        "k": [0.071, 0.075, 0.192, 1],
+                        "ix": 3,
+                        "x": "var $bm_rt;\n$bm_rt = comp('wired-outline-1250-ribbon-death-cancer').layer('control').effect('primary')('Color');"
                       },
                       "o": { "a": 0, "k": 100, "ix": 4 },
                       "w": {
                         "a": 0,
-                        "k": 18,
+                        "k": 12,
                         "ix": 5,
-                        "x": "var $bm_rt;\n$bm_rt = $bm_mul($bm_div(value, 3), comp('wired-gradient-1250-ribbon-death-cancer').layer('control').effect('stroke')('Menu'));"
+                        "x": "var $bm_rt;\n$bm_rt = $bm_mul($bm_div(value, 2), comp('wired-outline-1250-ribbon-death-cancer').layer('control').effect('stroke')('Menu'));"
                       },
                       "lc": 2,
                       "lj": 2,
@@ -1162,7 +938,6 @@
           "ip": 14,
           "op": 844,
           "st": 0,
-          "ct": 1,
           "bm": 0
         },
         {
@@ -1411,15 +1186,16 @@
                   "ty": "st",
                   "c": {
                     "a": 0,
-                    "k": [0.070588238537, 0.074509806931, 0.192156866193, 1],
-                    "ix": 3
+                    "k": [0.071, 0.075, 0.192, 1],
+                    "ix": 3,
+                    "x": "var $bm_rt;\n$bm_rt = comp('wired-outline-1250-ribbon-death-cancer').layer('control').effect('primary')('Color');"
                   },
                   "o": { "a": 0, "k": 100, "ix": 4 },
                   "w": {
                     "a": 0,
-                    "k": 18,
+                    "k": 12,
                     "ix": 5,
-                    "x": "var $bm_rt;\n$bm_rt = $bm_mul($bm_div(value, 3), comp('wired-gradient-1250-ribbon-death-cancer').layer('control').effect('stroke')('Menu'));"
+                    "x": "var $bm_rt;\n$bm_rt = $bm_mul($bm_div(value, 2), comp('wired-outline-1250-ribbon-death-cancer').layer('control').effect('stroke')('Menu'));"
                   },
                   "lc": 2,
                   "lj": 2,
@@ -1453,238 +1229,13 @@
           "ip": 14,
           "op": 844,
           "st": 0,
-          "ct": 1,
           "bm": 0
         }
       ]
     },
     {
-      "id": "comp_2",
+      "id": "comp_1",
       "nm": "hover-pinch",
-      "fr": 60,
-      "layers": [
-        {
-          "ddd": 0,
-          "ind": 1,
-          "ty": 0,
-          "nm": "mask-ho",
-          "td": 1,
-          "refId": "comp_3",
-          "sr": 1,
-          "ks": {
-            "o": { "a": 0, "k": 100, "ix": 11 },
-            "r": { "a": 0, "k": 0, "ix": 10 },
-            "p": { "a": 0, "k": [215, 215, 0], "ix": 2, "l": 2 },
-            "a": { "a": 0, "k": [215, 215, 0], "ix": 1, "l": 2 },
-            "s": { "a": 0, "k": [100, 100, 100], "ix": 6, "l": 2 }
-          },
-          "ao": 0,
-          "w": 430,
-          "h": 430,
-          "ip": 0,
-          "op": 844,
-          "st": 0,
-          "bm": 0
-        },
-        {
-          "ddd": 0,
-          "ind": 2,
-          "ty": 4,
-          "nm": "gradient",
-          "tt": 1,
-          "tp": 1,
-          "sr": 1,
-          "ks": {
-            "o": { "a": 0, "k": 100, "ix": 11 },
-            "r": {
-              "a": 1,
-              "k": [
-                {
-                  "i": { "x": [0.4], "y": [1] },
-                  "o": { "x": [0.167], "y": [0.167] },
-                  "t": 0,
-                  "s": [-94]
-                },
-                { "t": 180, "s": [266] }
-              ],
-              "ix": 10
-            },
-            "p": { "a": 0, "k": [271.941, 219.46, 0], "ix": 2, "l": 2 },
-            "a": { "a": 0, "k": [0, 0, 0], "ix": 1, "l": 2 },
-            "s": { "a": 0, "k": [240, 240, 100], "ix": 6, "l": 2 }
-          },
-          "ao": 0,
-          "ef": [
-            {
-              "ty": 29,
-              "nm": "Gaussian Blur",
-              "np": 5,
-              "mn": "ADBE Gaussian Blur 2",
-              "ix": 1,
-              "en": 1,
-              "ef": [
-                {
-                  "ty": 0,
-                  "nm": "Blurriness",
-                  "mn": "ADBE Gaussian Blur 2-0001",
-                  "ix": 1,
-                  "v": { "a": 0, "k": 175, "ix": 1 }
-                },
-                {
-                  "ty": 7,
-                  "nm": "Blur Dimensions",
-                  "mn": "ADBE Gaussian Blur 2-0002",
-                  "ix": 2,
-                  "v": { "a": 0, "k": 1, "ix": 2 }
-                },
-                {
-                  "ty": 7,
-                  "nm": "Repeat Edge Pixels",
-                  "mn": "ADBE Gaussian Blur 2-0003",
-                  "ix": 3,
-                  "v": { "a": 0, "k": 1, "ix": 3 }
-                }
-              ]
-            }
-          ],
-          "shapes": [
-            {
-              "ty": "gr",
-              "it": [
-                {
-                  "ind": 0,
-                  "ty": "sh",
-                  "ix": 1,
-                  "ks": {
-                    "a": 0,
-                    "k": {
-                      "i": [
-                        [-97.478, 0],
-                        [0, -97.478],
-                        [97.478, 0],
-                        [30.894, 26.574],
-                        [0, 53.531]
-                      ],
-                      "o": [
-                        [97.478, 0],
-                        [0, 97.478],
-                        [-43.948, 0],
-                        [-37.631, -32.369],
-                        [0, -97.478]
-                      ],
-                      "v": [
-                        [0, -176.5],
-                        [176.5, 0],
-                        [0, 176.5],
-                        [-105.29, 115.869],
-                        [-176.5, 0]
-                      ],
-                      "c": true
-                    },
-                    "ix": 2
-                  },
-                  "nm": "Path 1",
-                  "mn": "ADBE Vector Shape - Group",
-                  "hd": false
-                },
-                {
-                  "ty": "fl",
-                  "c": {
-                    "a": 0,
-                    "k": [0.086, 0.663, 0.78, 1],
-                    "ix": 4,
-                    "x": "var $bm_rt;\n$bm_rt = comp('wired-gradient-1250-ribbon-death-cancer').layer('control').effect('secondary')('Color');"
-                  },
-                  "o": { "a": 0, "k": 100, "ix": 5 },
-                  "r": 1,
-                  "bm": 0,
-                  "nm": ".secondary",
-                  "mn": "ADBE Vector Graphic - Fill",
-                  "hd": false,
-                  "cl": "secondary"
-                },
-                {
-                  "ty": "tr",
-                  "p": { "a": 0, "k": [113.242, -118.884], "ix": 2 },
-                  "a": { "a": 0, "k": [0, 0], "ix": 1 },
-                  "s": { "a": 0, "k": [100, 100], "ix": 3 },
-                  "r": { "a": 0, "k": 0, "ix": 6 },
-                  "o": { "a": 0, "k": 100, "ix": 7 },
-                  "sk": { "a": 0, "k": 0, "ix": 4 },
-                  "sa": { "a": 0, "k": 0, "ix": 5 },
-                  "nm": "Transform"
-                }
-              ],
-              "nm": "primary.design",
-              "np": 2,
-              "cix": 2,
-              "bm": 0,
-              "ix": 1,
-              "mn": "ADBE Vector Group",
-              "hd": false,
-              "cl": "design"
-            },
-            {
-              "ty": "gr",
-              "it": [
-                {
-                  "d": 1,
-                  "ty": "el",
-                  "s": { "a": 0, "k": [500, 500], "ix": 2 },
-                  "p": { "a": 0, "k": [0, 0], "ix": 3 },
-                  "nm": "Ellipse Path 1",
-                  "mn": "ADBE Vector Shape - Ellipse",
-                  "hd": false
-                },
-                {
-                  "ty": "fl",
-                  "c": {
-                    "a": 0,
-                    "k": [0.537, 0.188, 0.91, 1],
-                    "ix": 4,
-                    "x": "var $bm_rt;\n$bm_rt = comp('wired-gradient-1250-ribbon-death-cancer').layer('control').effect('primary')('Color');"
-                  },
-                  "o": { "a": 0, "k": 100, "ix": 5 },
-                  "r": 1,
-                  "bm": 0,
-                  "nm": ".primary",
-                  "mn": "ADBE Vector Graphic - Fill",
-                  "hd": false,
-                  "cl": "primary"
-                },
-                {
-                  "ty": "tr",
-                  "p": { "a": 0, "k": [0, 0], "ix": 2 },
-                  "a": { "a": 0, "k": [0, 0], "ix": 1 },
-                  "s": { "a": 0, "k": [100, 100], "ix": 3 },
-                  "r": { "a": 0, "k": 0, "ix": 6 },
-                  "o": { "a": 0, "k": 100, "ix": 7 },
-                  "sk": { "a": 0, "k": 0, "ix": 4 },
-                  "sa": { "a": 0, "k": 0, "ix": 5 },
-                  "nm": "Transform"
-                }
-              ],
-              "nm": "secondary.design",
-              "np": 2,
-              "cix": 2,
-              "bm": 0,
-              "ix": 2,
-              "mn": "ADBE Vector Group",
-              "hd": false,
-              "cl": "design"
-            }
-          ],
-          "ip": 0,
-          "op": 300,
-          "st": 0,
-          "ct": 1,
-          "bm": 0
-        }
-      ]
-    },
-    {
-      "id": "comp_3",
-      "nm": "mask-ho",
       "fr": 60,
       "layers": [
         {
@@ -1862,15 +1413,16 @@
                   "ty": "st",
                   "c": {
                     "a": 0,
-                    "k": [0.031372550875, 0.658823549747, 0.541176497936, 1],
-                    "ix": 3
+                    "k": [0.031, 0.659, 0.541, 1],
+                    "ix": 3,
+                    "x": "var $bm_rt;\n$bm_rt = comp('wired-outline-1250-ribbon-death-cancer').layer('control').effect('secondary')('Color');"
                   },
                   "o": { "a": 0, "k": 100, "ix": 4 },
                   "w": {
                     "a": 0,
-                    "k": 18,
+                    "k": 12,
                     "ix": 5,
-                    "x": "var $bm_rt;\n$bm_rt = $bm_mul($bm_div(value, 3), comp('wired-gradient-1250-ribbon-death-cancer').layer('control').effect('stroke')('Menu'));"
+                    "x": "var $bm_rt;\n$bm_rt = $bm_mul($bm_div(value, 2), comp('wired-outline-1250-ribbon-death-cancer').layer('control').effect('stroke')('Menu'));"
                   },
                   "lc": 2,
                   "lj": 2,
@@ -2092,15 +1644,16 @@
                       "ty": "st",
                       "c": {
                         "a": 0,
-                        "k": [0.070588238537, 0.074509806931, 0.192156866193, 1],
-                        "ix": 3
+                        "k": [0.071, 0.075, 0.192, 1],
+                        "ix": 3,
+                        "x": "var $bm_rt;\n$bm_rt = comp('wired-outline-1250-ribbon-death-cancer').layer('control').effect('primary')('Color');"
                       },
                       "o": { "a": 0, "k": 100, "ix": 4 },
                       "w": {
                         "a": 0,
-                        "k": 18,
+                        "k": 12,
                         "ix": 5,
-                        "x": "var $bm_rt;\n$bm_rt = $bm_mul($bm_div(value, 3), comp('wired-gradient-1250-ribbon-death-cancer').layer('control').effect('stroke')('Menu'));"
+                        "x": "var $bm_rt;\n$bm_rt = $bm_mul($bm_div(value, 2), comp('wired-outline-1250-ribbon-death-cancer').layer('control').effect('stroke')('Menu'));"
                       },
                       "lc": 2,
                       "lj": 2,
@@ -2154,7 +1707,6 @@
           "ip": 0,
           "op": 844,
           "st": 0,
-          "ct": 1,
           "bm": 0
         },
         {
@@ -2446,7 +1998,6 @@
           "ip": 0,
           "op": 844,
           "st": 0,
-          "ct": 1,
           "bm": 0
         },
         {
@@ -2456,7 +2007,6 @@
           "nm": "Bottom",
           "parent": 4,
           "tt": 2,
-          "tp": 2,
           "sr": 1,
           "ks": {
             "o": { "a": 0, "k": 100, "ix": 11 },
@@ -2674,15 +2224,16 @@
                       "ty": "st",
                       "c": {
                         "a": 0,
-                        "k": [0.070588238537, 0.074509806931, 0.192156866193, 1],
-                        "ix": 3
+                        "k": [0.071, 0.075, 0.192, 1],
+                        "ix": 3,
+                        "x": "var $bm_rt;\n$bm_rt = comp('wired-outline-1250-ribbon-death-cancer').layer('control').effect('primary')('Color');"
                       },
                       "o": { "a": 0, "k": 100, "ix": 4 },
                       "w": {
                         "a": 0,
-                        "k": 18,
+                        "k": 12,
                         "ix": 5,
-                        "x": "var $bm_rt;\n$bm_rt = $bm_mul($bm_div(value, 3), comp('wired-gradient-1250-ribbon-death-cancer').layer('control').effect('stroke')('Menu'));"
+                        "x": "var $bm_rt;\n$bm_rt = $bm_mul($bm_div(value, 2), comp('wired-outline-1250-ribbon-death-cancer').layer('control').effect('stroke')('Menu'));"
                       },
                       "lc": 2,
                       "lj": 2,
@@ -2736,7 +2287,6 @@
           "ip": 0,
           "op": 844,
           "st": 0,
-          "ct": 1,
           "bm": 0
         },
         {
@@ -3097,15 +2647,16 @@
                   "ty": "st",
                   "c": {
                     "a": 0,
-                    "k": [0.070588238537, 0.074509806931, 0.192156866193, 1],
-                    "ix": 3
+                    "k": [0.071, 0.075, 0.192, 1],
+                    "ix": 3,
+                    "x": "var $bm_rt;\n$bm_rt = comp('wired-outline-1250-ribbon-death-cancer').layer('control').effect('primary')('Color');"
                   },
                   "o": { "a": 0, "k": 100, "ix": 4 },
                   "w": {
                     "a": 0,
-                    "k": 18,
+                    "k": 12,
                     "ix": 5,
-                    "x": "var $bm_rt;\n$bm_rt = $bm_mul($bm_div(value, 3), comp('wired-gradient-1250-ribbon-death-cancer').layer('control').effect('stroke')('Menu'));"
+                    "x": "var $bm_rt;\n$bm_rt = $bm_mul($bm_div(value, 2), comp('wired-outline-1250-ribbon-death-cancer').layer('control').effect('stroke')('Menu'));"
                   },
                   "lc": 2,
                   "lj": 2,
@@ -3139,7 +2690,6 @@
           "ip": 0,
           "op": 844,
           "st": 0,
-          "ct": 1,
           "bm": 0
         }
       ]
@@ -3165,16 +2715,16 @@
           "ty": 5,
           "nm": "stroke",
           "np": 3,
-          "mn": "Pseudo/@@EmTgu0QAR1GTpmMJFEIWOQ",
+          "mn": "Pseudo/@@HblULz11Qzmo5OYSunI31Q",
           "ix": 1,
           "en": 1,
           "ef": [
             {
               "ty": 7,
               "nm": "Menu",
-              "mn": "Pseudo/@@EmTgu0QAR1GTpmMJFEIWOQ-0001",
+              "mn": "Pseudo/@@HblULz11Qzmo5OYSunI31Q-0001",
               "ix": 1,
-              "v": { "a": 0, "k": 3, "ix": 1 }
+              "v": { "a": 0, "k": 2, "ix": 1 }
             }
           ]
         },
@@ -3191,7 +2741,7 @@
               "nm": "Color",
               "mn": "ADBE Color Control-0001",
               "ix": 1,
-              "v": { "a": 0, "k": [0.537, 0.188, 0.91], "ix": 1 }
+              "v": { "a": 0, "k": [0.071, 0.075, 0.192], "ix": 1 }
             }
           ]
         },
@@ -3208,7 +2758,7 @@
               "nm": "Color",
               "mn": "ADBE Color Control-0001",
               "ix": 1,
-              "v": { "a": 0, "k": [0.086, 0.663, 0.78], "ix": 1 }
+              "v": { "a": 0, "k": [0.031, 0.659, 0.541], "ix": 1 }
             }
           ]
         }
@@ -3245,7 +2795,7 @@
       "ind": 3,
       "ty": 0,
       "nm": "hover-pinch",
-      "refId": "comp_2",
+      "refId": "comp_1",
       "sr": 1,
       "ks": {
         "o": { "a": 0, "k": 100, "ix": 11 },
@@ -3266,6 +2816,5 @@
   "markers": [
     { "tm": 0, "cm": "in-reveal", "dr": 60 },
     { "tm": 70, "cm": "default:hover-pinch", "dr": 180 }
-  ],
-  "props": {}
+  ]
 }

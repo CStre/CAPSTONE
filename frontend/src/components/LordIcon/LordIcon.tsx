@@ -112,7 +112,7 @@ export const ICONS = {
   learn03Fastfood: '/icons/LearnPage/Lesson_3/wired-outline-562-fastfood-hover-pinch.json',
   learn03Phone: '/icons/LearnPage/Lesson_3/wired-outline-721-hand-with-phone-hover-scroll.json',
   learn03Ribbon:
-    '/icons/LearnPage/Lesson_3/wired-gradient-1250-ribbon-death-cancer-hover-pinch.json',
+    '/icons/LearnPage/Lesson_3/wired-outline-1250-ribbon-death-cancer-hover-pinch.json',
   learn03Sleep:
     '/icons/LearnPage/Lesson_3/wired-outline-668-sleeping-in-bed-sleepy-hover-pinch.json',
   learn03Coffee: '/icons/LearnPage/Lesson_3/wired-outline-239-coffee-hover-cheers.json',

@@ -39,7 +39,6 @@ export const theHumanCost: LearnSection = {
     },
     {
       icon: ICONS.learn03Ribbon,
-      colors: 'primary:#8930e8,secondary:#16a9c7',
       title: 'Self-harm and suicide',
       body: `This is the severe tail, and it is documented. Among teens reporting suicidal thoughts, 13% in the UK and 6% in the US traced those thoughts to Instagram, per Meta's internal research. Molly Russell, 14, received emails titled "10 depression pins you might like" before her death, which a coroner tied in part to algorithmic content. Rare, but real — and the reason precaution is the right default.`,
     },
