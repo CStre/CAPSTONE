@@ -192,7 +192,6 @@
     border-color 0.2s,
     transform 0.1s;
   backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
 }
 
 .account-form button[type='submit']:hover:not(:disabled) {
@@ -338,7 +337,6 @@
     border-color 0.2s,
     transform 0.1s;
   backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
 }
 
 .account-btn:hover:not(:disabled) {

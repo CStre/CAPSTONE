@@ -18,6 +18,15 @@
     <!-- 4. Android/Chrome Manifest: Connects mobile launcher icons -->
     <link rel="manifest" href="./public/site.webmanifest" />
 
+    <!-- Poppins — the brand typeface. Loaded via <link> (not a CSS @import) so the
+         Lightning CSS build pipeline doesn't try to resolve the remote URL. -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap"
+    />
+
     <!-- Apply saved theme before React mounts to prevent flash of wrong theme. -->
     <script src="/theme-init.js"></script>
   </head>

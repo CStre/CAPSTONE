@@ -1,5 +1,6 @@
-/* Poppins — the v1 brand typeface. */
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap');
+/* Poppins (the brand typeface) is loaded via a <link> in index.html — not an
+   @import here — so the Lightning CSS build pipeline doesn't try to resolve the
+   remote URL as a local file. */
 
 /* ── Colour palettes ──────────────────────────────────────────────────────── */
 
@@ -179,7 +180,6 @@ a {
 .glass-card {
   background: rgba(255, 255, 255, 0.14);
   backdrop-filter: blur(18px) saturate(180%);
-  -webkit-backdrop-filter: blur(18px) saturate(180%);
   border: 1px solid rgba(255, 255, 255, 0.22);
   box-shadow:
     0 12px 40px rgba(0, 0, 0, 0.25),

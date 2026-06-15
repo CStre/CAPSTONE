@@ -16,7 +16,6 @@
 
   background: rgba(46, 57, 68, 0.38);
   backdrop-filter: blur(44px) saturate(2) brightness(0.82);
-  -webkit-backdrop-filter: blur(44px) saturate(2) brightness(0.82);
   border: 1px solid rgba(211, 217, 212, 0.16);
   box-shadow:
     0 16px 52px rgba(0, 0, 0, 0.55),
@@ -33,7 +32,6 @@
 [data-theme='light'] .dropdown-panel {
   background: rgba(255, 255, 255, 0.32);
   backdrop-filter: blur(44px) saturate(1.8) brightness(1.1);
-  -webkit-backdrop-filter: blur(44px) saturate(1.8) brightness(1.1);
   border-color: rgba(255, 255, 255, 0.75);
   box-shadow:
     0 16px 52px rgba(0, 0, 0, 0.12),

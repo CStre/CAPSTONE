@@ -5,7 +5,9 @@ deployed to S3 + CloudFront.
 
 ## Stack
 
-- **Vite** + **React 19** (TypeScript, strict)
+- **Vite** + **React 19** (TypeScript, strict) — CSS processed by **Lightning CSS**
+  (vendor-prefixes `backdrop-filter` etc. from browserslist; esbuild's minifier
+  mishandled the prefix pair, breaking frosted-glass surfaces in Chrome)
 - **React Router** — client-side routing _(added with the app shell)_
 - **urql** + **GraphQL Code Generator** — typed GraphQL operations from the backend schema
 - **AWS Amplify Auth** — Cognito sign-in + TOTP MFA (wired to deployed Cognito pool)
