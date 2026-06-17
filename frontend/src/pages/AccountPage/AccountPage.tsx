@@ -26,11 +26,14 @@ import {
 } from 'aws-amplify/auth';
 import { graphql } from '../../gql';
 import { useAuth } from '../../auth/context';
+import { useLearnProgressOptional } from '../LearnPage/LearnProgressContext';
 import { useTheme } from '../../lib/ThemeContext';
 import { useCanvasAnimation } from '../../components/CanvasAnimation/useCanvasAnimation';
 import { Loader } from '../../components/Loader/Loader';
-import { LordIcon, ICONS } from '../../components/LordIcon/LordIcon';
+import { LordIcon, ICONS } from '../../icons';
 import { GlassCard } from '../../components/GlassCard/GlassCard';
+import { GooeyButton } from '../../components/GooeyButton/GooeyButton';
+import { useGooeyEffect } from '../../components/GlassIsland/useGooeyEffect';
 import '../../auth/auth.css';
 import '../../components/SecurityInfo/SecurityInfo.css';
 import { PasswordStrength, getStrength } from '../../components/PasswordStrength/PasswordStrength';
@@ -48,7 +51,17 @@ const DeleteAccountMutation = graphql(`
 `);
 
 type Status = { tone: 'ok' | 'error'; message: string } | null;
-type Popup = 'emailVerify' | 'totp' | 'delete' | 'passwordReset' | 'phoneVerify' | null;
+type Popup =
+  | 'emailVerify'
+  | 'totp'
+  | 'delete'
+  | 'passwordReset'
+  | 'phoneVerify'
+  | 'clearLearning'
+  | 'clearPreferences'
+  | 'downloadData'
+  | 'downloadResearch'
+  | null;
 
 function errorMessage(error: unknown): string {
   return error instanceof Error ? error.message : 'Something went wrong. Try again.';
@@ -76,12 +89,15 @@ function AccountPopup({
   danger,
   icon,
   title,
+  hoverState,
   children,
 }: {
   onClose: () => void;
   danger?: boolean;
   icon?: string;
   title?: string;
+  /** Lordicon hover marker used once the in-reveal hands off (e.g. 'hover-empty'). */
+  hoverState?: string;
   children: ReactNode;
 }): ReactElement {
   const [iconPhase, setIconPhase] = useState<'in' | 'idle'>('in');
@@ -121,7 +137,14 @@ function AccountPopup({
                 stroke="bold"
               />
             ) : (
-              <LordIcon key="popup-icon-idle" src={icon} size={64} trigger="hover" stroke="bold" />
+              <LordIcon
+                key="popup-icon-idle"
+                src={icon}
+                size={64}
+                trigger="hover"
+                state={hoverState}
+                stroke="bold"
+              />
             )}
             <h2 className="si-heading">{title}</h2>
           </div>
@@ -145,16 +168,48 @@ function StatusBadge({
   labelOn: string;
   labelOff: string;
 }): ReactElement {
+  const badgeRef = useRef<HTMLSpanElement>(null);
+  useGooeyEffect(badgeRef, 120, 0.12);
+
+  // Off (Not verified / Not enrolled) icon plays its in-reveal on mount, then
+  // hands off to the hover animation — same phase logic as the page header icons.
+  const [offPhase, setOffPhase] = useState<'in' | 'idle'>('in');
+  const offTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    offTimerRef.current = setTimeout(() => {
+      setOffPhase('idle');
+    }, 2000);
+    return () => {
+      if (offTimerRef.current !== null) clearTimeout(offTimerRef.current);
+    };
+  }, []);
+
   return (
     <span
+      ref={badgeRef}
       className={`account-totp-badge${on ? ' account-totp-badge--on' : ' account-totp-badge--off'}`}
     >
-      <LordIcon
-        src={on ? ICONS.statusVerified : ICONS.statusUnverified}
-        size={22}
-        trigger="hover"
-        colors={on ? STATUS_GREEN : STATUS_RED}
-      />
+      {on ? (
+        <LordIcon src={ICONS.statusVerified} size={22} trigger="hover" colors={STATUS_GREEN} />
+      ) : offPhase === 'in' ? (
+        <LordIcon
+          key="off-in"
+          src={ICONS.statusUnverified}
+          size={22}
+          trigger="in"
+          state="in-reveal"
+          colors={STATUS_RED}
+        />
+      ) : (
+        <LordIcon
+          key="off-idle"
+          src={ICONS.statusUnverified}
+          size={22}
+          trigger="hover"
+          state="hover-pinch"
+          colors={STATUS_RED}
+        />
+      )}
       {on ? labelOn : labelOff}
     </span>
   );
@@ -168,8 +223,10 @@ export function AccountPage(): ReactElement {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   useCanvasAnimation(canvasRef, theme);
 
+  const learnProgress = useLearnProgressOptional();
   const [popup, setPopup] = useState<Popup>(null);
   const [showSecurity, setShowSecurity] = useState(false);
+  const [accountTab, setAccountTab] = useState<'user' | 'data'>('user');
   const [iconPhase, setIconPhase] = useState<'in' | 'idle'>('in');
   const iconTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -488,7 +545,7 @@ export function AccountPage(): ReactElement {
                 stroke="bold"
               />
             )}
-            <h1>Account</h1>
+            <h1>Account Settings</h1>
             <button
               type="button"
               className="auth-security-btn"
@@ -497,7 +554,7 @@ export function AccountPage(): ReactElement {
               }}
               aria-label="How is my data protected?"
             >
-              <LordIcon src={ICONS.securityShield} size={22} trigger="hover" stroke="bold" />
+              <LordIcon src={ICONS.securityShield} size={34} trigger="hover" stroke="bold" />
             </button>
           </div>
 
@@ -513,247 +570,344 @@ export function AccountPage(): ReactElement {
             </div>
           </div>
 
-          {/* ── Update name ───────────────────────────────────────────── */}
-          <div className="account-section">
-            <h2 className="account-section-h2--center">Update name</h2>
-            <div className="account-update-grid">
-              {/* First name */}
-              <form className="account-form" onSubmit={(e) => void saveFirstName(e)}>
-                <label>
-                  First name
-                  <input
-                    type="text"
-                    value={firstName}
-                    required
-                    maxLength={20}
-                    autoComplete="given-name"
-                    onChange={(e) => {
-                      setFirstName(capitalizeFirst(e.target.value.slice(0, 20)));
-                    }}
-                  />
-                </label>
-                <button type="submit" disabled={savingFirstName}>
-                  {savingFirstName ? 'Saving…' : 'Update first name'}
-                </button>
-                {firstNameStatus && (
-                  <p className={`account-status account-status--${firstNameStatus.tone}`}>
-                    {firstNameStatus.message}
-                  </p>
-                )}
-              </form>
-
-              {/* Last name */}
-              <form className="account-form" onSubmit={(e) => void saveLastName(e)}>
-                <label>
-                  Last name
-                  <input
-                    type="text"
-                    value={lastName}
-                    required
-                    maxLength={20}
-                    autoComplete="family-name"
-                    onChange={(e) => {
-                      setLastName(capitalizeFirst(e.target.value.slice(0, 20)));
-                    }}
-                  />
-                </label>
-                <button type="submit" disabled={savingLastName}>
-                  {savingLastName ? 'Saving…' : 'Update last name'}
-                </button>
-                {lastNameStatus && (
-                  <p className={`account-status account-status--${lastNameStatus.tone}`}>
-                    {lastNameStatus.message}
-                  </p>
-                )}
-              </form>
-            </div>
-          </div>
-
-          {/* ── Update contact ────────────────────────────────────────── */}
-          <div className="account-section">
-            <h2 className="account-section-h2--center">Update contact</h2>
-            <div className="account-update-grid">
-              {/* Email address */}
-              <form className="account-form" onSubmit={(e) => void saveEmail(e)}>
-                <label>
-                  <span className="account-label-row">
-                    Email address
-                    {emailVerified !== null && (
-                      <StatusBadge on={emailVerified} labelOn="Verified" labelOff="Not verified" />
-                    )}
-                  </span>
-                  <input
-                    type="email"
-                    value={email}
-                    required
-                    maxLength={50}
-                    autoComplete="email"
-                    onChange={(e) => {
-                      setEmail(e.target.value.slice(0, 50));
-                    }}
-                  />
-                </label>
-                <button type="submit" disabled={savingEmail}>
-                  {savingEmail ? 'Sending code…' : 'Update email'}
-                </button>
-                {emailStatus && (
-                  <p className={`account-status account-status--${emailStatus.tone}`}>
-                    {emailStatus.message}
-                  </p>
-                )}
-              </form>
-
-              {/* Phone number */}
-              <form className="account-form" onSubmit={(e) => void savePhone(e)}>
-                <label>
-                  <span className="account-label-row">
-                    Phone number
-                    {phoneVerified !== null && (
-                      <StatusBadge on={phoneVerified} labelOn="Verified" labelOff="Not verified" />
-                    )}
-                  </span>
-                  <PhoneInput value={phone} onChange={setPhone} required />
-                </label>
-                <div className="auth-sms-consent-row">
-                  <button
-                    type="button"
-                    className={`auth-sms-circle-btn${phoneVerifyNow ? ' is-checked' : ''}`}
-                    aria-label={phoneVerifyNow ? 'Unacknowledge terms' : 'Acknowledge terms'}
-                    onClick={() => {
-                      setPhoneVerifyNow((v) => !v);
-                    }}
-                  >
-                    {phoneVerifyNow ? '✓' : ''}
-                  </button>
-                  <span className="auth-sms-acknowledge-label">Acknowledge &amp; verify</span>
-                  <button
-                    type="button"
-                    className="auth-link"
-                    style={{ marginLeft: 'auto' }}
-                    onClick={() => {
-                      setShowSmsConsent(true);
-                    }}
-                  >
-                    Messaging terms
-                  </button>
-                </div>
-                <button type="submit" disabled={savingPhone}>
-                  {savingPhone
-                    ? phoneVerifyNow
-                      ? 'Sending code…'
-                      : 'Saving…'
-                    : phoneVerifyNow
-                      ? 'Update & verify'
-                      : 'Update phone'}
-                </button>
-                {phoneStatus && (
-                  <p className={`account-status account-status--${phoneStatus.tone}`}>
-                    {phoneStatus.message}
-                  </p>
-                )}
-              </form>
-            </div>
-          </div>
-          {showSmsConsent && (
-            <SmsConsent
-              onClose={() => {
-                setShowSmsConsent(false);
+          {/* ── Settings tabs ────────────────────────────────────────── */}
+          <div className="account-tabs" role="tablist" aria-label="Account settings sections">
+            <GooeyButton
+              role="tab"
+              aria-selected={accountTab === 'user'}
+              className={`account-tab${accountTab === 'user' ? ' account-tab--active' : ''}`}
+              onClick={() => {
+                setAccountTab('user');
               }}
-            />
+            >
+              User Settings
+            </GooeyButton>
+            <GooeyButton
+              role="tab"
+              aria-selected={accountTab === 'data'}
+              className={`account-tab${accountTab === 'data' ? ' account-tab--active' : ''}`}
+              onClick={() => {
+                setAccountTab('data');
+              }}
+            >
+              Data Settings
+            </GooeyButton>
+          </div>
+
+          {/* ── User Settings tab ────────────────────────────────────── */}
+          {accountTab === 'user' && (
+            <div className="account-tab-panel">
+              {/* ── Update name ───────────────────────────────────────────── */}
+              <div className="account-section">
+                <h2 className="account-section-h2--center">Name Change</h2>
+                <div className="account-update-grid">
+                  {/* First name */}
+                  <form className="account-form" onSubmit={(e) => void saveFirstName(e)}>
+                    <label>
+                      First name
+                      <input
+                        type="text"
+                        value={firstName}
+                        required
+                        maxLength={20}
+                        autoComplete="given-name"
+                        onChange={(e) => {
+                          setFirstName(capitalizeFirst(e.target.value.slice(0, 20)));
+                        }}
+                      />
+                    </label>
+                    <button type="submit" disabled={savingFirstName}>
+                      {savingFirstName ? 'Saving…' : 'Update first name'}
+                    </button>
+                    {firstNameStatus && (
+                      <p className={`account-status account-status--${firstNameStatus.tone}`}>
+                        {firstNameStatus.message}
+                      </p>
+                    )}
+                  </form>
+
+                  {/* Last name */}
+                  <form className="account-form" onSubmit={(e) => void saveLastName(e)}>
+                    <label>
+                      Last name
+                      <input
+                        type="text"
+                        value={lastName}
+                        required
+                        maxLength={20}
+                        autoComplete="family-name"
+                        onChange={(e) => {
+                          setLastName(capitalizeFirst(e.target.value.slice(0, 20)));
+                        }}
+                      />
+                    </label>
+                    <button type="submit" disabled={savingLastName}>
+                      {savingLastName ? 'Saving…' : 'Update last name'}
+                    </button>
+                    {lastNameStatus && (
+                      <p className={`account-status account-status--${lastNameStatus.tone}`}>
+                        {lastNameStatus.message}
+                      </p>
+                    )}
+                  </form>
+                </div>
+              </div>
+
+              {/* ── Update contact ────────────────────────────────────────── */}
+              <div className="account-section">
+                <h2 className="account-section-h2--center">Update Contact</h2>
+                <div className="account-update-grid">
+                  {/* Email address */}
+                  <form className="account-form" onSubmit={(e) => void saveEmail(e)}>
+                    <label>
+                      <span className="account-label-row">
+                        Email address
+                        {emailVerified !== null && (
+                          <StatusBadge
+                            on={emailVerified}
+                            labelOn="Verified"
+                            labelOff="Not verified"
+                          />
+                        )}
+                      </span>
+                      <input
+                        type="email"
+                        value={email}
+                        required
+                        maxLength={50}
+                        autoComplete="email"
+                        onChange={(e) => {
+                          setEmail(e.target.value.slice(0, 50));
+                        }}
+                      />
+                    </label>
+                    <button type="submit" disabled={savingEmail}>
+                      {savingEmail ? 'Sending code…' : 'Update email'}
+                    </button>
+                    {emailStatus && (
+                      <p className={`account-status account-status--${emailStatus.tone}`}>
+                        {emailStatus.message}
+                      </p>
+                    )}
+                  </form>
+
+                  {/* Phone number */}
+                  <form className="account-form" onSubmit={(e) => void savePhone(e)}>
+                    <label>
+                      <span className="account-label-row">
+                        Phone number
+                        {phoneVerified !== null && (
+                          <StatusBadge
+                            on={phoneVerified}
+                            labelOn="Verified"
+                            labelOff="Not verified"
+                          />
+                        )}
+                      </span>
+                      <PhoneInput value={phone} onChange={setPhone} required />
+                    </label>
+                    <div className="auth-sms-consent-row">
+                      <button
+                        type="button"
+                        className={`auth-sms-circle-btn${phoneVerifyNow ? ' is-checked' : ''}`}
+                        aria-label={phoneVerifyNow ? 'Unacknowledge terms' : 'Acknowledge terms'}
+                        onClick={() => {
+                          setPhoneVerifyNow((v) => !v);
+                        }}
+                      >
+                        {phoneVerifyNow ? '✓' : ''}
+                      </button>
+                      <span className="auth-sms-acknowledge-label">Acknowledge &amp; verify</span>
+                      <GooeyButton
+                        className="auth-link"
+                        style={{ marginLeft: 'auto' }}
+                        onClick={() => {
+                          setShowSmsConsent(true);
+                        }}
+                      >
+                        Messaging terms
+                      </GooeyButton>
+                    </div>
+                    <button type="submit" disabled={savingPhone}>
+                      {savingPhone
+                        ? phoneVerifyNow
+                          ? 'Sending code…'
+                          : 'Saving…'
+                        : phoneVerifyNow
+                          ? 'Update & verify'
+                          : 'Update phone'}
+                    </button>
+                    {phoneStatus && (
+                      <p className={`account-status account-status--${phoneStatus.tone}`}>
+                        {phoneStatus.message}
+                      </p>
+                    )}
+                  </form>
+                </div>
+              </div>
+              {showSmsConsent && (
+                <SmsConsent
+                  onClose={() => {
+                    setShowSmsConsent(false);
+                  }}
+                />
+              )}
+
+              {/* ── Password ─────────────────────────────────────────────── */}
+              <div className="account-section">
+                <h2 className="account-section-h2--center">Change Password</h2>
+                <div className="account-section-body--narrow">
+                  <form className="account-form" onSubmit={(e) => void sendPasswordResetCode(e)}>
+                    <label>
+                      New password
+                      <input
+                        type="password"
+                        value={newPassword}
+                        required
+                        minLength={8}
+                        maxLength={50}
+                        autoComplete="new-password"
+                        onChange={(e) => {
+                          setNewPassword(e.target.value.slice(0, 50));
+                        }}
+                      />
+                    </label>
+                    <PasswordStrength password={newPassword} />
+                    <button
+                      type="submit"
+                      disabled={
+                        sendingResetCode || getStrength(newPassword) === 'weak' || !newPassword
+                      }
+                    >
+                      {sendingResetCode ? 'Sending code…' : 'Send reset code to email'}
+                    </button>
+                    {passwordStatus && (
+                      <p className={`account-status account-status--${passwordStatus.tone}`}>
+                        {passwordStatus.message}
+                      </p>
+                    )}
+                  </form>
+                </div>
+              </div>
+
+              {/* ── Two-factor auth ──────────────────────────────────────── */}
+              <div className="account-section">
+                <div className="account-section-title-row account-section-title-row--center">
+                  <h2>Two-factor authentication</h2>
+                  {totpEnrolled !== null && (
+                    <StatusBadge on={totpEnrolled} labelOn="TOTP enabled" labelOff="Not enrolled" />
+                  )}
+                </div>
+                <div className="account-section-body--narrow">
+                  {totpEnrolled === null ? (
+                    <p className="account-note">Checking status…</p>
+                  ) : (
+                    <div className="account-totp-row">
+                      {totpSuccess && (
+                        <span className="account-status account-status--ok">
+                          Authenticator updated.
+                        </span>
+                      )}
+                      <button
+                        type="button"
+                        className="account-btn"
+                        disabled={totpPending}
+                        onClick={() => void openTotpSetup()}
+                      >
+                        {totpPending
+                          ? 'Loading…'
+                          : totpEnrolled
+                            ? 'Re-enroll authenticator'
+                            : 'Set up authenticator'}
+                      </button>
+                      {totpError && (
+                        <p className="account-status account-status--error">{totpError}</p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
           )}
 
-          {/* ── Password ─────────────────────────────────────────────── */}
-          <div className="account-section">
-            <h2 className="account-section-h2--center">Change password</h2>
-            <div className="account-section-body--narrow">
-              <form className="account-form" onSubmit={(e) => void sendPasswordResetCode(e)}>
-                <label>
-                  New password
-                  <input
-                    type="password"
-                    value={newPassword}
-                    required
-                    minLength={8}
-                    maxLength={50}
-                    autoComplete="new-password"
-                    onChange={(e) => {
-                      setNewPassword(e.target.value.slice(0, 50));
-                    }}
-                  />
-                </label>
-                <PasswordStrength password={newPassword} />
-                <button
-                  type="submit"
-                  disabled={sendingResetCode || getStrength(newPassword) === 'weak' || !newPassword}
-                >
-                  {sendingResetCode ? 'Sending code…' : 'Send reset code to email'}
-                </button>
-                {passwordStatus && (
-                  <p className={`account-status account-status--${passwordStatus.tone}`}>
-                    {passwordStatus.message}
-                  </p>
-                )}
-              </form>
-            </div>
-          </div>
+          {/* ── Data Settings tab ────────────────────────────────────── */}
+          {accountTab === 'data' && (
+            <div className="account-tab-panel">
+              {/* ── Data request ──────────────────────────────────────── */}
+              <div className="account-section">
+                <h2 className="account-section-h2--center">Data Request</h2>
+                <div className="account-section-body--narrow">
+                  <div className="account-btn-row">
+                    <button
+                      type="button"
+                      className="account-btn"
+                      onClick={() => {
+                        setPopup('downloadData');
+                      }}
+                    >
+                      Download your data
+                    </button>
+                    <button
+                      type="button"
+                      className="account-btn"
+                      onClick={() => {
+                        setPopup('downloadResearch');
+                      }}
+                    >
+                      Download our research
+                    </button>
+                  </div>
+                </div>
+              </div>
 
-          {/* ── Two-factor auth ──────────────────────────────────────── */}
-          <div className="account-section">
-            <div className="account-section-title-row account-section-title-row--center">
-              <h2>Two-factor authentication</h2>
-              {totpEnrolled !== null && (
-                <StatusBadge on={totpEnrolled} labelOn="TOTP enabled" labelOff="Not enrolled" />
-              )}
-            </div>
-            <div className="account-section-body--narrow">
-              {totpEnrolled === null ? (
-                <p className="account-note">Checking status…</p>
-              ) : (
-                <div className="account-totp-row">
-                  {totpSuccess && (
-                    <span className="account-status account-status--ok">
-                      Authenticator updated.
-                    </span>
-                  )}
+              {/* ── Reset your progress ───────────────────────────────── */}
+              <div className="account-section account-section--danger">
+                <h2 className="account-section-h2--center">Reset Your Progress</h2>
+                <div className="account-section-body--narrow">
+                  <div className="account-btn-row">
+                    <button
+                      type="button"
+                      className="account-btn account-btn--danger"
+                      onClick={() => {
+                        setPopup('clearLearning');
+                      }}
+                    >
+                      Reset learning progress
+                    </button>
+                    <button
+                      type="button"
+                      className="account-btn account-btn--danger"
+                      onClick={() => {
+                        setPopup('clearPreferences');
+                      }}
+                    >
+                      Clear preferences data
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* ── Delete account ───────────────────────────────────────── */}
+              <div className="account-section account-section--danger">
+                <h2 className="account-section-h2--center">Delete account</h2>
+                <div className="account-section-body--narrow">
+                  <p className="account-note">
+                    Permanently erases your preference data and entire account.
+                  </p>
                   <button
                     type="button"
-                    className="account-btn"
-                    disabled={totpPending}
-                    onClick={() => void openTotpSetup()}
+                    className="account-btn account-btn--danger"
+                    onClick={() => {
+                      setDeleteError(null);
+                      setPopup('delete');
+                    }}
                   >
-                    {totpPending
-                      ? 'Loading…'
-                      : totpEnrolled
-                        ? 'Re-enroll authenticator'
-                        : 'Set up authenticator'}
+                    Delete my account
                   </button>
-                  {totpError && <p className="account-status account-status--error">{totpError}</p>}
                 </div>
-              )}
+              </div>
             </div>
-          </div>
-
-          {/* ── Delete account ───────────────────────────────────────── */}
-          <div className="account-section account-section--danger">
-            <h2 className="account-section-title--danger account-section-h2--center">
-              Delete account
-            </h2>
-            <div className="account-section-body--narrow">
-              <p className="account-note">
-                Permanently erases your preference data and entire account.
-              </p>
-              <button
-                type="button"
-                className="account-btn account-btn--danger"
-                onClick={() => {
-                  setDeleteError(null);
-                  setPopup('delete');
-                }}
-              >
-                Delete my account
-              </button>
-            </div>
-          </div>
+          )}
         </GlassCard>
       </section>
 
@@ -839,12 +993,14 @@ export function AccountPage(): ReactElement {
       {popup === 'delete' && (
         <AccountPopup
           danger
+          icon={ICONS.deleteAccount}
+          title="Delete account?"
+          hoverState="hover-click"
           onClose={() => {
             setPopup(null);
           }}
         >
           <div className="auth-form">
-            <h2>Delete account?</h2>
             <p className="auth-description">
               This permanently removes your preference data and Cognito account. This action cannot
               be undone.
@@ -858,6 +1014,124 @@ export function AccountPage(): ReactElement {
               {deletion.fetching ? 'Deleting…' : 'Delete my account'}
             </button>
             {deleteError && <p className="auth-error">{deleteError}</p>}
+          </div>
+        </AccountPopup>
+      )}
+
+      {/* ── Clear learning progress popup ─────────────────────────────────── */}
+      {popup === 'clearLearning' && (
+        <AccountPopup
+          danger
+          icon={ICONS.resetLearning}
+          title="Reset learning progress?"
+          hoverState="hover-cycle"
+          onClose={() => {
+            setPopup(null);
+          }}
+        >
+          <div className="auth-form">
+            <p className="auth-description">
+              This permanently removes all of your saved learning progress. Your account data will
+              be fully erased and this action cannot be undone.
+            </p>
+            <button
+              type="button"
+              className="account-btn account-btn--danger"
+              onClick={() => {
+                void learnProgress?.resetProgress();
+                setPopup(null);
+              }}
+            >
+              Reset learning progress
+            </button>
+          </div>
+        </AccountPopup>
+      )}
+
+      {/* ── Clear preferences data popup ──────────────────────────────────── */}
+      {popup === 'clearPreferences' && (
+        <AccountPopup
+          danger
+          icon={ICONS.clearPreferences}
+          title="Clear preferences data?"
+          hoverState="hover-trash"
+          onClose={() => {
+            setPopup(null);
+          }}
+        >
+          <div className="auth-form">
+            <p className="auth-description">
+              This permanently removes all of your learned country preferences. Your account data
+              will be fully erased and this action cannot be undone.
+            </p>
+            <button
+              type="button"
+              className="account-btn account-btn--danger"
+              onClick={() => {
+                setPopup(null);
+              }}
+            >
+              Clear preferences data
+            </button>
+          </div>
+        </AccountPopup>
+      )}
+
+      {/* ── Download your data popup ──────────────────────────────────────── */}
+      {popup === 'downloadData' && (
+        <AccountPopup
+          icon={ICONS.downloadData}
+          title="Download your data?"
+          hoverState="hover-slide"
+          onClose={() => {
+            setPopup(null);
+          }}
+        >
+          <div className="auth-form">
+            <p className="auth-description">
+              We will generate a PDF and download it to your browser. It is a user-friendly,
+              formatted report of all the data we hold about you — explaining what each piece of
+              data means, how it is used, and how it was collected.
+            </p>
+            <button
+              type="button"
+              className="account-btn"
+              onClick={() => {
+                setPopup(null);
+              }}
+            >
+              Download your data
+            </button>
+          </div>
+        </AccountPopup>
+      )}
+
+      {/* ── Download our research popup ───────────────────────────────────── */}
+      {popup === 'downloadResearch' && (
+        <AccountPopup
+          icon={ICONS.downloadResearch}
+          title="Download our research?"
+          hoverState="hover-swipe"
+          onClose={() => {
+            setPopup(null);
+          }}
+        >
+          <div className="auth-form">
+            <p className="auth-description">
+              Your email address will be shared with us in order to request the research. The
+              research is downloaded to your browser as a PDF and is protected material — © Building
+              Better Algorithms. All rights reserved; it may not be redistributed without
+              permission.
+            </p>
+            <button
+              type="button"
+              className="account-btn"
+              onClick={() => {
+                setPopup(null);
+              }}
+            >
+              Download our research
+            </button>
           </div>
         </AccountPopup>
       )}

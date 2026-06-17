@@ -10,7 +10,7 @@
  */
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { ReactElement } from 'react';
-import { LordIcon, ICONS } from '../../../components/LordIcon/LordIcon';
+import { LordIcon, ICONS } from '../../../icons';
 import { GooeyButton } from '../../../components/GooeyButton/GooeyButton';
 import type { LearnSection } from '../types';
 import { useLearnProgress } from '../LearnProgressContext';

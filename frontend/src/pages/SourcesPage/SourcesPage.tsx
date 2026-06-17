@@ -7,17 +7,17 @@
  *
  *   1. A full-width hero glass card introducing the page's scholarly purpose.
  *   2. A left-to-right organisation logo marquee.
- *   3. Two card-carousel sections — academic references then technical credits —
- *      each preceded by a glass section-header card.
+ *   3. The academic-references card carousel, preceded by a glass section-header
+ *      card and grouped into categories.
  *
- * Cards scale/fade via CSS custom properties set each frame by useCarouselScroll,
- * so cards near the viewport centre read at full size and recede gracefully above
- * and below. Research references render in AMA (11th ed.) style from `references.ts`.
+ * Cards scale + spread via CSS custom properties set each frame by useCarouselScroll,
+ * so the card nearest the viewport centre grows while its neighbours open away from
+ * it. Research references render in AMA (11th ed.) style from `references.ts`.
  */
 import { useEffect, useRef, useState } from 'react';
 import type { ReactElement, RefObject } from 'react';
 import { useStringsAnimation } from '../../components/StringsAnimation/useStringsAnimation';
-import { ICONS, LordIcon } from '../../components/LordIcon/LordIcon';
+import { ICONS, LordIcon } from '../../icons';
 import { GlassCard } from '../../components/GlassCard/GlassCard';
 import { useTheme } from '../../lib/ThemeContext';
 import { RESEARCH_REFERENCES } from './references';
@@ -28,168 +28,11 @@ interface Credit {
   url: string;
 }
 
-interface CreditCategory {
-  title: string;
-  items: Credit[];
-}
-
 interface Organisation {
   name: string;
   logoLight: string;
   logoDark: string;
 }
-
-/* ── Tooling & platform credits ──────────────────────────────────────────── */
-
-const ALGORITHM: Credit[] = [
-  {
-    citation: '"Recommendation system in Python." GeeksforGeeks.',
-    url: 'https://www.geeksforgeeks.org/recommendation-system-in-python/',
-  },
-  {
-    citation: '"Build a recommendation engine with collaborative filtering." Real Python.',
-    url: 'https://realpython.com/build-recommendation-engine-collaborative-filtering/',
-  },
-  {
-    citation: '"Recommender Systems in Python." DataCamp.',
-    url: 'https://www.datacamp.com/tutorial/recommender-systems-python',
-  },
-  {
-    citation: 'Moreira, G. S. P. "Recommender Systems in Python 101." Kaggle.',
-    url: 'https://www.kaggle.com/code/gspmoreira/recommender-systems-in-python-101',
-  },
-  {
-    citation: 'Unsplash API documentation — photo search and download-tracking protocols.',
-    url: 'https://unsplash.com/documentation',
-  },
-];
-
-const FRONTEND: Credit[] = [
-  { citation: 'React — declarative component-based UI library.', url: 'https://react.dev' },
-  {
-    citation: 'React Router — declarative client-side routing for single-page applications.',
-    url: 'https://reactrouter.com',
-  },
-  {
-    citation: 'Vite — next-generation frontend build tooling with native ESM support.',
-    url: 'https://vite.dev',
-  },
-  {
-    citation:
-      'TypeScript — statically typed superset of JavaScript enabling end-to-end type safety.',
-    url: 'https://www.typescriptlang.org',
-  },
-  {
-    citation:
-      'React Google Charts — GeoChart world-map visualisation of preference scores on the Dashboard.',
-    url: 'https://www.react-google-charts.com/',
-  },
-  {
-    citation:
-      'AWS Amplify Auth — Cognito-backed sign-up, sign-in, and TOTP multi-factor authentication.',
-    url: 'https://docs.amplify.aws/react/build-a-backend/auth/',
-  },
-  {
-    citation: 'urql — lightweight, extensible GraphQL client with first-class TypeScript support.',
-    url: 'https://commerce.nearform.com/open-source/urql/',
-  },
-  {
-    citation:
-      'GraphQL Code Generator — emits fully-typed client operations from the backend schema.',
-    url: 'https://the-guild.dev/graphql/codegen',
-  },
-];
-
-const INFRASTRUCTURE: Credit[] = [
-  {
-    citation:
-      'GraphQL Yoga — standards-compliant GraphQL server running within the AWS Lambda execution environment.',
-    url: 'https://the-guild.dev/graphql/yoga-server',
-  },
-  {
-    citation:
-      'Pothos — code-first, type-safe GraphQL schema builder eliminating schema-code divergence.',
-    url: 'https://pothos-graphql.dev',
-  },
-  {
-    citation: 'AWS Lambda — serverless compute substrate underpinning the GraphQL API layer.',
-    url: 'https://docs.aws.amazon.com/lambda/',
-  },
-  {
-    citation:
-      'Amazon DynamoDB — fully managed, multi-region NoSQL database for per-user preference storage.',
-    url: 'https://docs.aws.amazon.com/dynamodb/',
-  },
-  {
-    citation:
-      'Amazon Cognito — managed identity provider handling user-pool authentication and TOTP MFA.',
-    url: 'https://docs.aws.amazon.com/cognito/',
-  },
-  {
-    citation:
-      'Amazon S3 — object-storage origin for the compiled React SPA, served via CloudFront.',
-    url: 'https://docs.aws.amazon.com/s3/',
-  },
-  {
-    citation:
-      'Amazon CloudFront — global content-delivery network and reverse-proxy routing traffic between the SPA and the Lambda function URL.',
-    url: 'https://docs.aws.amazon.com/cloudfront/',
-  },
-  {
-    citation:
-      'AWS IAM — identity and access management, including OIDC federation for GitHub Actions CI/CD.',
-    url: 'https://docs.aws.amazon.com/iam/',
-  },
-  {
-    citation:
-      'AWS SSM Parameter Store — encrypted secrets management precluding plaintext credentials in source control.',
-    url: 'https://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-parameter-store.html',
-  },
-  {
-    citation:
-      'Terraform — declarative infrastructure-as-code provisioning all AWS resources across three isolated environments.',
-    url: 'https://www.terraform.io',
-  },
-  {
-    citation:
-      'aws-jwt-verify — AWS-authored library for offline Cognito JWT verification within the Lambda runtime.',
-    url: 'https://github.com/awslabs/aws-jwt-verify',
-  },
-];
-
-const VISUAL: Credit[] = [
-  {
-    citation:
-      'GSAP (GreenSock Animation Platform) — ScrollTrigger-driven horizontal-scroll progression on the Learn page.',
-    url: 'https://gsap.com',
-  },
-  {
-    citation:
-      'Lordicon — Lottie-based animated icon library providing expressive iconography throughout the interface.',
-    url: 'https://lordicon.com',
-  },
-  {
-    citation:
-      'canvas-confetti — lightweight particle-celebration effect deployed on the Home page call-to-action.',
-    url: 'https://github.com/catdad/canvas-confetti',
-  },
-  {
-    citation:
-      'X. Israeluni, "Monster Eléctrico" — the canvas neural-net tentacle animation underlying the Home and Login pages.',
-    url: 'https://gist.github.com/xisraeluni/b96df9d820c19dcfbf705af8bd74a41f',
-  },
-  {
-    citation: 'MDN Web Docs — authoritative CSS animations specification and reference.',
-    url: 'https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_animations/Using_CSS_animations',
-  },
-];
-
-const TECH_CREDITS: CreditCategory[] = [
-  { title: 'Recommendation Methodology', items: ALGORITHM },
-  { title: 'Frontend Architecture & User Interface', items: FRONTEND },
-  { title: 'Backend Architecture & Cloud Infrastructure', items: INFRASTRUCTURE },
-  { title: 'Visual Design & Animation Systems', items: VISUAL },
-];
 
 /* ── Organisations behind the cited work ─────────────────────────────────── */
 
@@ -271,16 +114,28 @@ function useCarouselScroll(rootRef: RefObject<HTMLDivElement | null>): void {
       }));
     };
 
+    // Growth + spread tuning.
+    const SCALE_MAX = 1.2; // centred card size
+    const SCALE_MIN = 0.9; // far-away card size
+    const SCALE_FALLOFF = 1500; // px over which scale eases back to the floor
+    const SPREAD_K = 0.17; // fraction of a card's distance it's pushed outward
+    const SPREAD_MAX = 80; // px cap on the outward push
+
     const apply = (): void => {
       const vpCentre = window.innerHeight / 2;
       const scrollY = window.scrollY;
       for (const { el, mid } of centres) {
-        const dist = Math.abs(mid - scrollY - vpCentre);
-        // Wider scale range so the centred card grows large enough to overlay its
-        // neighbours; opacity is deliberately left untouched (transparency stays
-        // constant) — recession is conveyed by scale + z-index stacking alone.
-        const scale = Math.max(0.74, 1.12 - dist / 1500);
+        // Signed distance of this card's centre from the viewport centre.
+        const d = mid - scrollY - vpCentre;
+        const dist = Math.abs(d);
+        // The centred card grows large; neighbours are pushed away from the
+        // centre (monotonic in distance, so spacing only ever opens — cards
+        // never overlap). Transparency stays constant — recession reads from
+        // scale + the spreading gap alone.
+        const scale = Math.max(SCALE_MIN, SCALE_MAX - dist / SCALE_FALLOFF);
+        const shift = Math.sign(d) * Math.min(dist * SPREAD_K, SPREAD_MAX);
         el.style.setProperty('--card-scale', scale.toFixed(3));
+        el.style.setProperty('--card-shift', `${shift.toFixed(1)}px`);
         el.style.zIndex = String(Math.max(0, 1000 - Math.round(dist)));
       }
     };
@@ -322,12 +177,79 @@ function useCarouselScroll(rootRef: RefObject<HTMLDivElement | null>): void {
 
 /* ── Pieces ─────────────────────────────────────────────────────────────── */
 
+/**
+ * Continuous logo marquee driven by requestAnimationFrame instead of a CSS
+ * keyframe. rAF fixes the three glitches the keyframe version had: it measures
+ * the real track width *after* the logos load (eager, no lazy width-pop), wraps
+ * the offset at exactly one list-copy width so there is no jump at the loop
+ * boundary, and uses a single monotonic translate (no animation restart drift).
+ * Hovering the strip eases the scroll to a slow crawl — it never fully stops —
+ * and hovering an individual logo grows it (CSS `:hover` on the chip).
+ */
 function OrgMarquee(): ReactElement {
   const { theme } = useTheme();
+  const trackRef = useRef<HTMLDivElement>(null);
+  const hoverRef = useRef(false);
   const loop = [...ORGANISATIONS, ...ORGANISATIONS];
+
+  useEffect(() => {
+    const track = trackRef.current;
+    if (!track) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    const NORMAL = 55; // px/sec at rest
+    const SLOW = 14; // px/sec while hovering the strip (slowed, never stopped)
+    let half = track.scrollWidth / 2; // width of one copy of the (doubled) list
+    let offset = 0;
+    let speed = NORMAL;
+    let raf = 0;
+    let last = 0;
+
+    const measure = (): void => {
+      half = track.scrollWidth / 2;
+    };
+    // Logos set the track width once decoded — re-measure as each finishes.
+    const imgs = Array.from(track.querySelectorAll('img'));
+    for (const img of imgs) {
+      if (!img.complete) img.addEventListener('load', measure, { once: true });
+    }
+    measure();
+
+    const step = (t: number): void => {
+      raf = requestAnimationFrame(step);
+      const dt = last === 0 ? 0 : Math.min((t - last) / 1000, 0.05);
+      last = t;
+      // Ease the speed toward its target so the hover slow-down is gradual.
+      const target = hoverRef.current ? SLOW : NORMAL;
+      speed += (target - speed) * Math.min(1, dt * 5);
+      if (half > 0) {
+        offset += speed * dt;
+        if (offset >= 0) offset -= half; // seamless wrap (two identical copies)
+        track.style.transform = `translateX(${offset.toFixed(2)}px)`;
+      }
+    };
+    raf = requestAnimationFrame(step);
+
+    window.addEventListener('resize', measure);
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener('resize', measure);
+      for (const img of imgs) img.removeEventListener('load', measure);
+    };
+  }, []);
+
   return (
-    <div className="org-marquee" aria-label="Organisations behind the cited research">
-      <div className="org-track">
+    <div
+      className="org-marquee"
+      aria-label="Organisations behind the cited research"
+      onMouseEnter={() => {
+        hoverRef.current = true;
+      }}
+      onMouseLeave={() => {
+        hoverRef.current = false;
+      }}
+    >
+      <div className="org-track" ref={trackRef}>
         {loop.map((org, i) => (
           <div
             key={`${org.name}-${i}`}
@@ -338,7 +260,6 @@ function OrgMarquee(): ReactElement {
               className="org-logo"
               src={theme === 'light' ? org.logoLight : org.logoDark}
               alt={org.name}
-              loading="lazy"
             />
           </div>
         ))}
@@ -482,26 +403,6 @@ export function SourcesPage(): ReactElement {
         </div>
         {RESEARCH_REFERENCES.map((cat) => (
           <CategoryBlock key={cat.title} title={cat.title} items={cat.items} kind="reference" />
-        ))}
-      </section>
-
-      {/* ── Technical credits ──────────────────────────────────────────── */}
-      <section className="sources-section" aria-labelledby="credits-heading">
-        <div className="credits-list">
-          <GlassCard className="credit-card sources-section-header">
-            <h2 id="credits-heading" className="sources-section-title">
-              Technical Attributions &amp; Open-Source Acknowledgements
-            </h2>
-            <p className="sources-section-sub">
-              The open-source libraries, architectural frameworks, cloud infrastructure platforms,
-              and developer tooling upon which this application is architecturally founded. Each
-              dependency represents a collective contribution to the broader software engineering
-              commons.
-            </p>
-          </GlassCard>
-        </div>
-        {TECH_CREDITS.map((cat) => (
-          <CategoryBlock key={cat.title} title={cat.title} items={cat.items} kind="credit" />
         ))}
       </section>
 

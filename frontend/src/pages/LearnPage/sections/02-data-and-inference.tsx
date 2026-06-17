@@ -2,7 +2,7 @@
  * @fileoverview Learn section 02 — Your Behavior Becomes the Algorithm.
  * Copy: ../plan/02-data-and-inference.md (Synthesis 02).
  */
-import { ICONS } from '../../../components/LordIcon/LordIcon';
+import { ICONS } from '../../../icons';
 import type { LearnSection } from '../types';
 
 export const dataAndInference: LearnSection = {

@@ -6,7 +6,8 @@
  */
 import { useState, useEffect, useRef } from 'react';
 import type { ReactElement, SyntheticEvent } from 'react';
-import { LordIcon, ICONS } from '../components/LordIcon/LordIcon';
+import { LordIcon, ICONS } from '../icons';
+import { GooeyButton } from '../components/GooeyButton/GooeyButton';
 import { PhoneInput } from '../components/PhoneInput/PhoneInput';
 
 interface ForgotChoiceProps {
@@ -63,9 +64,9 @@ export function ForgotChoice({
         I forgot my password
       </button>
       <div className="auth-bottom-row">
-        <button type="button" className="auth-link" onClick={onBack}>
+        <GooeyButton className="auth-link" onClick={onBack}>
           Back to sign in
-        </button>
+        </GooeyButton>
       </div>
     </div>
   );
@@ -130,9 +131,9 @@ export function ForgotEmailPhone({
         {pending ? 'Searching…' : 'Find account'}
       </button>
       <div className="auth-bottom-row">
-        <button type="button" className="auth-link" onClick={onBack} disabled={pending}>
+        <GooeyButton className="auth-link" onClick={onBack} disabled={pending}>
           Back
-        </button>
+        </GooeyButton>
       </div>
     </form>
   );
@@ -233,9 +234,9 @@ export function ForgotEmailCode({
         {pending ? 'Resetting…' : 'Reset password'}
       </button>
       <div className="auth-bottom-row">
-        <button type="button" className="auth-link" onClick={onBack} disabled={pending}>
+        <GooeyButton className="auth-link" onClick={onBack} disabled={pending}>
           Back
-        </button>
+        </GooeyButton>
       </div>
     </form>
   );
@@ -317,9 +318,9 @@ export function ForgotPasswordEmail({
         {pending ? 'Sending…' : 'Send reset code'}
       </button>
       <div className="auth-bottom-row">
-        <button type="button" className="auth-link" onClick={onBack} disabled={pending}>
+        <GooeyButton className="auth-link" onClick={onBack} disabled={pending}>
           Back
-        </button>
+        </GooeyButton>
       </div>
     </form>
   );
@@ -419,9 +420,9 @@ export function ForgotPasswordCode({
         {pending ? 'Resetting…' : 'Reset password'}
       </button>
       <div className="auth-bottom-row">
-        <button type="button" className="auth-link" onClick={onBack} disabled={pending}>
+        <GooeyButton className="auth-link" onClick={onBack} disabled={pending}>
           Back
-        </button>
+        </GooeyButton>
       </div>
     </form>
   );

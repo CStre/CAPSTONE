@@ -3,9 +3,10 @@
  */
 import { useState, useEffect, useRef } from 'react';
 import type { ReactElement, SyntheticEvent } from 'react';
-import { LordIcon, ICONS } from '../components/LordIcon/LordIcon';
+import { LordIcon, ICONS } from '../icons';
 import { useTheme } from '../lib/ThemeContext';
 import { spawnParticles } from '../components/CanvasAnimation/spawnParticles';
+import { GooeyButton } from '../components/GooeyButton/GooeyButton';
 
 interface SignInFormProps {
   initialEmail: string;
@@ -129,9 +130,9 @@ export function SignInForm({
         {pending ? 'Signing in…' : 'Sign in'}
       </button>
       <div className="auth-bottom-row">
-        <button type="button" className="auth-link" onClick={onSwitchToSignUp}>
+        <GooeyButton className="auth-link" onClick={onSwitchToSignUp}>
           Sign up
-        </button>
+        </GooeyButton>
         <button
           type="button"
           className="auth-security-btn"

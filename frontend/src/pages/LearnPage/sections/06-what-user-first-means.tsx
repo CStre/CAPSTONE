@@ -2,7 +2,7 @@
  * @fileoverview Learn section 06 — What "User-First" Actually Means.
  * Copy: ../plan/06-what-user-first-means.md (Synthesis 05). Placeholder icons.
  */
-import { ICONS } from '../../../components/LordIcon/LordIcon';
+import { ICONS } from '../../../icons';
 import type { LearnSection } from '../types';
 
 export const whatUserFirstMeans: LearnSection = {

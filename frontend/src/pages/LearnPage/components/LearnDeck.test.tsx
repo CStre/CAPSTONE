@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals
 import { act, render } from '@testing-library/react';
 import { Provider } from 'urql';
 import { createMockClient } from '../../../test/urql';
-import { ICONS } from '../../../components/LordIcon/LordIcon';
+import { ICONS } from '../../../icons';
 import type { LearnSection } from '../types';
 import { LearnProgressProvider } from '../LearnProgressContext';
 import { LearnDeck } from './LearnDeck';

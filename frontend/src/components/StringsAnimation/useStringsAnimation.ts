@@ -42,9 +42,13 @@ const NUM_SPECKS = 60;
 const SPECK_RADIUS_MIN = 1.0;
 const SPECK_RADIUS_MAX = 3.2;
 
-const WANDER_FORCE = 0.38;
-const WANDER_DRIFT = 0.62;
-const MAX_SPEED_IDLE = 5.5;
+// Idle drift is intentionally gentle — wander force, turn rate, and the idle
+// speed cap are ~half their lively values so the backdrop reads as calm, not
+// busy. Cursor-interaction forces (gravity/orbit, MAX_SPEED_ACTIVE) are left
+// untouched so the pull-toward-cursor effect stays responsive.
+const WANDER_FORCE = 0.19;
+const WANDER_DRIFT = 0.34;
+const MAX_SPEED_IDLE = 2.75;
 const MAX_SPEED_ACTIVE = 13;
 /** Per-frame damping at 60 fps — scaled via Math.pow(DAMPING, dt) each tick. */
 const DAMPING = 0.978;

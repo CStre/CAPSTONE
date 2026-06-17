@@ -1,10 +1,11 @@
 /**
  * @fileoverview Learn section 08 — The Travel Page: A User-Centered Algorithm in
- * Miniature. DEFERRED until the Travel page is built so the copy is true to the
- * real algorithm. See ../plan/08-travel-demo-DEFERRED.md. Renders a "coming soon"
- * card and is excluded from progress tracking while `deferred` is true.
+ * Miniature. The demo chapter. Completing it (viewing every slide) is what unlocks
+ * the Travel tab in the header and the Dashboard, so it is a tracked, completable
+ * section. The copy is still a placeholder until the full demo is written against
+ * the finished Travel page — see ../plan/08-travel-demo-DEFERRED.md.
  */
-import { ICONS } from '../../../components/LordIcon/LordIcon';
+import { ICONS } from '../../../icons';
 import type { LearnSection } from '../types';
 
 export const travelDemo: LearnSection = {
@@ -12,7 +13,6 @@ export const travelDemo: LearnSection = {
   number: '08',
   title: 'A User-Centered Algorithm in Miniature',
   subtitle: 'Everything above, running — on the Travel page.',
-  deferred: true,
   slides: [
     {
       // TODO(icon): a play button / a small live gear (finalize after Travel ships)

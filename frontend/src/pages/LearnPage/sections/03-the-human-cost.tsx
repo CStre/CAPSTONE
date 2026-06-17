@@ -3,7 +3,7 @@
  * Copy: ../plan/03-the-human-cost.md (Synthesis 03).
  * Honest-epistemics nuance is load-bearing here — keep it intact.
  */
-import { ICONS } from '../../../components/LordIcon/LordIcon';
+import { ICONS } from '../../../icons';
 import type { LearnSection } from '../types';
 
 export const theHumanCost: LearnSection = {

@@ -10,7 +10,7 @@
  */
 import { useState, useEffect, useRef } from 'react';
 import type { ReactElement } from 'react';
-import { LordIcon, ICONS } from '../LordIcon/LordIcon';
+import { LordIcon, ICONS } from '../../icons';
 import { GlassCard } from '../GlassCard/GlassCard';
 import './SecurityInfo.css';
 

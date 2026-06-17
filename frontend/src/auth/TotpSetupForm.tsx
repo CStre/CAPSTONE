@@ -5,7 +5,7 @@ import { useState, useEffect, useRef } from 'react';
 import type { ReactElement, SyntheticEvent } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import { useElasticOffset } from '../components/GlassIsland/useElasticOffset';
-import { LordIcon, ICONS } from '../components/LordIcon/LordIcon';
+import { LordIcon, ICONS } from '../icons';
 
 interface TotpSetupFormProps {
   secret: string;

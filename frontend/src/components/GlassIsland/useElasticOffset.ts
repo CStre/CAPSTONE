@@ -51,5 +51,9 @@ export function useElasticOffset(strength = 0.18, range = 180): ElasticOffset {
     };
   }, [strength, range]);
 
-  return { ref, tx: offset.tx, ty: offset.ty };
+  // When disabled (e.g. a dropdown opens and we freeze the island's drift), report a
+  // zero offset right away — without waiting for the next mousemove — so the element's
+  // own top/left CSS transition flows it home instead of leaving it frozen off-centre.
+  const disabled = strength === 0 || range === 0;
+  return { ref, tx: disabled ? 0 : offset.tx, ty: disabled ? 0 : offset.ty };
 }

@@ -2,7 +2,7 @@
  * @fileoverview Learn section 00 — Orientation: What This Project Is.
  * Copy: ../plan/00-orientation.md.
  */
-import { ICONS } from '../../../components/LordIcon/LordIcon';
+import { ICONS } from '../../../icons';
 import type { LearnSection } from '../types';
 
 export const orientation: LearnSection = {

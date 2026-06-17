@@ -125,6 +125,74 @@ export async function recordLearnSlideView(
   return next;
 }
 
+/**
+ * Merge a batch of client-side progress into the stored map (union per section)
+ * and return the full updated map. Used on sign-in to reconcile progress recorded
+ * while signed out with whatever the account already holds — a single write
+ * instead of one call per slide.
+ */
+export async function mergeLearnProgress(
+  userId: string,
+  incoming: LearnProgressMap,
+): Promise<LearnProgressMap> {
+  const current = await getLearnProgress(userId);
+
+  // Union each incoming section's slides with what's stored; track which changed.
+  const merged: LearnProgressMap = { ...current };
+  const changed: LearnProgressMap = {};
+  for (const [sectionId, slides] of Object.entries(incoming)) {
+    const union = new Set([...(current[sectionId] ?? []), ...slides]);
+    const sorted = [...union].sort((a, b) => a - b);
+    if (sorted.length !== (current[sectionId]?.length ?? 0)) {
+      merged[sectionId] = sorted;
+      changed[sectionId] = sorted;
+    }
+  }
+
+  const entries = Object.entries(changed);
+  if (entries.length === 0) return merged;
+
+  // Step 1 — ensure the item and its `learnProgress` map exist.
+  await doc.send(
+    new UpdateCommand({
+      TableName: config.dynamoTable,
+      Key: { userId },
+      UpdateExpression:
+        'SET learnProgress = if_not_exists(learnProgress, :empty), createdAt = if_not_exists(createdAt, :now)',
+      ExpressionAttributeValues: { ':empty': {}, ':now': new Date().toISOString() },
+    }),
+  );
+  // Step 2 — set just the sections that gained slides.
+  const names: Record<string, string> = {};
+  const values: Record<string, number[]> = {};
+  const assignments = entries.map(([sectionId, slides], i) => {
+    names[`#s${i}`] = sectionId;
+    values[`:v${i}`] = slides;
+    return `learnProgress.#s${i} = :v${i}`;
+  });
+  await doc.send(
+    new UpdateCommand({
+      TableName: config.dynamoTable,
+      Key: { userId },
+      UpdateExpression: `SET ${assignments.join(', ')}`,
+      ExpressionAttributeNames: names,
+      ExpressionAttributeValues: values,
+    }),
+  );
+  return merged;
+}
+
+/** Clear a user's learn-progress map (leaves preferences and the item intact). */
+export async function resetLearnProgress(userId: string): Promise<void> {
+  await doc.send(
+    new UpdateCommand({
+      TableName: config.dynamoTable,
+      Key: { userId },
+      UpdateExpression: 'REMOVE learnProgress',
+    }),
+  );
+}
+
 /** Delete a user's record entirely (used by the deleteAccount mutation). */
 export async function deletePreferences(userId: string): Promise<void> {
   await doc.send(new DeleteCommand({ TableName: config.dynamoTable, Key: { userId } }));

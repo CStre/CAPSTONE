@@ -10,7 +10,7 @@ import type { ReactElement, PointerEvent as ReactPointerEvent } from 'react';
 import { useMutation, useQuery } from 'urql';
 import { graphql } from '../../gql';
 import { Loader } from '../../components/Loader/Loader';
-import { LordIcon, ICONS } from '../../components/LordIcon/LordIcon';
+import { LordIcon, ICONS } from '../../icons';
 import './TravelPage.css';
 
 const TravelImagesQuery = graphql(`

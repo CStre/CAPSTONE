@@ -2,7 +2,7 @@
  * @fileoverview Learn section 05 — The Law's Blind Spot: Inference & the HIPAA Gap.
  * Copy: ../plan/05-the-law-and-inference.md (Synthesis 04). Placeholder icons.
  */
-import { ICONS } from '../../../components/LordIcon/LordIcon';
+import { ICONS } from '../../../icons';
 import type { LearnSection } from '../types';
 
 export const theLawAndInference: LearnSection = {

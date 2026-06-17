@@ -131,6 +131,14 @@ const FeedbackInput = builder.inputType('FeedbackInput', {
   }),
 });
 
+const LearnSectionProgressInput = builder.inputType('LearnSectionProgressInput', {
+  description: "One section's viewed slide indices, sent from the client to merge.",
+  fields: (t) => ({
+    sectionId: t.id({ required: true }),
+    viewedSlides: t.intList({ required: true }),
+  }),
+});
+
 builder.queryType({
   fields: (t) => ({
     countries: t.field({
@@ -204,6 +212,37 @@ builder.mutationType({
           sectionId,
           viewedSlides,
         }));
+      },
+    }),
+
+    mergeLearnProgress: t.field({
+      type: ['LearnSectionProgress'],
+      nullable: false,
+      description:
+        'Union a batch of client-recorded progress into the stored progress (used on sign-in to reconcile offline progress); returns the full updated progress.',
+      args: { progress: t.arg({ type: [LearnSectionProgressInput], required: true }) },
+      resolve: async (_root, args, ctx) => {
+        const user = requireUser(ctx);
+        const incoming: db.LearnProgressMap = {};
+        for (const { sectionId, viewedSlides } of args.progress) {
+          incoming[sectionId] = viewedSlides;
+        }
+        const map = await db.mergeLearnProgress(user.id, incoming);
+        return Object.entries(map).map(([sectionId, viewedSlides]) => ({
+          sectionId,
+          viewedSlides,
+        }));
+      },
+    }),
+
+    resetLearnProgress: t.field({
+      type: 'Boolean',
+      nullable: false,
+      description: "Clear all of the user's stored Learn-page progress.",
+      resolve: async (_root, _args, ctx) => {
+        const user = requireUser(ctx);
+        await db.resetLearnProgress(user.id);
+        return true;
       },
     }),
 

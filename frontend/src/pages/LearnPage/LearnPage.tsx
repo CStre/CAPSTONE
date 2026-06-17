@@ -22,8 +22,10 @@ import { useTheme } from '../../lib/ThemeContext';
 import { LEARN_SECTIONS } from './sections';
 import { LearnDeck } from './components/LearnDeck';
 import { LearnProgressMenu } from './components/LearnProgressMenu';
-import { LearnProgressProvider } from './LearnProgressContext';
 import './LearnPage.css';
+
+// The demo chapter — the "Skip to the demo" button jumps straight here.
+const DEMO_SECTION_ID = 'travel-demo';
 
 // Pixels of horizontal parallax per slide advanced — bolder stars drift more.
 const PARALLAX_PER_SLIDE = 70;
@@ -95,6 +97,14 @@ function LearnPageInner(): ReactElement {
             user first. Scroll down to begin, or jump to any section from the menu.
           </p>
         </GlassCard>
+        <GooeyButton
+          className="learn-progress-toggle learn-skip-demo"
+          onClick={() => {
+            goToSection(DEMO_SECTION_ID);
+          }}
+        >
+          Skip to the demo
+        </GooeyButton>
       </section>
 
       {/* The active section deck (remounts per section for clean slide state) */}
@@ -122,9 +132,5 @@ function LearnPageInner(): ReactElement {
 
 /** The Learn page educational course. */
 export function LearnPage(): ReactElement {
-  return (
-    <LearnProgressProvider>
-      <LearnPageInner />
-    </LearnProgressProvider>
-  );
+  return <LearnPageInner />;
 }

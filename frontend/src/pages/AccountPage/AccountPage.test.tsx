@@ -1,5 +1,5 @@
 import { describe, expect, it, jest } from '@jest/globals';
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router';
 import { Provider } from 'urql';
 import { AccountPage } from './AccountPage';
@@ -36,6 +36,9 @@ describe('AccountPage', () => {
     expect(screen.getByText('ada@example.com')).toBeInTheDocument();
     expect(screen.getByText('Ada Lovelace')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Send reset code to email' })).toBeInTheDocument();
+
+    // Delete account now lives on the Data Settings tab.
+    fireEvent.click(screen.getByRole('tab', { name: 'Data Settings' }));
     expect(screen.getByRole('button', { name: 'Delete my account' })).toBeInTheDocument();
   });
 });

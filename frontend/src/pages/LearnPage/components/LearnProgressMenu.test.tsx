@@ -27,7 +27,7 @@ describe('LearnProgressMenu', () => {
       </Provider>,
     );
 
-    expect(screen.getByRole('button', { name: /progress 0\/8/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /progress 0\/9/i })).toBeInTheDocument();
     // Short, fully-visible labels in the menu.
     expect(screen.getByRole('menuitem', { name: /how they work/i })).toBeInTheDocument();
     // No sign-in prompt when authenticated.
@@ -50,7 +50,7 @@ describe('LearnProgressMenu', () => {
       </Provider>,
     );
 
-    expect(screen.getByRole('button', { name: /progress 0\/8/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /progress 0\/9/i })).toBeInTheDocument();
     expect(screen.getByText(/sign in to save/i)).toBeInTheDocument();
     // Sections are still navigable (short label).
     expect(screen.getByRole('menuitem', { name: /orientation/i })).toBeInTheDocument();

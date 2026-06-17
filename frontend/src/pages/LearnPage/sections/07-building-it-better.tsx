@@ -2,7 +2,7 @@
  * @fileoverview Learn section 07 — Building It Better: The Engineering Playbook.
  * Copy: ../plan/07-building-it-better.md (Synthesis 06 + 08). Placeholder icons.
  */
-import { ICONS } from '../../../components/LordIcon/LordIcon';
+import { ICONS } from '../../../icons';
 import type { LearnSection } from '../types';
 
 export const buildingItBetter: LearnSection = {

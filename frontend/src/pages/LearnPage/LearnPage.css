@@ -6,10 +6,19 @@
   width: 100vw;
   height: 100vh;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 1.5rem;
   overflow: hidden;
   background: transparent; /* let the starfield show through */
+}
+
+/* "Skip to the demo" — uses the .learn-progress-toggle look; sits just under the
+   intro card (above the starfield) and jumps to the demo chapter. */
+.learn-skip-demo {
+  position: relative;
+  z-index: 1;
 }
 
 /* Glass recipe and tilt come from <GlassCard> + .glass-card (index.css). */
@@ -23,18 +32,7 @@
   width: min(46rem, 92vw);
   padding: 3rem 2.8rem;
   border-radius: 1.5rem;
-  animation: fadeIn 2s ease-out;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  /* Entrance animation comes from the global .glass-card bounce-in (index.css). */
 }
 
 .learn-banner-kicker {
@@ -113,6 +111,7 @@
 .learn-panel p {
   max-width: 52rem;
   font-size: var(--fs-base);
+  font-weight: var(--fw-bold);
   line-height: 1.8;
   color: var(--color-text);
   opacity: 0.85;
@@ -317,11 +316,13 @@
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.1);
 }
 
-/* Panel sizing (the glass + animation are DropdownMenu's). */
-.learn-progress-panel {
+/* Panel sizing (the glass + animation are DropdownMenu's). The compound selector
+   overrides DropdownMenu's default radius so the corners match the toggle button. */
+.dropdown-panel.learn-progress-panel {
   width: min(20rem, 80vw);
   max-height: min(64vh, 34rem);
   overflow-y: auto;
+  border-radius: 20px; /* match .learn-progress-toggle */
 }
 
 .learn-progress-title {
@@ -404,6 +405,7 @@
   padding-top: 0.6rem;
   border-top: 1px solid rgba(255, 255, 255, 0.12);
   font-size: var(--fs-xs);
+  font-weight: var(--fw-semibold);
   color: var(--color-text-muted);
 }
 

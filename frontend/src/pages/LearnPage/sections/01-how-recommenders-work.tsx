@@ -2,7 +2,7 @@
  * @fileoverview Learn section 01 — How Recommendation Algorithms Actually Work.
  * Copy: ../plan/01-how-recommenders-work.md (Synthesis 01).
  */
-import { ICONS } from '../../../components/LordIcon/LordIcon';
+import { ICONS } from '../../../icons';
 import type { LearnSection } from '../types';
 
 export const howRecommendersWork: LearnSection = {

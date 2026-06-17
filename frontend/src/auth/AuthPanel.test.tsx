@@ -73,7 +73,7 @@ jest.unstable_mockModule('../components/GlassIsland/useCardTilt', () => ({
   useCardTilt: () => ({ ref: { current: null }, rx: 0, ry: 0, isHovered: false }),
 }));
 
-jest.unstable_mockModule('../components/LordIcon/LordIcon', () => ({
+jest.unstable_mockModule('../icons', () => ({
   LordIcon: () => null,
   ICONS: new Proxy({}, { get: () => '' }),
 }));

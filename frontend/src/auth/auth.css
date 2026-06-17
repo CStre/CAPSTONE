@@ -31,35 +31,46 @@
 .auth-flipcard-scene {
   width: 100%;
   max-width: 30rem;
-  /* perspective lives here for the flip; tilt is applied via inline transform */
+  /* Perspective gives the flip real 3-D depth — the rotateY reads as a card
+     turning in space rather than a flat horizontal squash. (The cursor tilt is a
+     separate transform applied inline.) */
+  perspective: 1600px;
 }
 
 .auth-flipcard-inner {
   position: relative;
   transform-style: preserve-3d;
+  transform-origin: center;
+  /* Promote to its own GPU layer so the 3-D rotation rasterizes smoothly through
+     the edge-on point instead of re-rendering each frame (the auth card has no
+     backdrop-filter, so will-change:transform is safe here). */
+  will-change: transform;
+  /* SYMMETRIC easing (ease-in-out): the card reaches 90° (edge-on) at exactly the
+     midpoint, 0.36s — the same instant the face visibility swaps. With an
+     asymmetric curve the swap landed slightly after edge-on, causing a visible
+     jump as the wrong face showed for a frame. */
   transition:
-    transform 0.72s cubic-bezier(0.4, 0, 0.2, 1),
-    height 0.72s cubic-bezier(0.4, 0, 0.2, 1);
+    transform 0.72s ease-in-out,
+    height 0.72s ease-in-out;
 }
 
 .auth-flipcard-inner.is-flipped {
   transform: rotateY(180deg);
 }
 
-/* ── Card faces — glass recipe from .glass-card (index.css) ─────────────────── */
-
-/* NOTE: the auth card cannot use <GlassCard> because it lives inside
-   .auth-flipcard-inner which has transform-style:preserve-3d. Chrome silently
-   drops backdrop-filter on children of preserve-3d contexts; the .glass-card
-   opacity (0.14 dark / 0.28 light) ensures the card reads without the blur.
-   The class is applied directly in AuthPanel.tsx instead. */
+/* ── Card faces — transparent flip-geometry containers ──────────────────────
+   The face itself carries no visual: the glass card is each shuffle layer inside
+   (.auth-shuffle-live / -ghost), so a step change swaps the whole container, not
+   just its content. The face only owns flip positioning + which-side-is-visible.
+   The cards use a near-opaque surface fill (not backdrop-filter): a translucent
+   flip card is fundamentally broken — you'd see the back face through the front,
+   and backdrop-filter is unreliable inside preserve-3d (Chrome drops it, Firefox
+   lets it defeat backface-visibility). */
 .auth-card {
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
-  padding: 2rem;
-  border-radius: 30px;
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
 }
@@ -67,6 +78,190 @@
 /* Back face is pre-rotated — the flip reveal turns it right-way-up */
 .auth-card--back {
   transform: rotateY(180deg);
+}
+
+/* Explicitly hide whichever face is turned away so it can never bleed through —
+   this does NOT depend on backface-visibility (which Firefox drops). visibility
+   swaps at the flip's midpoint (delay = half the 0.72s rotation) so the change
+   happens while the card is edge-on and is invisible to the eye. */
+.auth-card--front,
+.auth-card--back {
+  transition: visibility 0s linear 0.36s;
+}
+
+.auth-card--back {
+  visibility: hidden;
+}
+
+.auth-flipcard-inner.is-flipped .auth-card--front {
+  visibility: hidden;
+}
+
+.auth-flipcard-inner.is-flipped .auth-card--back {
+  visibility: visible;
+}
+
+/* ── Bouncy content reveal after the flip lands ──────────────────────────────
+   The active face's form items stay hidden during the rotation (so the flip is a
+   clean turning card), then spring in with a stagger once the card is facing the
+   viewer. The base delay (~0.5s) covers the 0.72s flip; the overshoot easing is
+   the bounce. Because the rule is gated on :not(.is-flipped)/.is-flipped, the
+   reveal re-runs on every flip — and on initial load for the front. */
+@keyframes auth-content-in {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.auth-flipcard-inner:not(.is-flipped) .auth-card--front .auth-form > *,
+.auth-flipcard-inner.is-flipped .auth-card--back .auth-form > * {
+  animation-name: auth-content-in;
+  animation-duration: 0.5s;
+  animation-timing-function: cubic-bezier(0.34, 1.56, 0.64, 1);
+  /* `backwards` (not `both`): hold the hidden "from" state during the delay, but
+     don't keep forcing `transform: none` after the reveal — otherwise the
+     finished animation overrides the hover-grow transform on these direct
+     children (labels, inputs, descriptions, submit/option buttons). */
+  animation-fill-mode: backwards;
+}
+
+/* Per-item stagger. Delay-only (no animation-name here) so it's inert until the
+   gated rule above activates the animation on the visible face. */
+.auth-card .auth-form > *:nth-child(1) {
+  animation-delay: 0.5s;
+}
+.auth-card .auth-form > *:nth-child(2) {
+  animation-delay: 0.56s;
+}
+.auth-card .auth-form > *:nth-child(3) {
+  animation-delay: 0.62s;
+}
+.auth-card .auth-form > *:nth-child(4) {
+  animation-delay: 0.68s;
+}
+.auth-card .auth-form > *:nth-child(5) {
+  animation-delay: 0.74s;
+}
+.auth-card .auth-form > *:nth-child(6) {
+  animation-delay: 0.8s;
+}
+.auth-card .auth-form > *:nth-child(n + 7) {
+  animation-delay: 0.86s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .auth-flipcard-inner:not(.is-flipped) .auth-card--front .auth-form > *,
+  .auth-flipcard-inner.is-flipped .auth-card--back .auth-form > * {
+    animation: none;
+  }
+}
+
+/* ── Card shuffle — view-to-view transitions within one face ─────────────────
+   Used between the forgot-password and MFA steps (the sign-in ↔ sign-up flip is
+   separate). Like dealing playing cards: the outgoing card (ghost) shrinks and
+   arcs to the back-LEFT, while the incoming card grows in from the back-RIGHT to
+   cover the front — the two swap depth as they cross. Both show their content the
+   whole time so the motion reads as solid cards, not fading blanks. */
+.auth-shuffle {
+  position: relative;
+}
+
+/* Each shuffle layer IS the glass card (opaque fill + border + shadow + padding),
+   so the whole container travels during a transition — not just the text inside. */
+.auth-shuffle-live,
+.auth-shuffle-ghost {
+  padding: 2rem;
+  border-radius: 30px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  box-shadow:
+    0 12px 40px rgba(0, 0, 0, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.18);
+  background: rgba(33, 42, 49, 0.92);
+}
+
+[data-theme='light'] .auth-shuffle-live,
+[data-theme='light'] .auth-shuffle-ghost {
+  background: rgba(237, 232, 245, 0.94);
+  border-color: rgba(255, 255, 255, 0.8);
+  box-shadow:
+    0 12px 40px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95),
+    inset 0 -1px 0 rgba(61, 82, 160, 0.08);
+}
+
+/* Incoming live card. Normal flow so it sets the card height; sits above the
+   ghost so it covers as it arrives. */
+.auth-shuffle-live {
+  position: relative;
+  z-index: 1;
+}
+
+.auth-shuffle-live.is-entering {
+  animation: auth-shuffle-in 0.5s cubic-bezier(0.33, 1.3, 0.62, 1) both;
+}
+
+/* The incoming card arrives EMPTY: its content stays hidden by the .auth-content-in
+   reveal (base delay 0.5s ≈ the shuffle) and then springs in once the card has
+   landed. The card itself is opaque, so the empty card is fully visible as it
+   travels — the motion no longer depends on the content being shown. */
+
+/* Outgoing ghost. Absolute overlay (doesn't affect height) that arcs to the back. */
+.auth-shuffle-ghost {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 0;
+  pointer-events: none;
+  animation: auth-shuffle-out 0.5s cubic-bezier(0.4, 0, 0.7, 0.5) forwards;
+}
+
+/* The ghost shows its content statically while the whole layer arcs out.
+   !important beats the .auth-content-in gated rule (0,4,0) — otherwise the ghost's
+   items would re-run the staggered reveal (opacity 0) and, since the layer has no
+   background of its own, the motion would be invisible. */
+.auth-shuffle-ghost .auth-form > * {
+  animation: none !important;
+  opacity: 1 !important;
+  transform: none !important;
+}
+
+@keyframes auth-shuffle-in {
+  from {
+    opacity: 0;
+    transform: translateX(64px) rotate(9deg) scale(0.78);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes auth-shuffle-out {
+  from {
+    opacity: 1;
+    transform: none;
+  }
+  to {
+    opacity: 0;
+    transform: translateX(-64px) rotate(-9deg) scale(0.78);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .auth-shuffle-live.is-entering {
+    animation: none;
+  }
+  .auth-shuffle-ghost {
+    animation: none;
+    opacity: 0;
+  }
 }
 
 /* ── Form layout ─────────────────────────────────────────────────────────────── */
@@ -92,6 +287,21 @@
   font-size: var(--fs-sm);
   font-weight: var(--fw-semibold);
   color: var(--color-text);
+}
+
+/* ── Hover "grow" ───────────────────────────────────────────────────────────
+   Every bit of text + the inputs scale out toward you when hovered (hovering a
+   field's label grows the input with it) — matches the Account page. Scoped to
+   the whole .auth-card so it covers all steps (headers, descriptions, labels,
+   inline spans, the TOTP secret <code>, list items). Rounded .auth-link buttons
+   keep the gooey spring; rectangular buttons + the forgot text-link grow via
+   their own rules. Transform-based, so nothing reflows. */
+.auth-card :is(h1, h2, h3, h4, label, p, span, code, li) {
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.auth-card :is(h1, h2, h3, h4, label, p, span, code, li):hover {
+  transform: scale(1.05);
 }
 
 /* ── Inputs — borderless until focused, glass tint ──────────────────────────── */
@@ -141,20 +351,18 @@
   border: 1px solid rgba(255, 255, 255, 0.22);
   border-radius: 10px;
   cursor: pointer;
+  /* Hover "grow" — the rectangular submit button scales out toward you. */
   transition:
     background 0.2s,
     border-color 0.2s,
-    transform 0.1s;
+    transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
   backdrop-filter: blur(6px);
 }
 
 .auth-form button[type='submit']:hover:not(:disabled) {
   background: rgba(255, 255, 255, 0.16);
   border-color: rgba(255, 255, 255, 0.38);
-}
-
-.auth-form button[type='submit']:active:not(:disabled) {
-  transform: scale(0.98);
+  transform: scale(1.05);
 }
 
 .auth-form button[type='submit']:disabled {
@@ -179,6 +387,7 @@
 .auth-secret {
   margin: 0;
   font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
   color: var(--color-text);
 }
 
@@ -188,6 +397,7 @@
 
 .auth-secret code {
   font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
   word-break: break-all;
   color: var(--color-accent);
 }
@@ -197,6 +407,7 @@
 .auth-error {
   margin: 0;
   font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
   color: var(--color-danger);
 }
 
@@ -292,7 +503,7 @@
 
 .totp-description-apps {
   font-size: var(--fs-xs);
-  font-weight: var(--fw-regular);
+  font-weight: var(--fw-semibold);
   color: var(--color-text-muted);
 }
 
@@ -440,11 +651,14 @@
   cursor: pointer;
   padding: 0;
   margin-bottom: -0.15rem;
-  transition: color 0.2s;
+  transition:
+    color 0.2s,
+    transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .auth-forgot-link:hover {
   color: var(--color-heading);
+  transform: scale(1.06);
 }
 
 /* ── Forgot-choice option buttons (full-width, distinct from submit) ─────────── */
@@ -460,20 +674,18 @@
   border-radius: 10px;
   cursor: pointer;
   text-align: center;
+  /* Hover "grow" — scales out toward you. */
   transition:
     background 0.2s,
     border-color 0.2s,
-    transform 0.1s;
+    transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
   backdrop-filter: blur(6px);
 }
 
 .forgot-option-btn:hover {
   background: rgba(255, 255, 255, 0.12);
   border-color: rgba(255, 255, 255, 0.3);
-}
-
-.forgot-option-btn:active {
-  transform: scale(0.98);
+  transform: scale(1.04);
 }
 
 [data-theme='light'] .forgot-option-btn {
@@ -550,6 +762,7 @@
 
 .auth-sms-acknowledge-label {
   font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
   color: var(--color-text);
 }
 
@@ -560,6 +773,7 @@
   padding: 0;
   cursor: pointer;
   font-size: var(--fs-xs);
+  font-weight: var(--fw-semibold);
   color: var(--color-accent);
   text-decoration: underline;
   text-underline-offset: 2px;

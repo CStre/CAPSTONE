@@ -65,6 +65,8 @@ export function LearnProgressMenu({
         }}
         align="left"
         panelClassName="learn-progress-panel"
+        flow={false}
+        gooey={false}
         ariaLabel="Sections"
         trigger={trigger}
       >

@@ -17,5 +17,8 @@ describe('GraphQL schema', () => {
     expect(sdl).toMatch(/travelImages\(/);
     expect(sdl).toMatch(/submitFeedback\(/);
     expect(sdl).toMatch(/deleteAccount:/);
+    expect(sdl).toMatch(/recordSlideView\(/);
+    expect(sdl).toMatch(/mergeLearnProgress\(/);
+    expect(sdl).toMatch(/resetLearnProgress:/);
   });
 });

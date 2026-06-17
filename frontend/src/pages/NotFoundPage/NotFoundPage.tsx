@@ -4,7 +4,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { ReactElement } from 'react';
 import { useNavigate } from 'react-router';
-import { LordIcon, ICONS } from '../../components/LordIcon/LordIcon';
+import { LordIcon, ICONS } from '../../icons';
 import { GlassCard } from '../../components/GlassCard/GlassCard';
 import { useCanvasAnimation } from '../../components/CanvasAnimation/useCanvasAnimation';
 import { useTheme } from '../../lib/ThemeContext';

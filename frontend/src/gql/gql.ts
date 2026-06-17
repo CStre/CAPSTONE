@@ -20,6 +20,8 @@ type Documents = {
     "\n  query Preferences {\n    me {\n      id\n      name\n      preferences {\n        value\n        country {\n          code\n          name\n        }\n      }\n    }\n  }\n": typeof types.PreferencesDocument,
     "\n  query LearnProgress {\n    me {\n      id\n      learnProgress {\n        sectionId\n        viewedSlides\n      }\n    }\n  }\n": typeof types.LearnProgressDocument,
     "\n  mutation RecordSlideView($sectionId: ID!, $slideIndex: Int!) {\n    recordSlideView(sectionId: $sectionId, slideIndex: $slideIndex) {\n      sectionId\n      viewedSlides\n    }\n  }\n": typeof types.RecordSlideViewDocument,
+    "\n  mutation MergeLearnProgress($progress: [LearnSectionProgressInput!]!) {\n    mergeLearnProgress(progress: $progress) {\n      sectionId\n      viewedSlides\n    }\n  }\n": typeof types.MergeLearnProgressDocument,
+    "\n  mutation ResetLearnProgress {\n    resetLearnProgress\n  }\n": typeof types.ResetLearnProgressDocument,
     "\n  query TravelImages($count: Int!) {\n    travelImages(count: $count) {\n      imageUrl\n      attribution\n      country {\n        code\n        name\n      }\n    }\n  }\n": typeof types.TravelImagesDocument,
     "\n  mutation SubmitFeedback($feedback: [FeedbackInput!]!) {\n    submitFeedback(feedback: $feedback) {\n      id\n      preferences {\n        value\n        country {\n          code\n        }\n      }\n    }\n  }\n": typeof types.SubmitFeedbackDocument,
 };
@@ -30,6 +32,8 @@ const documents: Documents = {
     "\n  query Preferences {\n    me {\n      id\n      name\n      preferences {\n        value\n        country {\n          code\n          name\n        }\n      }\n    }\n  }\n": types.PreferencesDocument,
     "\n  query LearnProgress {\n    me {\n      id\n      learnProgress {\n        sectionId\n        viewedSlides\n      }\n    }\n  }\n": types.LearnProgressDocument,
     "\n  mutation RecordSlideView($sectionId: ID!, $slideIndex: Int!) {\n    recordSlideView(sectionId: $sectionId, slideIndex: $slideIndex) {\n      sectionId\n      viewedSlides\n    }\n  }\n": types.RecordSlideViewDocument,
+    "\n  mutation MergeLearnProgress($progress: [LearnSectionProgressInput!]!) {\n    mergeLearnProgress(progress: $progress) {\n      sectionId\n      viewedSlides\n    }\n  }\n": types.MergeLearnProgressDocument,
+    "\n  mutation ResetLearnProgress {\n    resetLearnProgress\n  }\n": types.ResetLearnProgressDocument,
     "\n  query TravelImages($count: Int!) {\n    travelImages(count: $count) {\n      imageUrl\n      attribution\n      country {\n        code\n        name\n      }\n    }\n  }\n": types.TravelImagesDocument,
     "\n  mutation SubmitFeedback($feedback: [FeedbackInput!]!) {\n    submitFeedback(feedback: $feedback) {\n      id\n      preferences {\n        value\n        country {\n          code\n        }\n      }\n    }\n  }\n": types.SubmitFeedbackDocument,
 };
@@ -72,6 +76,14 @@ export function graphql(source: "\n  query LearnProgress {\n    me {\n      id\n
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "\n  mutation RecordSlideView($sectionId: ID!, $slideIndex: Int!) {\n    recordSlideView(sectionId: $sectionId, slideIndex: $slideIndex) {\n      sectionId\n      viewedSlides\n    }\n  }\n"): (typeof documents)["\n  mutation RecordSlideView($sectionId: ID!, $slideIndex: Int!) {\n    recordSlideView(sectionId: $sectionId, slideIndex: $slideIndex) {\n      sectionId\n      viewedSlides\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation MergeLearnProgress($progress: [LearnSectionProgressInput!]!) {\n    mergeLearnProgress(progress: $progress) {\n      sectionId\n      viewedSlides\n    }\n  }\n"): (typeof documents)["\n  mutation MergeLearnProgress($progress: [LearnSectionProgressInput!]!) {\n    mergeLearnProgress(progress: $progress) {\n      sectionId\n      viewedSlides\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation ResetLearnProgress {\n    resetLearnProgress\n  }\n"): (typeof documents)["\n  mutation ResetLearnProgress {\n    resetLearnProgress\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

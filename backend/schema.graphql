@@ -27,6 +27,12 @@ type LearnSectionProgress {
   viewedSlides: [Int!]!
 }
 
+"""One section's viewed slide indices, sent from the client to merge."""
+input LearnSectionProgressInput {
+  sectionId: ID!
+  viewedSlides: [Int!]!
+}
+
 type Mutation {
   """Delete the user's stored data."""
   deleteAccount: Boolean!
@@ -37,9 +43,17 @@ type Mutation {
   findEmailByPhone(phone: String!): String
 
   """
+  Union a batch of client-recorded progress into the stored progress (used on sign-in to reconcile offline progress); returns the full updated progress.
+  """
+  mergeLearnProgress(progress: [LearnSectionProgressInput!]!): [LearnSectionProgress!]!
+
+  """
   Record that a Learn-page slide was viewed; returns the full updated progress.
   """
   recordSlideView(sectionId: ID!, slideIndex: Int!): [LearnSectionProgress!]!
+
+  """Clear all of the user's stored Learn-page progress."""
+  resetLearnProgress: Boolean!
 
   """
   Run a batch of like/dislike feedback through the algorithm and persist it.

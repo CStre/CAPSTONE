@@ -3,12 +3,13 @@ import { render, screen } from '@testing-library/react';
 import { SourcesPage } from './SourcesPage';
 
 describe('SourcesPage', () => {
-  it('renders the hero, two sections, a research reference, and tooling credits', () => {
+  it('renders the hero, the academic-references section, and a research reference', () => {
     render(<SourcesPage />);
 
     expect(screen.getByRole('heading', { name: /scholarly foundations/i })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: /peer-reviewed sources/i })).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: /technical attributions/i })).toBeInTheDocument();
+    // The technical-attributions section has been removed.
+    expect(screen.queryByRole('heading', { name: /technical attributions/i })).toBeNull();
 
     // A corpus reference (AMA style) is present.
     expect(screen.getByText(/Covington P, Adams J, Sargin E\./)).toBeInTheDocument();

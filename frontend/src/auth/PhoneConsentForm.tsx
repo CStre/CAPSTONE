@@ -7,7 +7,8 @@
  */
 import { useState, useEffect, useRef } from 'react';
 import type { ReactElement, SyntheticEvent } from 'react';
-import { LordIcon, ICONS } from '../components/LordIcon/LordIcon';
+import { LordIcon, ICONS } from '../icons';
+import { GooeyButton } from '../components/GooeyButton/GooeyButton';
 import { SmsConsent } from '../components/SmsConsent/SmsConsent';
 
 interface PhoneConsentFormProps {
@@ -88,8 +89,7 @@ export function PhoneConsentForm({
             {acknowledged ? '✓' : ''}
           </button>
           <span className="auth-sms-acknowledge-label">Acknowledge &amp; verify</span>
-          <button
-            type="button"
+          <GooeyButton
             className="auth-link"
             style={{ marginLeft: 'auto' }}
             onClick={() => {
@@ -97,7 +97,7 @@ export function PhoneConsentForm({
             }}
           >
             Messaging terms
-          </button>
+          </GooeyButton>
         </div>
 
         {error !== null && <p className="auth-error">{error}</p>}

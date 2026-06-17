@@ -11,11 +11,11 @@
  * Back face:  signUp · confirmSignUp
  */
 import { useState, useRef, useLayoutEffect } from 'react';
-import type { ReactElement } from 'react';
+import type { ReactElement, ReactNode } from 'react';
 import { useTheme } from '../lib/ThemeContext';
 import { useCanvasAnimation } from '../components/CanvasAnimation/useCanvasAnimation';
 import { useAuth } from './context';
-import { LordIcon, ICONS } from '../components/LordIcon/LordIcon';
+import { LordIcon, ICONS } from '../icons';
 import { SignInForm } from './SignInForm';
 import { SignUpForm } from './SignUpForm';
 import { CodeForm } from './CodeForm';
@@ -40,6 +40,68 @@ function renderMfaIcon(phase: MfaIconPhase): ReactElement {
     return <LordIcon src={ICONS.mfaTwoFactor} trigger="in" state="in-reveal" size={56} />;
   }
   return <LordIcon src={ICONS.mfaTwoFactor} trigger="hover" size={56} />;
+}
+
+/**
+ * Shuffle transition between successive views on a single card face. When
+ * `stepKey` changes, the outgoing content stays mounted for one beat as a ghost
+ * that sweeps around to the back and fades, while the incoming content comes in
+ * over the top — like cards being shuffled. The live content is in normal flow
+ * (so it sets the card height); the ghost is an absolute overlay that doesn't.
+ * The flip (sign-in ↔ sign-up) is unaffected — those keys don't change here.
+ */
+const SHUFFLE_MS = 520;
+
+function CardShuffle({
+  stepKey,
+  children,
+}: {
+  stepKey: string;
+  children: ReactNode;
+}): ReactElement {
+  const [ghost, setGhost] = useState<{ key: string; node: ReactNode } | null>(null);
+  const [entering, setEntering] = useState(false);
+  const committedKeyRef = useRef(stepKey);
+  const committedNodeRef = useRef<ReactNode>(children);
+
+  // Fire ONLY when the step actually changes (deps: [stepKey]) — so unrelated
+  // re-renders (cursor tilt, height measurement) don't clear the removal timer.
+  // The outgoing view becomes a ghost that arcs to the back-left; the incoming
+  // view (is-entering) grows in from the back-right — a playing-card shuffle.
+  useLayoutEffect(() => {
+    if (stepKey !== committedKeyRef.current) {
+      setGhost({ key: committedKeyRef.current, node: committedNodeRef.current });
+      setEntering(true);
+      const timer = setTimeout(() => {
+        setGhost(null);
+        setEntering(false);
+      }, SHUFFLE_MS);
+      return () => {
+        clearTimeout(timer);
+      };
+    }
+    return undefined;
+  }, [stepKey]);
+
+  // Keep the committed snapshot current every render. Declared AFTER the effect
+  // above so that one still sees the previous view on a step-change render.
+  useLayoutEffect(() => {
+    committedKeyRef.current = stepKey;
+    committedNodeRef.current = children;
+  });
+
+  return (
+    <div className="auth-shuffle">
+      {ghost ? (
+        <div key={`ghost-${ghost.key}`} className="auth-shuffle-ghost" aria-hidden="true">
+          {ghost.node}
+        </div>
+      ) : null}
+      <div key="live" className={`auth-shuffle-live${entering ? ' is-entering' : ''}`}>
+        {children}
+      </div>
+    </div>
+  );
 }
 
 /** Drives the Cognito auth flow and renders the form for the current step. */
@@ -301,11 +363,19 @@ export function AuthPanel(): ReactElement {
             className={`auth-flipcard-inner${flow.isFlipped ? ' is-flipped' : ''}`}
             style={{ height: (flow.isFlipped ? backHeight : frontHeight) || undefined }}
           >
-            <div className="glass-card auth-card auth-card--front" ref={frontCardRef}>
-              {renderFront()}
+            {/* The face is a transparent flip-geometry container; the glass card is
+                each shuffle layer inside, so the whole card swaps on a step change.
+                Front shows sign-in while flipped (its content is hidden then), so key
+                it 'signIn' — the flip, not a shuffle, owns that transition. */}
+            <div className="auth-card auth-card--front" ref={frontCardRef}>
+              <CardShuffle stepKey={flow.isFlipped ? 'signIn' : flow.step}>
+                {renderFront()}
+              </CardShuffle>
             </div>
-            <div className="glass-card auth-card auth-card--back" ref={backCardRef}>
-              {renderBack()}
+            <div className="auth-card auth-card--back" ref={backCardRef}>
+              <CardShuffle stepKey={flow.step === 'confirmSignUp' ? 'confirmSignUp' : 'signUp'}>
+                {renderBack()}
+              </CardShuffle>
             </div>
           </div>
         </div>

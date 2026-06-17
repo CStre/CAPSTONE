@@ -3,7 +3,7 @@
  */
 import { useState } from 'react';
 import type { ReactElement, SyntheticEvent } from 'react';
-import { LordIcon, ICONS } from '../components/LordIcon/LordIcon';
+import { LordIcon, ICONS } from '../icons';
 
 interface CodeFormProps {
   title?: string;

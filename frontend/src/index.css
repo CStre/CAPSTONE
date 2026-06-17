@@ -178,7 +178,11 @@ a {
    The cursor-reactive 3-D tilt is provided by the <GlassCard> React component,
    which also applies this class automatically.                                  */
 .glass-card {
-  background: rgba(255, 255, 255, 0.14);
+  /* Base opacity is high enough to read as a card WITHOUT the blur — backdrop-filter
+     is treated as enhancement, not a dependency. It renders inconsistently across
+     browsers/contexts (over a canvas, on transformed/scaled cards, inside
+     preserve-3d, etc.), so the card must never rely on it to be visible. */
+  background: rgba(255, 255, 255, 0.24);
   backdrop-filter: blur(18px) saturate(180%);
   border: 1px solid rgba(255, 255, 255, 0.22);
   box-shadow:
@@ -188,10 +192,58 @@ a {
 }
 
 [data-theme='light'] .glass-card {
-  background: rgba(255, 255, 255, 0.28);
+  background: rgba(255, 255, 255, 0.45);
   border-color: rgba(255, 255, 255, 0.8);
   box-shadow:
     0 12px 40px rgba(0, 0, 0, 0.1),
     inset 0 1px 0 rgba(255, 255, 255, 0.95),
     inset 0 -1px 0 rgba(61, 82, 160, 0.08);
+}
+
+/* Firefox fallback — global. Firefox will not composite backdrop-filter in many
+   of our contexts (over a canvas, on scaled/transformed cards, inside
+   preserve-3d), so the frosted blur silently fails and the translucent fill lets
+   the busy backdrop show through. Give every glass card a near-opaque fill in
+   Firefox so it stays legible without the blur: a dark base in dark theme (keeps
+   light text readable) and a light base in light theme (keeps dark text readable).
+   `@supports (-moz-appearance)` matches Firefox only; Chrome/Safari composite the
+   blur fine and keep the lighter translucent glass. Cards needing a different
+   fallback (e.g. the auth flip card at 0.92) override via higher specificity. */
+@supports (-moz-appearance: none) {
+  .glass-card {
+    background: rgba(33, 42, 49, 0.86);
+  }
+
+  [data-theme='light'] .glass-card {
+    background: rgba(255, 255, 255, 0.86);
+  }
+}
+
+/* ── Card reveal ──────────────────────────────────────────────────────────────
+   Every glass container springs in when it mounts — one unified bouncy entrance
+   across the whole site (extracted from the auth form reveal). The overshoot
+   easing is the bounce. fill-mode:backwards keeps the card at the "from" state
+   until it animates, then hands `transform` back to its resting value once done —
+   so a GlassCard's cursor-tilt transform (identity at rest) takes over seamlessly
+   with no jump. The auth flip card is excluded: it has its own flip + staggered
+   content choreography. */
+@keyframes glass-card-in {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.glass-card:not(.auth-card) {
+  animation: glass-card-in 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .glass-card:not(.auth-card) {
+    animation: none;
+  }
 }

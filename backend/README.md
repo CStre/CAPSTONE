@@ -27,6 +27,23 @@ src/
 tests/           Jest suites
 ```
 
+## Learn-page progress
+
+The `User.learnProgress` field returns each touched section's viewed slide indices
+(sparse). Three mutations keep it in sync with the client:
+
+- `recordSlideView(sectionId, slideIndex)` — appends a single viewed slide
+  (idempotent); fired as the reader completes each slide while signed in.
+- `mergeLearnProgress(progress: [LearnSectionProgressInput!]!)` — unions a batch of
+  client-side progress into the stored map and returns the full result. Used on
+  sign-in to reconcile progress recorded while signed out with whatever the account
+  already holds (one write instead of one call per slide).
+- `resetLearnProgress` — clears the stored progress map (preferences untouched).
+  Wired to the account page's "Clear learning progress" control.
+
+Completion is derived **client-side** from each section's own slide count; the
+backend only records which slides were seen.
+
 ## Local development
 
 ```bash

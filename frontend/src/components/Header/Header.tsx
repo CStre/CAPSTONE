@@ -10,10 +10,11 @@
  *   Stage 3   : Sources slides in
  */
 import { NavLink, useNavigate } from 'react-router';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { ReactElement } from 'react';
 import { useAuth } from '../../auth/context';
-import { ICONS, LordIcon } from '../LordIcon/LordIcon';
+import { useLearnProgressOptional } from '../../pages/LearnPage/LearnProgressContext';
+import { ICONS, LordIcon } from '../../icons';
 import { ThemeToggle } from '../ThemeToggle/ThemeToggle';
 import { useTheme } from '../../lib/ThemeContext';
 import { useIntroStage } from '../../lib/IntroContext';
@@ -25,28 +26,129 @@ function Icon({
   src,
   small = false,
   danger = false,
+  phase = 'idle',
+  replayKey = 0,
+  hoverState,
 }: {
   src: string;
   small?: boolean;
   danger?: boolean;
+  /**
+   * `'in'` plays the icon's in-reveal once (e.g. when the account dropdown opens),
+   * then the parent flips to `'idle'` so hover takes over. Defaults to `'idle'`.
+   */
+  phase?: 'in' | 'idle';
+  /** Bumped by the parent to force the in-reveal to replay on each open. */
+  replayKey?: number;
+  /** Hover marker to use in the idle phase, for icons whose default isn't a hover. */
+  hoverState?: string;
 }): ReactElement {
   const { theme } = useTheme();
   const primary = theme === 'dark' ? '#D3D9D4' : '#3D52A0';
   const secondary = theme === 'dark' ? '#748D92' : '#7091E6';
   const dangerCol = theme === 'dark' ? '#748D92' : '#3D52A0';
+  const className = small ? 'di-icon di-icon--sm' : 'di-icon';
+  const colors = danger
+    ? `primary:${dangerCol},secondary:${dangerCol}`
+    : `primary:${primary},secondary:${secondary}`;
 
+  // Reveal phase: play in-reveal on mount (keyed so it replays each open).
+  if (phase === 'in') {
+    return (
+      <lord-icon
+        key={`in-${replayKey}`}
+        className={className}
+        src={src}
+        trigger="in"
+        state="in-reveal"
+        stroke="bold"
+        colors={colors}
+      />
+    );
+  }
+
+  // Idle phase: hover-driven (the default everywhere else).
   return (
     <lord-icon
-      className={small ? 'di-icon di-icon--sm' : 'di-icon'}
+      key="idle"
+      className={className}
       src={src}
       trigger="hover"
+      state={hoverState}
       target={small ? '.di-menu-link' : '.di-nav-item'}
       stroke="bold"
-      colors={
-        danger
-          ? `primary:${dangerCol},secondary:${dangerCol}`
-          : `primary:${primary},secondary:${secondary}`
-      }
+      colors={colors}
+    />
+  );
+}
+
+/**
+ * Delay (ms) before a center nav icon plays its in-reveal — long enough that the
+ * island has opened the space / the item's content has begun to appear, so the icon
+ * arrives *after* the expansion rather than during the pop. Tunable.
+ */
+const NAV_REVEAL_DELAY_MS = 450;
+
+/**
+ * A center-island nav icon that plays its in-reveal then hands off to hover. It
+ * runs the sequence on mount, so the parent replays it by changing the icon's
+ * `key` (on page load / loader-disappear, and when the tab itself appears).
+ */
+function NavIcon({
+  src,
+  revealState = 'in-reveal',
+  hoverState,
+}: {
+  src: string;
+  revealState?: string;
+  /** Hover marker for the idle phase, for icons whose default marker isn't a hover. */
+  hoverState?: string;
+}): ReactElement {
+  const { theme } = useTheme();
+  const primary = theme === 'dark' ? '#D3D9D4' : '#3D52A0';
+  const secondary = theme === 'dark' ? '#748D92' : '#7091E6';
+  const colors = `primary:${primary},secondary:${secondary}`;
+  const [phase, setPhase] = useState<'pre' | 'in' | 'idle'>('pre');
+
+  useEffect(() => {
+    const toIn = setTimeout(() => {
+      setPhase('in');
+    }, NAV_REVEAL_DELAY_MS);
+    const toIdle = setTimeout(() => {
+      setPhase('idle');
+    }, NAV_REVEAL_DELAY_MS + 1900);
+    return () => {
+      clearTimeout(toIn);
+      clearTimeout(toIdle);
+    };
+  }, []);
+
+  // Hold the icon's space (but draw nothing) until the reveal fires, so the space
+  // opens first and the icon then draws into it.
+  if (phase === 'pre') {
+    return <span className="di-icon" aria-hidden="true" />;
+  }
+  if (phase === 'in') {
+    return (
+      <lord-icon
+        className="di-icon"
+        src={src}
+        trigger="in"
+        state={revealState || undefined}
+        stroke="bold"
+        colors={colors}
+      />
+    );
+  }
+  return (
+    <lord-icon
+      className="di-icon"
+      src={src}
+      trigger="hover"
+      state={hoverState}
+      target=".di-nav-item"
+      stroke="bold"
+      colors={colors}
     />
   );
 }
@@ -55,8 +157,37 @@ export function Header(): ReactElement {
   const { status, logout } = useAuth();
   const navigate = useNavigate();
   const authenticated = status === 'authenticated';
+  // The Travel tab unlocks only once the user has completed the Learn demo chapter.
+  const demoComplete = useLearnProgressOptional()?.demoComplete ?? false;
   const [menuOpen, setMenuOpen] = useState(false);
+  // Account-dropdown icons: play in-reveal on open, then hand off to hover.
+  const [menuIconPhase, setMenuIconPhase] = useState<'in' | 'idle'>('idle');
+  const [menuOpenSeq, setMenuOpenSeq] = useState(0);
+  const menuIconTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { introStage } = useIntroStage();
+
+  // Clear any pending icon-phase timer on unmount.
+  useEffect(
+    () => () => {
+      if (menuIconTimer.current) clearTimeout(menuIconTimer.current);
+    },
+    [],
+  );
+
+  // Toggle the account menu; on open, replay the menu icons' in-reveal then hand
+  // off to hover after the reveal completes.
+  function toggleMenu(): void {
+    if (menuIconTimer.current) clearTimeout(menuIconTimer.current);
+    setMenuOpen((open) => !open);
+    if (!menuOpen) {
+      setMenuOpenSeq((n) => n + 1);
+      setMenuIconPhase('in');
+      menuIconTimer.current = setTimeout(() => {
+        setMenuIconPhase('idle');
+      }, 2000);
+    }
+  }
+
   const isMinimal = introStage === -2; // 404 page: right island only
   const inIntro = introStage >= 0;
 
@@ -72,6 +203,16 @@ export function Header(): ReactElement {
   const showSources = !inIntro || introStage >= 3;
   // Sign In / Account and theme toggle: always visible
   const showTravel = !inIntro || introStage >= 2;
+  // Travel only once signed in AND the Learn demo is complete. Always rendered (not
+  // conditionally) so it can animate out — fade, then the island shrinks back.
+  const travelVisible = authenticated && demoComplete && showTravel;
+
+  // Key for a center nav icon: changes when the loader clears (status leaves
+  // 'loading' — i.e. page load / reload) and when the item appears, remounting the
+  // icon so it replays its in-reveal in both cases.
+  function iconKey(shown: boolean): string {
+    return status === 'loading' ? 'load' : `r-${shown ? 1 : 0}`;
+  }
 
   function handleLogout(): void {
     void logout().finally(() => {
@@ -79,15 +220,21 @@ export function Header(): ReactElement {
     });
   }
 
-  // Collapses/expands a nav item in the center island
-  function navReveal(show: boolean, delay = '0s'): React.CSSProperties {
+  // Expands/collapses a nav item, two-phase so it reads cleanly:
+  //  • Show → the island opens the space (max-width) first, THEN the content fades in.
+  //  • Hide → the content fades out first, THEN the space closes (island shrinks).
+  function navReveal(show: boolean, baseDelay = 0): React.CSSProperties {
+    const ease = 'cubic-bezier(0.34, 1.56, 0.64, 1)';
+    const transition = show
+      ? `max-width 0.5s ${ease} ${baseDelay}s, padding 0.5s ease ${baseDelay}s, opacity 0.35s ease ${baseDelay + 0.45}s`
+      : `opacity 0.28s ease 0s, max-width 0.5s ${ease} 0.28s, padding 0.5s ease 0.28s`;
     return {
       maxWidth: show ? '160px' : '0px',
       overflow: 'hidden',
       opacity: show ? 1 : 0,
       padding: show ? undefined : '0',
       pointerEvents: show ? 'auto' : 'none',
-      transition: `max-width 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) ${show ? delay : '0s'}, opacity 0.4s ease ${show ? delay : '0s'}, padding 0.4s ease`,
+      transition,
       flexShrink: 0,
     };
   }
@@ -145,8 +292,11 @@ export function Header(): ReactElement {
       </GlassIsland>
 
       {/* ── Center island: navigation (always present) ────────────────── */}
+      {/* While the account menu is open, freeze the island's elastic drift (keep its
+          gooey) so only the popped-out dropdown flows around the cursor — not both. */}
       <GlassIsland
         className="di-island--center"
+        elasticStrength={menuOpen ? 0 : undefined}
         style={{
           opacity: showCenter ? 1 : 0,
           pointerEvents: showCenter ? 'auto' : 'none',
@@ -165,20 +315,19 @@ export function Header(): ReactElement {
         <div style={sepStyle} />
 
         {/* Nav items — each slides in at its own stage */}
-        <NavLink to="/learn" className="di-nav-item" style={navReveal(showLearn, '0.12s')}>
-          <Icon src={ICONS.learn} />
+        <NavLink to="/learn" className="di-nav-item" style={navReveal(showLearn, 0.12)}>
+          <NavIcon key={iconKey(showLearn)} src={ICONS.learn} />
           <span>Learn</span>
         </NavLink>
 
-        {authenticated && (
-          <NavLink to="/travel" className="di-nav-item" style={navReveal(showTravel, '0.12s')}>
-            <Icon src={ICONS.travel} />
-            <span>Travel</span>
-          </NavLink>
-        )}
+        {/* Always rendered so it can animate out when demo progress is reset. */}
+        <NavLink to="/travel" className="di-nav-item" style={navReveal(travelVisible, 0.12)}>
+          <NavIcon key={iconKey(travelVisible)} src={ICONS.travel} hoverState="hover-roll" />
+          <span>Travel</span>
+        </NavLink>
 
-        <NavLink to="/sources" className="di-nav-item" style={navReveal(showSources, '0.12s')}>
-          <Icon src={ICONS.sources} />
+        <NavLink to="/sources" className="di-nav-item" style={navReveal(showSources, 0.12)}>
+          <NavIcon key={iconKey(showSources)} src={ICONS.sources} />
           <span>Sources</span>
         </NavLink>
 
@@ -197,12 +346,10 @@ export function Header(): ReactElement {
                 style={accountReveal(true)}
                 role="button"
                 tabIndex={0}
-                onClick={() => {
-                  setMenuOpen((o) => !o);
-                }}
+                onClick={toggleMenu}
               >
                 <span className="di-nav-item-face">
-                  <Icon src={ICONS.account} />
+                  <NavIcon key={iconKey(true)} src={ICONS.account} />
                   <span>Account</span>
                 </span>
               </span>
@@ -215,8 +362,8 @@ export function Header(): ReactElement {
                 setMenuOpen(false);
               }}
             >
-              <Icon src={ICONS.account} small />
-              Account
+              <Icon src={ICONS.settings} small phase={menuIconPhase} replayKey={menuOpenSeq} />
+              Settings
             </NavLink>
             <NavLink
               to="/dashboard"
@@ -225,8 +372,14 @@ export function Header(): ReactElement {
                 setMenuOpen(false);
               }}
             >
-              <Icon src={ICONS.dashboard} small />
-              Dashboard
+              <Icon
+                src={ICONS.brochure}
+                small
+                phase={menuIconPhase}
+                replayKey={menuOpenSeq}
+                hoverState="hover-pinch"
+              />
+              Brochure
             </NavLink>
             <button
               type="button"
@@ -236,13 +389,19 @@ export function Header(): ReactElement {
                 handleLogout();
               }}
             >
-              <Icon src={ICONS.signOut} small danger />
+              <Icon
+                src={ICONS.signOut}
+                small
+                danger
+                phase={menuIconPhase}
+                replayKey={menuOpenSeq}
+              />
               Sign out
             </button>
           </DropdownMenu>
         ) : (
           <NavLink to="/login" className="di-nav-item" style={navReveal(true)}>
-            <Icon src={ICONS.signIn} />
+            <NavIcon key={iconKey(true)} src={ICONS.signIn} />
             <span>Sign in</span>
           </NavLink>
         )}

@@ -7,7 +7,8 @@
 import { useState } from 'react';
 import type { ReactElement, SyntheticEvent } from 'react';
 import { PasswordStrength, getStrength } from '../components/PasswordStrength/PasswordStrength';
-import { LordIcon, ICONS } from '../components/LordIcon/LordIcon';
+import { LordIcon, ICONS } from '../icons';
+import { GooeyButton } from '../components/GooeyButton/GooeyButton';
 import { PhoneInput } from '../components/PhoneInput/PhoneInput';
 import { useTheme } from '../lib/ThemeContext';
 import { spawnParticles } from '../components/CanvasAnimation/spawnParticles';
@@ -173,9 +174,9 @@ export function SignUpForm({
         {pending ? 'Creating...' : 'Create account'}
       </button>
       <div className="auth-bottom-row">
-        <button type="button" className="auth-link" onClick={onSwitchToSignIn}>
+        <GooeyButton className="auth-link" onClick={onSwitchToSignIn}>
           Sign in
-        </button>
+        </GooeyButton>
         <button
           type="button"
           className="auth-security-btn"

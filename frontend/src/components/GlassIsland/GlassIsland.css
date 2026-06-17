@@ -24,8 +24,8 @@
     inset 0 1px 0 rgba(255, 255, 255, 0.4),
     inset 0 -1px 0 rgba(0, 0, 0, 0.18);
   transition:
-    top 0.45s cubic-bezier(0.34, 1.56, 0.64, 1),
-    left 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+    top 0.95s cubic-bezier(0.34, 1.56, 0.64, 1),
+    left 0.95s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 [data-theme='light'] .gi-island {

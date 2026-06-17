@@ -9,7 +9,8 @@ import type { ReactElement } from 'react';
 import { SLIDES, FADE_MS } from './useIntroSlides';
 import type { IntroSlidesState } from './useIntroSlides';
 import { GlassCard } from '../../components/GlassCard/GlassCard';
-import { ICONS, LordIcon } from '../../components/LordIcon/LordIcon';
+import { ExploreButton } from '../../components/ExploreButton/ExploreButton';
+import { ICONS, LordIcon } from '../../icons';
 import './IntroCard.css';
 
 interface IntroCardProps {
@@ -78,12 +79,7 @@ export function IntroCard({
             transition: 'opacity 0.65s ease',
           }}
         >
-          <button className="intro-explore-btn" onClick={onExplore}>
-            <span className="circle" aria-hidden="true">
-              <span className="icon arrow" />
-            </span>
-            <span className="button-text">Get Started</span>
-          </button>
+          <ExploreButton onClick={onExplore}>Get Started</ExploreButton>
         </div>
       )}
     </GlassCard>

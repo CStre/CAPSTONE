@@ -11,6 +11,7 @@ import { Provider as GraphQLProvider } from 'urql';
 import { defineElement } from '@lordicon/element';
 import { App } from './App';
 import { AuthProvider } from './auth/AuthProvider';
+import { LearnProgressProvider } from './pages/LearnPage/LearnProgressContext';
 import { ThemeProvider } from './lib/ThemeContext';
 import { configureAuth } from './auth/config';
 import { getIdToken } from './auth/session';
@@ -36,9 +37,11 @@ createRoot(root).render(
     <ThemeProvider>
       <GraphQLProvider value={graphqlClient}>
         <AuthProvider>
-          <BrowserRouter>
-            <App />
-          </BrowserRouter>
+          <LearnProgressProvider>
+            <BrowserRouter>
+              <App />
+            </BrowserRouter>
+          </LearnProgressProvider>
         </AuthProvider>
       </GraphQLProvider>
     </ThemeProvider>

@@ -2,7 +2,7 @@
  * @fileoverview Learn section 04 — Why It Happens: The Mechanism Chain.
  * Copy: ../plan/04-why-it-happens.md (Synthesis 07). Placeholder icons.
  */
-import { ICONS } from '../../../components/LordIcon/LordIcon';
+import { ICONS } from '../../../icons';
 import type { LearnSection } from '../types';
 
 export const whyItHappens: LearnSection = {

@@ -10,7 +10,8 @@
 import { useEffect, useState } from 'react';
 import type { ReactElement } from 'react';
 import { GlassCard } from '../../components/GlassCard/GlassCard';
-import { LordIcon, ICONS } from '../../components/LordIcon/LordIcon';
+import { ExploreButton } from '../../components/ExploreButton/ExploreButton';
+import { LordIcon, ICONS } from '../../icons';
 import { FADE_MS } from './useIntroSlides';
 import './IntroCard.css';
 
@@ -155,12 +156,9 @@ export function AuthGreetingCard({ firstName, onDismiss }: AuthGreetingCardProps
           transition: 'opacity 0.65s ease',
         }}
       >
-        <button className="intro-explore-btn" style={{ width: '15rem' }} onClick={onDismiss}>
-          <span className="circle" aria-hidden="true">
-            <span className="icon arrow" />
-          </span>
-          <span className="button-text">Play with Phil</span>
-        </button>
+        <ExploreButton width="15rem" onClick={onDismiss}>
+          Play with Phil
+        </ExploreButton>
       </div>
     </GlassCard>
   );

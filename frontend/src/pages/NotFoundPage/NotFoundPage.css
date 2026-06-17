@@ -40,18 +40,7 @@
   align-items: center;
   text-align: center;
   gap: 1rem;
-  animation: nf-slide-up 0.35s ease;
-}
-
-@keyframes nf-slide-up {
-  from {
-    opacity: 0;
-    transform: translateY(16px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  /* Entrance animation comes from the global .glass-card bounce-in (index.css). */
 }
 
 /* ── Card content ────────────────────────────────────────────────────────────── */
@@ -73,6 +62,7 @@
 
 .nf-sub {
   font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
   color: var(--color-text-muted);
   margin: 0;
 }

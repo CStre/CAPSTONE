@@ -1,9 +1,10 @@
 /* ──────────────────────────────────────────────────────────────────────────
    Sources page — glass index-card carousel + organisation logo marquee.
-   Cards grow toward the viewport centre via the --card-scale custom property the
-   scroll engine sets each frame (default keeps them full-size without JS).
-   Transparency is constant — no opacity fade. The source-card deck overlaps so
-   the centred card overlays its neighbours; everything else is spaced.
+   Cards grow toward the viewport centre via the --card-scale custom property and
+   spread apart from the focus via --card-shift, both set each frame by the scroll
+   engine (defaults keep them full-size and unspread without JS). Transparency is
+   constant — no opacity fade; the focused card stays clear of its neighbours
+   because they are pushed outward rather than overlapped.
    All prose content — including the hero and section headings — lives inside
    glass cards so no text floats uncontained against the canvas backdrop.
    ────────────────────────────────────────────────────────────────────────── */
@@ -16,7 +17,9 @@
   overflow-x: clip;
 }
 
-/* Canvas behind everything (see StringsAnimation). */
+/* Canvas behind everything (see StringsAnimation). Held at reduced opacity so
+   the strands/specks read as a faint, non-distracting backdrop behind the
+   cards rather than competing with them. */
 .sources-canvas {
   position: fixed;
   top: 0;
@@ -24,6 +27,7 @@
   width: 100vw;
   height: 100vh;
   z-index: 0;
+  opacity: 0.55;
 }
 
 /* ── Shared glass surface (index cards) ──────────────────────────────────── */
@@ -42,12 +46,16 @@
   position: relative;
   overflow: hidden;
   color: var(--color-text);
-  /* Carousel growth only — transparency stays constant (no opacity fade).
-     will-change:transform is intentionally omitted: Chrome promotes elements
-     with that hint to their own GPU layer, silently breaking backdrop-filter. */
+  /* Carousel growth + spread — transparency stays constant (no opacity fade).
+     `scale` grows the centred card; `translate` pushes neighbours away from it
+     so the deck opens around the focus instead of overlapping. Both use the
+     individual transform properties (not `transform`, which the cursor tilt
+     owns): keeping them off `transform` avoids fighting the tilt transition and
+     preserves each card's backdrop-filter glass. will-change is omitted
+     deliberately — it promotes the card to its own GPU layer, breaking glass. */
   scale: var(--card-scale, 1);
+  translate: 0 var(--card-shift, 0px);
   transform-origin: center;
-  will-change: scale;
 }
 
 /* Static cards (hero, disclosure) opt out of the carousel scaling — the scroll
@@ -105,31 +113,25 @@
   mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
 }
 
+/* translateX is driven per-frame by OrgMarquee (rAF), not a CSS animation. */
 .org-track {
   display: flex;
   align-items: center;
   gap: 4rem;
   width: max-content;
-  animation: org-scroll 60s linear infinite;
-}
-
-.org-marquee:hover .org-track {
-  animation-play-state: paused;
-}
-
-@keyframes org-scroll {
-  from {
-    transform: translateX(-50%);
-  }
-  to {
-    transform: translateX(0);
-  }
+  will-change: transform;
 }
 
 .org-chip {
   display: inline-flex;
   align-items: center;
   flex: 0 0 auto;
+  /* Hovered logo grows; the strip itself slows (handled in JS) rather than stops. */
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.org-chip:hover {
+  transform: scale(1.18);
 }
 
 .org-logo {
@@ -187,7 +189,11 @@
   margin: 0;
   font-size: var(--fs-xl);
   font-weight: var(--fw-extrabold);
-  color: var(--color-accent);
+  /* Heading colour (not accent): in dark mode --color-accent is a muted grey-blue
+     that reads faint against the card, unlike the bright body text. --color-heading
+     matches the body brightness; in light mode it equals the old accent, so that
+     theme is unchanged. Hierarchy still comes from the larger, extrabold size. */
+  color: var(--color-heading);
   letter-spacing: 0.03em;
 }
 
@@ -200,16 +206,11 @@
   gap: 1.4rem;
 }
 
-/* Source-card deck: cards overlap so the centred (largest, top z-index) card
-   overlays its neighbours, which recede behind it as they shrink. The negative
-   margin pulls each card up over the previous one; z-index (set per-frame by the
-   scroll engine) decides which sits in front. */
+/* Source-card deck: cards are spaced (never overlapping). As one nears the
+   viewport centre it grows and its neighbours are pushed further apart by the
+   scroll engine (--card-shift), so the focused card always has clear room. */
 .credits-list--stack {
-  gap: 0;
-}
-
-.credits-list--stack > .credit-card:not(:first-child) {
-  margin-top: -2.6rem;
+  gap: 1.5rem;
 }
 
 .credit-card {
@@ -227,17 +228,21 @@
   color: var(--color-text);
 }
 
-/* Cards with a source button get extra bottom padding so citation text
-   never hides behind the absolutely-positioned icon. */
+/* Cards with a source button get extra right padding so the centred citation
+   text shifts just enough to clear the right-edge icon — no overlap, and the
+   icon shares the line instead of sitting on one of its own. */
 .credit-card--linked {
-  padding-bottom: 3.2rem;
+  padding-right: 3rem;
 }
 
-/* Source-link button — bottom-right corner of each citation/credit card. */
+/* Source-link button — vertically centred on the right edge of the card, on the
+   same line as the citation (the text is padded to leave room, see
+   .credit-card--linked) rather than reserving its own line at the bottom. */
 .cc-source-btn {
   position: absolute;
-  bottom: 0.55rem;
-  right: 0.65rem;
+  top: 50%;
+  right: 0.7rem;
+  transform: translateY(-50%);
   z-index: 2;
   display: flex;
   align-items: center;
@@ -298,12 +303,15 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .org-track {
-    animation: none;
+  /* The marquee rAF loop and the carousel scroll engine both bail out under
+     reduced-motion in JS; this pins the cards flat as a belt-and-braces guard. */
+  .org-chip:hover {
+    transform: none;
   }
 
   .credit-card {
     scale: 1 !important;
+    translate: none !important;
     transform: none !important;
   }
 }

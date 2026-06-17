@@ -165,6 +165,7 @@
 .travel-card-credit {
   margin: 0;
   font-size: var(--fs-xs);
+  font-weight: var(--fw-semibold);
   color: var(--color-text-muted);
   opacity: 0.45;
 }

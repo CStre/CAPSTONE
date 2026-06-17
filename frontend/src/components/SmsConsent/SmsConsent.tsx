@@ -9,7 +9,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import type { ReactElement } from 'react';
-import { LordIcon, ICONS } from '../LordIcon/LordIcon';
+import { LordIcon, ICONS } from '../../icons';
 import { GlassCard } from '../GlassCard/GlassCard';
 import '../SecurityInfo/SecurityInfo.css';
 

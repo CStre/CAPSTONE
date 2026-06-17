@@ -4,10 +4,12 @@
  * The element is registered at runtime by @lordicon/element (see main.tsx);
  * this declaration lets TSX reference <lord-icon> with type checking.
  */
-import type { HTMLAttributes } from 'react';
+import type { HTMLAttributes, Key } from 'react';
 
 /** Attributes accepted by the lordicon web component. */
 interface LordIconProps extends HTMLAttributes<HTMLElement> {
+  /** React's reconciliation key (not part of HTMLAttributes for custom elements). */
+  key?: Key;
   src?: string;
   trigger?: string;
   state?: string;

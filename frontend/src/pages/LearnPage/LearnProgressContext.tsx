@@ -51,6 +51,29 @@ const RecordSlideViewMutation = graphql(`
   }
 `);
 
+/** Union local (signed-out) progress into the account on sign-in. */
+const MergeLearnProgressMutation = graphql(`
+  mutation MergeLearnProgress($progress: [LearnSectionProgressInput!]!) {
+    mergeLearnProgress(progress: $progress) {
+      sectionId
+      viewedSlides
+    }
+  }
+`);
+
+/** Clear all of the user's stored Learn-page progress. */
+const ResetLearnProgressMutation = graphql(`
+  mutation ResetLearnProgress {
+    resetLearnProgress
+  }
+`);
+
+/**
+ * The demo chapter. Completing every slide of this section is what unlocks the
+ * Travel tab (header) and the Dashboard — see `demoComplete`.
+ */
+const DEMO_SECTION_ID = 'travel-demo';
+
 export interface SectionStatus {
   viewedCount: number;
   total: number;
@@ -64,9 +87,13 @@ interface LearnProgressValue {
   completedCount: number;
   /** Total trackable (non-deferred) sections. */
   trackableCount: number;
+  /** Whether the demo chapter is fully complete (gates the Travel tab + Dashboard). */
+  demoComplete: boolean;
   markViewed: (sectionId: string, slideIndex: number) => void;
   /** Whether a specific slide has been completed (viewed for the dwell time). */
   isSlideViewed: (sectionId: string, slideIndex: number) => boolean;
+  /** Clear all learn progress — local and, when signed in, in the database. */
+  resetProgress: () => Promise<void>;
 }
 
 const LearnProgressContext = createContext<LearnProgressValue | null>(null);
@@ -101,9 +128,17 @@ export function LearnProgressProvider({ children }: { children: ReactNode }): Re
   const [localViewed, setLocalViewed] = useState<ViewedMap>(() => loadViewed());
 
   // Hydrate from the server when signed in (paused otherwise).
-  const [{ data }] = useQuery({ query: LearnProgressQuery, pause: !authenticated });
+  const [{ data }, reexecuteQuery] = useQuery({
+    query: LearnProgressQuery,
+    pause: !authenticated,
+  });
   const [, recordSlideView] = useMutation(RecordSlideViewMutation);
-  const serverProgress = data?.me?.learnProgress;
+  const [, mergeLearnProgress] = useMutation(MergeLearnProgressMutation);
+  const [, resetLearnProgress] = useMutation(ResetLearnProgressMutation);
+  // Only trust server data while authenticated — urql retains the last result when
+  // the query is paused, so this prevents a signed-out user (or the next account on
+  // the same browser) from seeing the previous user's progress.
+  const serverProgress = authenticated ? data?.me?.learnProgress : undefined;
 
   const markViewed = useCallback(
     (sectionId: string, slideIndex: number): void => {
@@ -120,22 +155,42 @@ export function LearnProgressProvider({ children }: { children: ReactNode }): Re
     [authenticated, recordSlideView],
   );
 
-  // Bulk-upload on first sign-in: push any local-only progress (recorded while
-  // signed out) up to the server, so the account holds the full union. Runs once
-  // per session, after the server data has loaded.
+  // Merge on first sign-in: union any local progress (recorded while signed out)
+  // into the account in a single mutation, so an account that already has progress
+  // and a browser that has offline progress end up with the union of both. Runs
+  // once per sign-in, after the server data has loaded.
   const bulkPushed = useRef(false);
   useEffect(() => {
     if (!authenticated || !serverProgress || bulkPushed.current) return;
     bulkPushed.current = true;
-    const onServer = new Map(serverProgress.map((s) => [s.sectionId, new Set(s.viewedSlides)]));
-    for (const [sectionId, slides] of Object.entries(localViewed)) {
-      for (const slideIndex of slides) {
-        if (!onServer.get(sectionId)?.has(slideIndex)) {
-          void recordSlideView({ sectionId, slideIndex });
-        }
-      }
+    const progress = Object.entries(localViewed)
+      .filter(([, slides]) => slides.length > 0)
+      .map(([sectionId, viewedSlides]) => ({ sectionId, viewedSlides }));
+    if (progress.length > 0) void mergeLearnProgress({ progress });
+  }, [authenticated, serverProgress, localViewed, mergeLearnProgress]);
+
+  // On sign-out, wipe local progress so nothing carries over to the next visitor on
+  // this browser, and re-arm the merge for the next sign-in.
+  const wasAuthenticated = useRef(authenticated);
+  useEffect(() => {
+    if (wasAuthenticated.current && !authenticated) {
+      setLocalViewed({});
+      saveViewed({});
+      bulkPushed.current = false;
     }
-  }, [authenticated, serverProgress, localViewed, recordSlideView]);
+    wasAuthenticated.current = authenticated;
+  }, [authenticated]);
+
+  const resetProgress = useCallback(async (): Promise<void> => {
+    setLocalViewed({});
+    saveViewed({});
+    if (authenticated) {
+      await resetLearnProgress({});
+      // Refetch so the now-empty server state replaces the cached progress (otherwise
+      // the local∪server union would re-introduce what we just cleared).
+      reexecuteQuery({ requestPolicy: 'network-only' });
+    }
+  }, [authenticated, resetLearnProgress, reexecuteQuery]);
 
   const value = useMemo<LearnProgressValue>(() => {
     // Effective viewed set = local ∪ server (server adds progress from other devices).
@@ -162,8 +217,17 @@ export function LearnProgressProvider({ children }: { children: ReactNode }): Re
     }
     const isSlideViewed = (sectionId: string, slideIndex: number): boolean =>
       (viewed[sectionId] ?? []).includes(slideIndex);
-    return { status, completedCount, trackableCount, markViewed, isSlideViewed };
-  }, [localViewed, serverProgress, markViewed]);
+    const demoComplete = status[DEMO_SECTION_ID]?.completed ?? false;
+    return {
+      status,
+      completedCount,
+      trackableCount,
+      demoComplete,
+      markViewed,
+      isSlideViewed,
+      resetProgress,
+    };
+  }, [localViewed, serverProgress, markViewed, resetProgress]);
 
   return <LearnProgressContext.Provider value={value}>{children}</LearnProgressContext.Provider>;
 }
@@ -174,4 +238,13 @@ export function useLearnProgress(): LearnProgressValue {
     throw new Error('useLearnProgress must be used within <LearnProgressProvider>');
   }
   return value;
+}
+
+/**
+ * Like {@link useLearnProgress} but returns `null` instead of throwing when no
+ * provider is present. For components rendered both inside and outside the
+ * provider (e.g. the Header, which also mounts in isolated tests).
+ */
+export function useLearnProgressOptional(): LearnProgressValue | null {
+  return useContext(LearnProgressContext);
 }

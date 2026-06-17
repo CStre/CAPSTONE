@@ -8,15 +8,9 @@
  *
  * Used in SignUpForm (new account) and AccountPage (password change).
  */
-import type { ReactElement } from 'react';
-import { ICONS, LordIcon } from '../LordIcon/LordIcon';
-import { useTheme } from '../../lib/ThemeContext';
+import type { CSSProperties, ReactElement } from 'react';
+import { GlassCard } from '../GlassCard/GlassCard';
 import './PasswordStrength.css';
-
-const ICON_COLORS = {
-  dark: { weak: '#ef4444', strong: '#22c55e' },
-  light: { weak: '#ef4444', strong: '#15803d' },
-} as const;
 
 const RULES = [
   { key: 'length', label: 'At least 8 characters', test: (pw: string) => pw.length >= 8 },
@@ -75,8 +69,6 @@ export function PasswordStrength({
   password,
   className,
 }: PasswordStrengthProps): ReactElement | null {
-  const { theme } = useTheme();
-  const iconColors = ICON_COLORS[theme];
   const ruleResults = RULES.map((r) => ({ ...r, passed: r.test(password) }));
   const suggestionResults = SUGGESTIONS.map((s) => ({ ...s, passed: s.test(password) }));
 
@@ -95,30 +87,16 @@ export function PasswordStrength({
   if (!password) return null;
 
   return (
-    <>
-      <div className={`ps-bar ${className ?? ''}`.trim()}>
-        <div style={{ width: `${fillPct}%`, background: barColor }} />
-      </div>
+    <GlassCard className={`ps-card ${className ?? ''}`.trim()} maxDeg={0}>
+      <div
+        className="ps-bar"
+        style={{ '--ps-fill': `${fillPct}%`, '--ps-fill-color': barColor } as CSSProperties}
+      />
 
       {/* Strength label — shown whenever a password is entered */}
       {password && strength !== '' && (
         <div className="ps-strength-tag">
-          {strength !== 'fair' && (
-            <LordIcon
-              src={strength === 'weak' ? ICONS.passwordWeak : ICONS.passwordStrong}
-              trigger="in"
-              stroke="bold"
-              size={16}
-              colors={
-                strength === 'weak'
-                  ? `primary:${iconColors.weak},secondary:${iconColors.weak}`
-                  : `primary:${iconColors.strong},secondary:${iconColors.strong}`
-              }
-            />
-          )}
-          <span className={`ps-strength-text ps-strength-text--${strength}`}>
-            {STRENGTH_LABEL[strength]} password
-          </span>
+          <span className="ps-strength-text">{STRENGTH_LABEL[strength]} password</span>
         </div>
       )}
 
@@ -155,6 +133,6 @@ export function PasswordStrength({
           </ul>
         </div>
       )}
-    </>
+    </GlassCard>
   );
 }

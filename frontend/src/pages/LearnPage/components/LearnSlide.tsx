@@ -9,7 +9,7 @@
  */
 import { useEffect, useState } from 'react';
 import type { ReactElement } from 'react';
-import { LordIcon, ICONS } from '../../../components/LordIcon/LordIcon';
+import { LordIcon, ICONS } from '../../../icons';
 import { useTypewriter } from '../../../components/Typewriter/useTypewriter';
 import type { Slide } from '../types';
 import { useLearnProgress } from '../LearnProgressContext';
