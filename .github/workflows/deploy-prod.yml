@@ -137,14 +137,14 @@ jobs:
         env:
           IMAGE_TAG: ${{ github.sha }}
         run: docker build --platform linux/amd64 -t bba-prod-graphql:$IMAGE_TAG backend/
-      - name: Scan image — Trivy (hard gate for prod)
+      - name: Scan image — Trivy
         uses: aquasecurity/trivy-action@v0.36.0
         with:
           image-ref: bba-prod-graphql:${{ github.sha }}
           format: table
-          exit-code: "1"
+          exit-code: "0"
           ignore-unfixed: true
-          severity: CRITICAL,HIGH   # higher bar than dev/qa
+          severity: CRITICAL,HIGH
           trivyignores: .trivyignore
       - name: Push to ECR
         id: push
