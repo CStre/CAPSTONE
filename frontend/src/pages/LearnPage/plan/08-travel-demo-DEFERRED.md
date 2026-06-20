@@ -76,7 +76,7 @@ each becomes a slide:
 - [ ] Confirm the preference-update rule (the `±5` / clamp / rail-bounce behavior
       noted in `CLAUDE.md`) and decide whether to surface it as a "how it learns"
       micro-explainer.
-- [ ] Confirm what the Dashboard renders (the GeoChart world map) and screenshot
-      it for the legibility slide.
+- [ ] Confirm what the Dashboard renders (the react-simple-maps equirectangular world
+      map with the cursor-following score chip) and screenshot it for the legibility slide.
 - [ ] Decide whether to add the in-app transparency note Synthesis 06 suggests
       ("your data stays minimal / nothing is inferred about you").

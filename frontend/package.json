@@ -36,6 +36,9 @@
     "wonka": "^6.3.6",
     "world-atlas": "^2.0.2"
   },
+  "overrides": {
+    "d3-color": "^3.1.0"
+  },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@graphql-codegen/cli": "^7.0.0",

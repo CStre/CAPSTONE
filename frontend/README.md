@@ -12,7 +12,11 @@ deployed to S3 + CloudFront.
 - **urql** + **GraphQL Code Generator** — typed GraphQL operations from the backend schema
 - **AWS Amplify Auth** — Cognito sign-in + TOTP MFA (wired to deployed Cognito pool)
 - **react-simple-maps** + **world-atlas** — Brochure choropleth (bundled TopoJSON, no
-  network fetch at runtime or in tests)
+  network fetch at runtime or in tests). It declares a React ≤18 peer (we run React 19),
+  so `.npmrc` sets `legacy-peer-deps=true` for both local installs and CI `npm ci`. Its
+  transitive `d3-color` is pinned to `^3.1.0` via `package.json` `overrides` (the v2 build
+  has a HIGH ReDoS advisory); the resulting ESM-only d3 chain is stubbed in tests via the
+  `react-simple-maps` mock (`src/test/reactSimpleMapsMock.tsx`).
 - **Jest** + **React Testing Library** — component and client tests
 
 ## Layout
@@ -37,9 +41,12 @@ src/
                    what A has inferred. Batches interactions to submitFeedback; Unsplash-
                    compliant (hotlinked images, linked photographer+Unsplash credit w/ UTM,
                    trackPhotoUse pings the download endpoint when a photo is used)
-    DashboardPage/ react-simple-maps world map (bundled world-atlas TopoJSON) shaded by
-                   preference score, with hover tooltip — labelled "Brochure" in the UI
-                   (kept "Dashboard" in code/routes); gated behind completing the Learn
+    DashboardPage/ react-simple-maps equirectangular world map (bundled world-atlas 50m
+                   TopoJSON, Antarctica filtered, full-viewport width) choropleth-shaded by
+                   preference score; hover readout is a cursor-following gooey "score chip"
+                   (rAF-eased, edge-flips to stay on-screen). NAME_ALIAS reconciles
+                   world-atlas vs catalog names. Labelled "Brochure" in the UI (kept
+                   "Dashboard" in code/routes); gated behind completing the Learn
                    demo (shows a "your data lives here" card until then)
     AccountPage/   profile (name/email/phone) with User Settings / Data Settings tabs. Rounded buttons (tabs, Messaging terms) + verified badges use the gooey spring; rectangular buttons plus text and inputs use a hover grow (scale). User: name/email/phone, email-based password reset, TOTP re-enrollment; Data: Data Request (download your data / our research), Reset Your Progress (reset learning progress / clear preferences), then Delete account — paired buttons stack as slim, uniform-width rows — each opening a confirm popup ("Reset learning progress" is wired to reset local + DB progress; the others are not yet wired). Reached via the header "Settings" dropdown link (cog icon)
     LoginPage/     Amplify Auth sign-in / sign-up shell
@@ -63,7 +70,9 @@ src/
                  (global `.hover-grow` text utility lives in index.css)
   icons/         LordIcon wrapper + the icon registry, split per-page (header/home/auth/
                  account/learn/sources/travel/notFound) + shared, aggregated as ICONS in index.ts
-  lib/           urql client, ThemeContext, IntroContext
+  lib/           urql client, ThemeContext, IntroContext, pointer.ts (clientToFixed —
+                 visual-viewport coord fix for fixed-position pointer followers under
+                 pinch-zoom; Safari-only offset, no-op on Chrome/Firefox)
   gql/           GraphQL Code Generator output (generated — do not edit)
   auth/          Cognito wrapper + full auth UI: sign-in/up with phone, email verify,
                  TCPA/CTIA phone-consent step (PhoneConsentForm), SMS phone verify,

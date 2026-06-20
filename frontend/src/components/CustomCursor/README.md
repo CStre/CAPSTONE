@@ -19,7 +19,7 @@ Mounted once in `App.tsx` inside the shared `Layout` wrapper — present on ever
 
 ## Behaviour
 
-- **Follows the mouse** — `left`/`top` are updated directly on the DOM ref inside `mousemove` (no `setState`, so the component never re-renders after mount).
+- **Follows the mouse** — `left`/`top` are updated directly on the DOM ref inside `mousemove` (no `setState`, so the component never re-renders after mount). Coordinates pass through [`lib/pointer.ts#clientToFixed`](../../lib/pointer.ts), which adds `visualViewport.offset` **only on Safari** so the dot stays under the pointer during a trackpad pinch-zoom (it's a no-op on Chrome/Firefox, where `position: fixed` already lands under the pointer).
 - **Grows on hover** — when the cursor passes over any `a`, `button`, `input`, `select`, `textarea`, `label`, `[role="button"]`, or focusable element, the `.cc-hover` class is added for a CSS scale-up to 40 px.
 - **Bounces on click** — `mousedown` toggles the `.cc-click` class (with a forced reflow between removes so rapid clicks each restart the animation).
 - **Bubble-pop on leave** — when the mouse exits the page (`mouseleave` on `document.documentElement`):
