@@ -203,8 +203,8 @@ resource "aws_cognito_user_pool" "main" {
     }
   }
 
-  # Custom SMS sender — routes all Cognito SMS through the GraphQL Lambda + Twilio
-  # instead of SNS, avoiding the US origination-number registration requirement.
+  # Custom SMS sender — routes all Cognito SMS through the GraphQL Lambda + Pinpoint
+  # SMS Voice v2 using the dedicated toll-free origination number.
   # ARN is constructed directly to avoid a Terraform cycle: Lambda env vars reference
   # Cognito IDs, and Cognito lambda_config references the Lambda — using a computed
   # ARN breaks the dependency chain without changing runtime behavior.
@@ -285,20 +285,6 @@ data "aws_kms_alias" "cognito_sms" {
 
 locals {
   cognito_sms_key_arn = data.aws_kms_alias.cognito_sms.target_key_arn
-}
-
-# ── SNS SMS account-level preferences ─────────────────────────────────────────
-# Global per AWS account/region — created once in dev, applies to all envs.
-# Sets the alphanumeric sender ID shown in markets that support it (UK, AU, DE,
-# FR, etc.) — US carriers ignore it; the origination number shows there instead.
-# Monthly spend cap guards against runaway costs; $5 covers MFA-only volume.
-resource "aws_sns_sms_preferences" "main" {
-  count = local.env == "dev" ? 1 : 0
-
-  default_sender_id = "BBA"
-  default_sms_type  = "Transactional"
-  # Hard cap: Lambda also sets per-message attributes, but this is the account guard.
-  monthly_spend_limit = 5
 }
 
 # Allow Cognito to invoke the GraphQL Lambda as a custom SMS sender trigger.
