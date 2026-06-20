@@ -145,6 +145,7 @@ jobs:
           exit-code: "1"
           ignore-unfixed: true
           severity: CRITICAL,HIGH   # higher bar than dev/qa
+          trivyignores: .trivyignore
       - name: Push to ECR
         id: push
         env:

@@ -1,0 +1,10 @@
+# Vulnerabilities in the AWS Lambda Node.js base image runtime itself.
+# These are NOT in our application code — they live inside the base image's
+# bundled npm installation and cannot be patched by us.
+# Re-evaluate when AWS releases an updated Lambda Node.js 24 base image.
+
+# undici DoS via unbounded WebSocket memory growth — in Lambda runtime npm
+CVE-2026-12151
+
+# ws DoS — in Lambda runtime npm
+CVE-2026-48779
