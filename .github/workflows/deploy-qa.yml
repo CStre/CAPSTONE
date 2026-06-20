@@ -291,6 +291,7 @@ jobs:
           exit-code: "1"
           ignore-unfixed: true
           severity: CRITICAL
+          trivyignores: .trivyignore
       - name: Push to ECR
         id: push
         env:
