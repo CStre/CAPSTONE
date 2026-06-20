@@ -144,6 +144,7 @@ jobs:
         with:
           working_directory: infra/
           soft_fail: true
+          github_token: ${{ secrets.GITHUB_TOKEN }}
 
   sbom:
     name: SBOM — Syft
