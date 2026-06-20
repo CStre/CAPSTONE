@@ -1,0 +1,7 @@
+10027	IGNORE	(Suspicious comments in third-party/Vite-bundled JS - not actionable)
+10036	IGNORE	(CloudFront always emits Server header - cannot be suppressed)
+10049	IGNORE	(index.html is intentionally non-cacheable; asset files use immutable cache)
+10055	IGNORE	(unsafe-eval required by Google Charts runtime - documented in CSP policy)
+10096	IGNORE	(Unix timestamps in Vite build output - not sensitive application data)
+10109	IGNORE	(Modern Web Application - informational only, not a vulnerability)
+90004	IGNORE	(COEP set to unsafe-none in CloudFront headers policy)

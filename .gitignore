@@ -1,6 +1,9 @@
 # === Local working notes (not committed) ===
 CLAUDE.md
 
+# === Local dev/debug scripts (not committed) ===
+backend/scripts/test-*.ts
+
 # === Secrets / environment ===
 .env
 .env.*
@@ -35,7 +38,9 @@ venv/
 crash.log
 
 # === Docker ===
-docker-compose.override.yml
+*docker-compose.override.yml
+*docker-compose.yml
+*.dockerignore
 
 # === Logs ===
 *.log
@@ -46,3 +51,5 @@ Thumbs.db
 .idea/
 .vscode/
 *.swp
+
+research/

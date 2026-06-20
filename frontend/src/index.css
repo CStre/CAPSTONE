@@ -1,0 +1,249 @@
+/* Poppins (the brand typeface) is loaded via a <link> in index.html — not an
+   @import here — so the Lightning CSS build pipeline doesn't try to resolve the
+   remote URL as a local file. */
+
+/* ── Colour palettes ──────────────────────────────────────────────────────── */
+
+:root {
+  /* Dark palette */
+  --dp-1: #212a31;
+  --dp-2: #2e3944;
+  --dp-3: #124e66;
+  --dp-4: #748d92;
+  --dp-5: #d3d9d4;
+
+  /* Light palette */
+  --lp-1: #3d52a0;
+  --lp-2: #7091e6;
+  --lp-3: #8697c4;
+  --lp-4: #adbbda;
+  --lp-5: #ede8f5;
+
+  /* Semantic tokens — dark theme (default) */
+  --color-bg: var(--dp-1);
+  --color-surface: var(--dp-2);
+  --color-border: var(--dp-3);
+  --color-text-muted: var(--dp-4);
+  --color-text: var(--dp-5);
+  --color-heading: var(--dp-5);
+
+  --color-accent: var(--dp-4);
+  --color-accent-hover: var(--dp-5);
+  --color-error: var(--dp-4);
+  --color-error-bg: var(--dp-2);
+  --color-error-border: var(--dp-3);
+  --color-warning: var(--dp-4);
+  --color-info: var(--dp-3);
+  --color-success: var(--dp-5);
+  --color-danger: var(--dp-4);
+
+  /* Loader ring colors (outer → inner) */
+  --color-ring-1: var(--dp-3);
+  --color-ring-2: var(--dp-4);
+  --color-ring-3: var(--dp-5);
+
+  /* Loader gooey animation — after filter:contrast(10) these map to:
+     bg → black, dot → white (dp-5 #D3D9D4 is light enough to survive as white) */
+  --color-loader-bg: var(--dp-1);
+  --color-loader-dot: var(--dp-5);
+
+  /* Password strength levels */
+  --color-strength-weak: var(--dp-3);
+  --color-strength-medium: var(--dp-4);
+  --color-strength-strong: var(--dp-5);
+
+  /* Travel feedback overlays */
+  --color-liked-overlay: rgba(211, 217, 212, 0.22);
+  --color-disliked-overlay: rgba(18, 78, 102, 0.22);
+
+  /* ── Type scale ───────────────────────────────────────────────────────── */
+  --fs-xs: 0.75rem;
+  --fs-sm: 0.875rem;
+  --fs-base: 1rem;
+  --fs-md: 1.125rem;
+  --fs-lg: 1.375rem;
+  --fs-xl: 1.5rem;
+  --fs-2xl: clamp(1.4rem, 3.5vw, 2.2rem);
+  --fs-3xl: clamp(1.75rem, 4.5vw, 3rem);
+  --fs-4xl: clamp(2rem, 5.5vw, 4rem);
+  --fs-5xl: clamp(2.5rem, 7vw, 5rem);
+  --fs-6xl: clamp(3rem, 8vw, 6rem);
+
+  /* ── Font weights ──────────────────────────────────────────────────────── */
+  --fw-normal: 400;
+  --fw-medium: 500;
+  --fw-semibold: 600;
+  --fw-bold: 700;
+  --fw-extrabold: 800;
+  --fw-black: 900;
+
+  /* Typography */
+  font-family:
+    'Poppins',
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    Roboto,
+    sans-serif;
+  line-height: 1.6;
+  color-scheme: dark;
+}
+
+/* Light theme override — apply via <html data-theme="light"> */
+[data-theme='light'] {
+  --color-bg: var(--lp-5);
+  --color-surface: var(--lp-4);
+  --color-border: var(--lp-3);
+  --color-text: var(--lp-1);
+  --color-text-muted: var(--lp-2);
+  --color-heading: var(--lp-1);
+
+  --color-accent: var(--lp-1);
+  --color-accent-hover: var(--lp-2);
+  --color-error: var(--lp-2);
+  --color-error-bg: var(--lp-4);
+  --color-error-border: var(--lp-3);
+  --color-warning: var(--lp-2);
+  --color-info: var(--lp-3);
+  --color-success: var(--lp-1);
+  --color-danger: var(--lp-2);
+
+  --color-ring-1: var(--lp-1);
+  --color-ring-2: var(--lp-2);
+  --color-ring-3: var(--lp-3);
+
+  /* Loader gooey animation — after filter:contrast(10) these map to:
+     bg → white, dot → blue (lp-1 #3D52A0 survives as pure blue) */
+  --color-loader-bg: var(--lp-5);
+  --color-loader-dot: var(--lp-1);
+
+  --color-strength-weak: var(--lp-3);
+  --color-strength-medium: var(--lp-2);
+  --color-strength-strong: var(--lp-1);
+
+  --color-liked-overlay: rgba(61, 82, 160, 0.22);
+  --color-disliked-overlay: rgba(134, 151, 196, 0.22);
+
+  color-scheme: light;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+a {
+  color: var(--color-accent);
+}
+
+/* ── Global text utilities ───────────────────────────────────────────────────
+   Reusable "living text" theme: text grows slightly when hovered. Works on block
+   elements (h1–h6, p) directly; add `.hover-grow--inline` for inline spans.
+   Transform-based, so growing never reflows neighbouring content. */
+.hover-grow {
+  transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transform-origin: center;
+}
+
+.hover-grow--inline {
+  display: inline-block;
+}
+
+.hover-grow:hover {
+  transform: scale(1.06);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hover-grow {
+    transition: none;
+  }
+  .hover-grow:hover {
+    transform: none;
+  }
+}
+
+/* ── Glass card utility ────────────────────────────────────────────────────────
+   Single source of truth for the frosted-glass recipe used by every card on
+   the site. Apply this class to any block element; add a component-specific
+   class for border-radius, padding, and layout overrides.
+   The cursor-reactive 3-D tilt is provided by the <GlassCard> React component,
+   which also applies this class automatically.                                  */
+.glass-card {
+  /* Base opacity is high enough to read as a card WITHOUT the blur — backdrop-filter
+     is treated as enhancement, not a dependency. It renders inconsistently across
+     browsers/contexts (over a canvas, on transformed/scaled cards, inside
+     preserve-3d, etc.), so the card must never rely on it to be visible. */
+  background: rgba(255, 255, 255, 0.24);
+  backdrop-filter: blur(18px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  box-shadow:
+    0 12px 40px rgba(0, 0, 0, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.18);
+}
+
+[data-theme='light'] .glass-card {
+  background: rgba(255, 255, 255, 0.45);
+  border-color: rgba(255, 255, 255, 0.8);
+  box-shadow:
+    0 12px 40px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95),
+    inset 0 -1px 0 rgba(61, 82, 160, 0.08);
+}
+
+/* Firefox fallback — global. Firefox will not composite backdrop-filter in many
+   of our contexts (over a canvas, on scaled/transformed cards, inside
+   preserve-3d), so the frosted blur silently fails and the translucent fill lets
+   the busy backdrop show through. Give every glass card a near-opaque fill in
+   Firefox so it stays legible without the blur: a dark base in dark theme (keeps
+   light text readable) and a light base in light theme (keeps dark text readable).
+   `@supports (-moz-appearance)` matches Firefox only; Chrome/Safari composite the
+   blur fine and keep the lighter translucent glass. Cards needing a different
+   fallback (e.g. the auth flip card at 0.92) override via higher specificity. */
+@supports (-moz-appearance: none) {
+  .glass-card {
+    background: rgba(33, 42, 49, 0.86);
+  }
+
+  [data-theme='light'] .glass-card {
+    background: rgba(255, 255, 255, 0.86);
+  }
+}
+
+/* ── Card reveal ──────────────────────────────────────────────────────────────
+   Every glass container springs in when it mounts — one unified bouncy entrance
+   across the whole site (extracted from the auth form reveal). The overshoot
+   easing is the bounce. fill-mode:backwards keeps the card at the "from" state
+   until it animates, then hands `transform` back to its resting value once done —
+   so a GlassCard's cursor-tilt transform (identity at rest) takes over seamlessly
+   with no jump. The auth flip card is excluded: it has its own flip + staggered
+   content choreography. */
+@keyframes glass-card-in {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.glass-card:not(.auth-card) {
+  animation: glass-card-in 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .glass-card:not(.auth-card) {
+    animation: none;
+  }
+}

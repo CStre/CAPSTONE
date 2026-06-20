@@ -1,0 +1,20 @@
+/* Variant 2 — three dots shuffle left and right */
+.lv2 {
+  height: 75px;
+  aspect-ratio: 2;
+  border: 15px solid #0000;
+  box-sizing: border-box;
+  background:
+    radial-gradient(farthest-side, var(--color-loader-dot) 98%, #0000) left/27px 27px,
+    radial-gradient(farthest-side, var(--color-loader-dot) 98%, #0000) left/27px 27px,
+    radial-gradient(farthest-side, var(--color-loader-dot) 98%, #0000) center/27px 27px,
+    radial-gradient(farthest-side, var(--color-loader-dot) 98%, #0000) right/27px 27px;
+  background-repeat: no-repeat;
+  animation: lv2-anim 1s infinite;
+}
+
+@keyframes lv2-anim {
+  100% {
+    background-position: right, left, center, right;
+  }
+}

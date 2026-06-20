@@ -1,0 +1,82 @@
+/* ── Glass island base ──────────────────────────────────────────────────────
+   Shared "frosted pill" used by the Header and any other island-style UI.
+   Variant classes (gi-island--foo) live alongside the consumer component.
+   ────────────────────────────────────────────────────────────────────────── */
+
+.gi-island {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: auto;
+  min-height: 3.6rem;
+  padding-block: 0;
+  min-width: 0;
+  max-width: 100%;
+  border-radius: 100px;
+  /* overflow must stay visible so absolutely-positioned children (e.g. the
+     account dropdown) can escape the island bounds.  The glass layer below
+     carries its own border-radius to keep the frosted look clipped. */
+  overflow: visible;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  box-shadow:
+    0 12px 40px rgba(0, 0, 0, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.18);
+  transition:
+    top 0.95s cubic-bezier(0.34, 1.56, 0.64, 1),
+    left 0.95s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+[data-theme='light'] .gi-island {
+  border-color: rgba(255, 255, 255, 0.8);
+  box-shadow:
+    0 12px 40px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95),
+    inset 0 -1px 0 rgba(61, 82, 160, 0.08);
+}
+
+/* Frosted backdrop — sits behind island content, blurs the page behind it.
+   border-radius clips this layer to the pill shape now that the parent no
+   longer uses overflow:hidden. overflow:hidden clips ripple children to pill. */
+.gi-glass {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.14);
+  backdrop-filter: blur(18px) saturate(180%);
+}
+
+[data-theme='light'] .gi-glass {
+  background: rgba(255, 255, 255, 0.28);
+}
+
+/* Lift all real island content above the glass layer */
+.gi-island > *:not(.gi-glass) {
+  position: relative;
+  z-index: 1;
+}
+
+/* ── Press ripple ─────────────────────────────────────────────────────────── */
+
+/* Spawned inside .gi-glass so overflow:hidden clips it to the pill shape. */
+.gi-ripple {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--color-accent-hover) 0%, transparent 70%);
+  transform: translate(-50%, -50%) scale(0);
+  pointer-events: none;
+  animation: gi-ripple 0.65s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes gi-ripple {
+  to {
+    transform: translate(-50%, -50%) scale(22);
+    opacity: 0;
+  }
+}

@@ -1,0 +1,34 @@
+/* Variant 3 — one dot orbits the edges of a square past four fixed dots */
+.lv3 {
+  width: 120px;
+  aspect-ratio: 1;
+  border: 15px solid #0000;
+  box-sizing: border-box;
+  background:
+    radial-gradient(farthest-side, var(--color-loader-dot) 98%, #0000) top,
+    radial-gradient(farthest-side, var(--color-loader-dot) 98%, #0000) top,
+    radial-gradient(farthest-side, var(--color-loader-dot) 98%, #0000) left,
+    radial-gradient(farthest-side, var(--color-loader-dot) 98%, #0000) right,
+    radial-gradient(farthest-side, var(--color-loader-dot) 98%, #0000) bottom;
+  background-size: 30px 30px;
+  background-repeat: no-repeat;
+  animation: lv3-anim 2s infinite;
+}
+
+@keyframes lv3-anim {
+  0% {
+    background-position: top, top, left, right, bottom;
+  }
+  25% {
+    background-position: right, top, left, right, bottom;
+  }
+  50% {
+    background-position: bottom, top, left, right, bottom;
+  }
+  75% {
+    background-position: left, top, left, right, bottom;
+  }
+  100% {
+    background-position: top, top, left, right, bottom;
+  }
+}

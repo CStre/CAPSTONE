@@ -1,0 +1,3 @@
+# Archived v1 (Django + CRA) — not part of the active codebase.
+# Semgrep findings in legacy/ are known and accepted.
+legacy/

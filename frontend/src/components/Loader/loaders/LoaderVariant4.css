@@ -1,0 +1,26 @@
+/* Variant 4 — two capsule blobs merge at the centre and split apart */
+.lv4 {
+  width: 80px;
+  aspect-ratio: 1;
+  border: 15px solid #0000;
+  box-sizing: border-box;
+  background:
+    radial-gradient(farthest-side at right, var(--color-loader-dot) 98%, #0000) 20% 50%/40% 80%,
+    radial-gradient(farthest-side at left, var(--color-loader-dot) 98%, #0000) 80% 50%/40% 80%;
+  background-repeat: no-repeat;
+  animation: lv4-anim 0.8s infinite alternate;
+}
+
+@keyframes lv4-anim {
+  0%,
+  20% {
+    background-position:
+      20% 50%,
+      80% 50%;
+  }
+  100% {
+    background-position:
+      80% 50%,
+      20% 50%;
+  }
+}

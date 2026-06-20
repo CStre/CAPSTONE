@@ -1,0 +1,50 @@
+{
+  "name": "bba-backend",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Building Better Algorithms — GraphQL backend (AWS Lambda)",
+  "license": "SEE LICENSE IN ../LICENSE.md",
+  "scripts": {
+    "dev": "tsx watch src/dev.ts",
+    "build": "esbuild src/handler.ts --bundle --platform=node --target=node24 --outfile=dist/handler.js",
+    "printschema": "tsx scripts/print-schema.ts",
+    "build:photos": "tsx scripts/build-photo-pool.ts",
+    "typecheck": "tsc --noEmit",
+    "test": "jest",
+    "lint": "eslint . && node_modules/.bin/tsx node_modules/prettier/bin/prettier.cjs --check .",
+    "format": "node_modules/.bin/tsx node_modules/prettier/bin/prettier.cjs --write ."
+  },
+  "engines": {
+    "node": ">=24"
+  },
+  "dependencies": {
+    "@aws-crypto/client-node": "^5.0.0",
+    "@aws-sdk/client-cognito-identity-provider": "^3.1051.0",
+    "@aws-sdk/client-dynamodb": "^3.1051.0",
+    "@aws-sdk/client-kms": "^3.1056.0",
+    "@aws-sdk/client-ssm": "^3.1056.0",
+    "@aws-sdk/lib-dynamodb": "^3.1051.0",
+    "@pothos/core": "^4.12.0",
+    "aws-jwt-verify": "^5.1.1",
+    "graphql": "^16.14.0",
+    "graphql-yoga": "^5.21.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/aws-lambda": "^8.10.161",
+    "@types/jest": "^30.0.0",
+    "@types/node": "^25.9.1",
+    "dotenv": "^17.4.2",
+    "esbuild": "^0.28.0",
+    "eslint": "^10.4.0",
+    "jest": "^30.4.2",
+    "jiti": "^2.7.0",
+    "prettier": "^3.8.3",
+    "prettier-plugin-ignored": "^1.0.0",
+    "ts-jest": "^29.4.10",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.22.3",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.59.4"
+  }
+}

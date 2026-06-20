@@ -1,0 +1,82 @@
+/* ── Phone input — unified select + number input that looks like one field ─── */
+
+.phone-input {
+  display: flex;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid transparent;
+  border-radius: 7px;
+  overflow: hidden;
+  transition:
+    border-color 0.2s,
+    background 0.2s;
+}
+
+.phone-input:focus-within {
+  border-color: rgba(255, 255, 255, 0.35);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme='light'] .phone-input {
+  background: rgba(255, 255, 255, 0.35);
+}
+
+[data-theme='light'] .phone-input:focus-within {
+  border-color: var(--color-accent);
+  background: rgba(255, 255, 255, 0.55);
+}
+
+/* Country-code text input — shows "+1" / "+44" etc. */
+
+.phone-input__code {
+  flex-shrink: 0;
+  width: 3.2rem;
+  padding: 0.6rem 0.3rem 0.6rem 0.75rem;
+  font: inherit;
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+  color: var(--color-heading);
+  background: transparent;
+  border: none;
+  outline: none;
+  text-align: left;
+}
+
+[data-theme='light'] .phone-input__code {
+  color: var(--color-text);
+}
+
+/* Vertical separator */
+
+.phone-input__sep {
+  width: 1px;
+  height: 1.2rem;
+  flex-shrink: 0;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+[data-theme='light'] .phone-input__sep {
+  background: rgba(0, 0, 0, 0.15);
+}
+
+/* Number input */
+
+.phone-input__number {
+  flex: 1;
+  min-width: 0;
+  padding: 0.6rem 0.75rem;
+  font: inherit;
+  color: var(--color-heading);
+  background: transparent;
+  border: none;
+  outline: none;
+}
+
+[data-theme='light'] .phone-input__number {
+  color: var(--color-text);
+}
+
+.phone-input__number::placeholder {
+  color: var(--color-text-muted);
+  opacity: 0.7;
+}

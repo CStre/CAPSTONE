@@ -1,0 +1,193 @@
+"""A travel destination in the catalog."""
+type Country {
+  """ISO 3166-1 alpha-2 code."""
+  code: ID!
+  name: String!
+}
+
+"""A single country's preference score for a user (0–100)."""
+type CountryPreference {
+  country: Country!
+  value: Int!
+}
+
+"""
+Algorithm A's surveillance profile of the user (session-controlled, deletable).
+"""
+type Dossier {
+  avgDwellMs: Int!
+  confidence: Float!
+  curiosityRate: Float!
+  disclaimer: String!
+  dislikes: Int!
+
+  """Algorithm A's country ranking, inferred from abstract features."""
+  engagementPreferences: [CountryPreference!]!
+  exploration: Float!
+  inferredTraits: [InferredTrait!]!
+  likes: Int!
+  skipRate: Float!
+  skips: Int!
+  topFeatures: [TasteFeature!]!
+  totalInteractions: Int!
+  totalRatings: Int!
+}
+
+"""Which algorithm drives the feed: A (engagement) or B (user-first)."""
+enum Driver {
+  A
+  B
+}
+
+"""An illustrative trait Algorithm A infers — see Dossier.disclaimer."""
+type InferredTrait {
+  basis: String!
+  confidence: Float!
+  trait: String!
+}
+
+"""What the user did with an image."""
+enum InteractionAction {
+  dislike
+  like
+  skip
+}
+
+"""
+One interaction with an image, echoed back with the image's tags/colour.
+"""
+input InteractionInput {
+  action: InteractionAction!
+  color: String
+  country: ID!
+  detailsTapped: Boolean
+
+  """Time on screen, in milliseconds."""
+  dwellMs: Int
+  imageId: ID!
+  reviews: Int
+  tags: [String!]!
+}
+
+"""Which slides of a Learn-page section a user has viewed."""
+type LearnSectionProgress {
+  sectionId: ID!
+
+  """Viewed slide indices (ascending). Completion is derived client-side."""
+  viewedSlides: [Int!]!
+}
+
+"""One section's viewed slide indices, sent from the client to merge."""
+input LearnSectionProgressInput {
+  sectionId: ID!
+  viewedSlides: [Int!]!
+}
+
+type Mutation {
+  """Delete the user's stored data."""
+  deleteAccount: Boolean!
+
+  """
+  Look up the email address associated with a verified phone number. Returns null if no account is found. Used for the forgot-email recovery flow — the caller must still complete a Cognito password-reset code to prove email ownership.
+  """
+  findEmailByPhone(phone: String!): String
+
+  """
+  Union a batch of client-recorded progress into the stored progress (used on sign-in to reconcile offline progress); returns the full updated progress.
+  """
+  mergeLearnProgress(progress: [LearnSectionProgressInput!]!): [LearnSectionProgress!]!
+
+  """
+  Record that a Learn-page slide was viewed; returns the full updated progress.
+  """
+  recordSlideView(sectionId: ID!, slideIndex: Int!): [LearnSectionProgress!]!
+
+  """
+  Delete Algorithm A's dossier and reset the cold start (both tastes cleared).
+  """
+  resetDossier: Boolean!
+
+  """Clear all of the user's stored Learn-page progress."""
+  resetLearnProgress: Boolean!
+
+  """
+  Clear the user's preferences (Algorithm B), resetting every country to neutral.
+  """
+  resetPreferences: Boolean!
+
+  """
+  Run a batch of image interactions through both algorithms and persist the dossier.
+  """
+  submitFeedback(interactions: [InteractionInput!]!): User!
+
+  """
+  Ping an Unsplash photo's download endpoint when it is used (required by the API guidelines). Pass the photo's downloadLocation.
+  """
+  trackPhotoUse(downloadLocation: String!): Boolean!
+}
+
+type Query {
+  """The full country catalog."""
+  countries: [Country!]!
+
+  """
+  Algorithm A's full profile of the authenticated user (the surveillance view).
+  """
+  dossier: Dossier!
+
+  """The authenticated user, or null if not signed in."""
+  me: User
+
+  """
+  A batch of travel photos chosen by the given driver (A narrows toward the user's taste; B stays diverse). Defaults to B.
+  """
+  travelImages(count: Int = 8, driver: Driver = B): [TravelImage!]!
+}
+
+"""One axis of the learned taste vector and its weight."""
+type TasteFeature {
+  key: String!
+  value: Float!
+}
+
+"""A travel photo for the user to rate."""
+type TravelImage {
+  attribution: String!
+
+  """Dominant colour as a hex string, when available."""
+  color: String
+  country: Country!
+
+  """Unsplash download-tracking endpoint — pass to trackPhotoUse when used."""
+  downloadLocation: String
+  imageUrl: String!
+  photographerName: String!
+
+  """Photographer's Unsplash profile URL (link the credit here)."""
+  photographerUrl: String!
+
+  """
+  Unsplash keyword tags — the abstract signal preferences are inferred from.
+  """
+  tags: [String!]!
+
+  """The photo's Unsplash page URL."""
+  unsplashUrl: String!
+}
+
+"""
+The authenticated user. Identity comes from Cognito; preferences from DynamoDB.
+"""
+type User {
+  email: String!
+  id: ID!
+
+  """Per-section Learn-page progress (sparse — only touched sections)."""
+  learnProgress: [LearnSectionProgress!]!
+  name: String!
+
+  """
+  Every catalog country scored 0–100 by Algorithm B — inferred from the user's explicit likes (neutral 50 at the cold start).
+  """
+  preferences: [CountryPreference!]!
+}

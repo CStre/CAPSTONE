@@ -1,0 +1,53 @@
+/*
+ * Scrollbar — playful themed scrollbar for WebKit and Firefox.
+ *
+ * The "grow on hover" effect works via the transparent-border trick:
+ * the scrollbar track is 10 px wide; the thumb border shrinks from 3 px → 1 px
+ * on hover, making the visible pill expand from 4 px to 8 px without any
+ * unsupported CSS transitions on pseudo-elements.
+ *
+ * Using `transparent` (not var(--color-bg)) for the border means theme
+ * switches never cause a colour flash in the gap.
+ *
+ * Dark:  --color-border (#124e66 teal) → --color-accent (#748d92 blue-grey)
+ * Light: --color-border (#8697c4 soft blue) → --color-accent (#3d52a0 deep blue)
+ */
+
+/* ── Firefox ──────────────────────────────────────────────────────────────── */
+html {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-accent) transparent;
+}
+
+/* ── WebKit (Chrome / Safari / Edge) ─────────────────────────────────────── */
+
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/*
+ * Floating pill: a transparent border creates empty space between the thumb
+ * and the track edge; background-clip: padding-box stops the gradient from
+ * bleeding into that gap. At rest the visible pill is 10 - 6 = 4 px wide.
+ */
+::-webkit-scrollbar-thumb {
+  border-radius: 100px;
+  border: 3px solid transparent;
+  background-image: linear-gradient(180deg, var(--color-border), var(--color-accent));
+  background-clip: padding-box;
+}
+
+/* On hover the border shrinks to 1 px → visible pill grows to 8 px. */
+::-webkit-scrollbar-thumb:hover {
+  border-width: 1px;
+  background-image: linear-gradient(180deg, var(--color-accent), var(--color-accent-hover));
+  background-clip: padding-box;
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent;
+}

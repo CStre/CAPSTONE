@@ -1,0 +1,555 @@
+/* ── Full-viewport panel (mirrors .auth-panel) ──────────────────────────── */
+
+.account-panel {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 5rem 1rem 3rem;
+}
+
+.account-panel .page.account {
+  width: 100%;
+  max-width: 52rem;
+}
+
+/* ── Single glass card — recipe from .glass-card (index.css) ───────────── */
+
+.account-card {
+  border-radius: 30px;
+  overflow: hidden;
+  padding: 2rem;
+}
+
+/* ── Card header (icon + title + shield, inside the card) ───────────────── */
+
+.account-card-header {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding-bottom: 1.25rem;
+  gap: 0.35rem;
+}
+
+.account-card-header h1 {
+  margin: 0;
+  font-size: var(--fs-2xl);
+  font-weight: var(--fw-extrabold);
+  color: var(--color-heading);
+}
+
+/* Shield pinned to top-right of the header — same as .auth-security-btn */
+.account-card-header .auth-security-btn {
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+
+/* ── Sections inside the card ───────────────────────────────────────────── */
+
+.account-section {
+  padding: 0.85rem 0;
+}
+
+.account-section + .account-section {
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+[data-theme='light'] .account-section + .account-section {
+  border-top-color: rgba(61, 82, 160, 0.08);
+}
+
+.account-section--danger + .account-section,
+.account-section + .account-section--danger {
+  border-top-color: rgba(255, 80, 80, 0.18);
+}
+
+.account-section h2 {
+  margin: 0 0 0.6rem;
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-extrabold);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  /* Match the "Account" title color. */
+  color: var(--color-heading);
+}
+
+/* ── Profile display ────────────────────────────────────────────────────── */
+
+.account-profile-name {
+  margin: 0 0 0.45rem;
+  font-size: var(--fs-xl);
+  font-weight: var(--fw-extrabold);
+  color: var(--color-heading);
+  text-align: center;
+}
+
+.account-profile-meta {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.25rem 2.5rem;
+  font-size: var(--fs-base);
+  font-weight: var(--fw-medium);
+  color: var(--color-text);
+}
+
+/* ── Hover "grow" ───────────────────────────────────────────────────────────
+   Text and inputs grow slightly when hovered — feels like it pops out toward
+   you (hovering a field's label grows the input with it). Transform-based so
+   nothing reflows. Rounded buttons (tabs, Messaging terms) and the badges use
+   the gooey spring instead; the rectangular buttons get this same grow (see
+   .account-btn / submit rules). */
+.account-card :is(h1, h2, label, p, .account-profile-meta span) {
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.account-card :is(h1, h2, label, p, .account-profile-meta span):hover {
+  transform: scale(1.06);
+}
+
+/* ── User / Data settings tabs ──────────────────────────────────────────── */
+
+.account-tabs {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.85rem 0;
+}
+
+.account-tab {
+  flex: 1;
+  max-width: 13rem;
+  padding: 0.55rem 1rem;
+  font: inherit;
+  font-weight: var(--fw-bold);
+  letter-spacing: 0.03em;
+  color: var(--color-text);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 100px;
+  cursor: pointer;
+  transition:
+    background 0.2s,
+    border-color 0.2s,
+    color 0.2s;
+}
+
+.account-tab:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.account-tab--active {
+  background: rgba(255, 255, 255, 0.16);
+  border-color: rgba(255, 255, 255, 0.4);
+  color: var(--color-heading);
+}
+
+[data-theme='light'] .account-tab {
+  background: rgba(61, 82, 160, 0.08);
+  border-color: rgba(61, 82, 160, 0.2);
+}
+
+[data-theme='light'] .account-tab:hover {
+  background: rgba(61, 82, 160, 0.14);
+  border-color: rgba(61, 82, 160, 0.32);
+}
+
+[data-theme='light'] .account-tab--active {
+  background: rgba(61, 82, 160, 0.18);
+  border-color: rgba(61, 82, 160, 0.4);
+}
+
+/* ── Tab-panel reveal ───────────────────────────────────────────────────────
+   When a tab is selected (and on first load) its sections spring in with a
+   stagger — mirroring the sign-in flow's content reveal. `backwards` (not
+   `both`) holds the hidden "from" state during the delay but releases transform
+   afterward, so it never blocks the hover-grow on the revealed content. */
+@keyframes account-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.account-tab-panel > * {
+  animation: account-reveal 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
+}
+
+.account-tab-panel > *:nth-child(1) {
+  animation-delay: 0.04s;
+}
+.account-tab-panel > *:nth-child(2) {
+  animation-delay: 0.1s;
+}
+.account-tab-panel > *:nth-child(3) {
+  animation-delay: 0.16s;
+}
+.account-tab-panel > *:nth-child(4) {
+  animation-delay: 0.22s;
+}
+.account-tab-panel > *:nth-child(5) {
+  animation-delay: 0.28s;
+}
+.account-tab-panel > *:nth-child(n + 6) {
+  animation-delay: 0.34s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .account-tab-panel > * {
+    animation: none;
+  }
+}
+
+/* ── Update-profile 2-column grid ───────────────────────────────────────── */
+
+.account-section-h2--center {
+  text-align: center;
+}
+
+.account-update-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+}
+
+.account-update-grid .account-form > button[type='submit'] {
+  margin-top: auto;
+}
+
+@media (max-width: 500px) {
+  .account-update-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ── Forms — mirror auth-form exactly ──────────────────────────────────── */
+
+.account-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  width: 100%;
+}
+
+.account-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text);
+}
+
+.account-form input {
+  padding: 0.6rem 0.75rem;
+  font: inherit;
+  color: var(--color-heading);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid transparent;
+  border-radius: 7px;
+  outline: none;
+  transition:
+    border-color 0.2s,
+    background 0.2s;
+}
+
+[data-theme='light'] .account-form input {
+  background: rgba(255, 255, 255, 0.35);
+}
+
+.account-form input:focus {
+  border-color: rgba(255, 255, 255, 0.35);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme='light'] .account-form input:focus {
+  border-color: var(--color-accent);
+  background: rgba(255, 255, 255, 0.55);
+}
+
+.account-form input::placeholder {
+  color: var(--color-text-muted);
+  opacity: 0.7;
+}
+
+/* Submit button — glass pill matching auth-form button[type='submit'] */
+.account-form button[type='submit'] {
+  margin-top: 0.2rem;
+  padding: 0.65rem;
+  font: inherit;
+  font-weight: var(--fw-bold);
+  letter-spacing: 0.03em;
+  color: var(--color-heading);
+  background: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 10px;
+  cursor: pointer;
+  transition:
+    background 0.2s,
+    border-color 0.2s,
+    transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  backdrop-filter: blur(6px);
+}
+
+.account-form button[type='submit']:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.16);
+  border-color: rgba(255, 255, 255, 0.38);
+  transform: scale(1.05);
+}
+
+.account-form button[type='submit']:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+[data-theme='light'] .account-form button[type='submit'] {
+  background: rgba(61, 82, 160, 0.1);
+  border-color: rgba(61, 82, 160, 0.25);
+  color: var(--color-text);
+}
+
+[data-theme='light'] .account-form button[type='submit']:hover:not(:disabled) {
+  background: rgba(61, 82, 160, 0.18);
+  border-color: rgba(61, 82, 160, 0.4);
+}
+
+/* ── Status messages ────────────────────────────────────────────────────── */
+
+.account-status {
+  margin: 0;
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+}
+
+.account-status--ok {
+  color: var(--color-success);
+}
+
+.account-status--error {
+  color: var(--color-error);
+}
+
+/* ── Misc text ──────────────────────────────────────────────────────────── */
+
+.account-note {
+  margin: 0;
+  /* Match the form labels (e.g. "New password"): same size and text color. */
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text);
+}
+
+/* ── Section heading + inline status badge ──────────────────────────────── */
+
+.account-section-title-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.6rem;
+}
+
+.account-section-title-row--center {
+  justify-content: center;
+}
+
+.account-section-title-row h2 {
+  margin: 0;
+}
+
+/* ── Narrow centered content block (≈ 2/3 card width) ───────────────────── */
+
+.account-section-body--narrow {
+  max-width: 67%;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 1rem;
+}
+
+.account-section-body--narrow .account-form {
+  width: 100%;
+  text-align: left;
+}
+
+/* Two related actions (Data Request, Reset Your Progress). Stacked and slim at every
+   width — the narrow auto-stacked look, kept as the window widens rather than growing
+   into wide side-by-side buttons. */
+.account-btn-row {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+}
+
+.account-btn-row .account-btn {
+  width: 100%;
+  max-width: 16rem;
+}
+
+/* ── Label text + inline status badge ───────────────────────────────────── */
+
+.account-label-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+/* ── 2FA row ─────────────────────────────────────────────────────────────── */
+
+.account-totp-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.account-totp-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 99px;
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-bold);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.account-totp-badge--on {
+  background: rgba(72, 199, 116, 0.15);
+  color: var(--color-success);
+  border: 1px solid rgba(72, 199, 116, 0.3);
+}
+
+.account-totp-badge--off {
+  background: rgba(255, 80, 80, 0.12);
+  /* "Not verified" / "Not enrolled" text matches the "Account" title. */
+  color: var(--color-heading);
+  border: 1px solid rgba(255, 80, 80, 0.25);
+}
+
+/* ── TOTP / delete non-submit buttons (glass pill variant) ──────────────── */
+
+.account-btn {
+  padding: 0.55rem 1.2rem;
+  font: inherit;
+  font-weight: var(--fw-bold);
+  letter-spacing: 0.03em;
+  color: var(--color-heading);
+  background: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 10px;
+  cursor: pointer;
+  transition:
+    background 0.2s,
+    border-color 0.2s,
+    transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  backdrop-filter: blur(6px);
+}
+
+.account-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.16);
+  border-color: rgba(255, 255, 255, 0.38);
+  transform: scale(1.05);
+}
+
+.account-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+[data-theme='light'] .account-btn {
+  background: rgba(61, 82, 160, 0.1);
+  border-color: rgba(61, 82, 160, 0.25);
+  color: var(--color-text);
+}
+
+[data-theme='light'] .account-btn:hover:not(:disabled) {
+  background: rgba(61, 82, 160, 0.18);
+  border-color: rgba(61, 82, 160, 0.4);
+}
+
+.account-btn--danger {
+  background: rgba(255, 80, 80, 0.12);
+  border-color: rgba(255, 80, 80, 0.35);
+  /* Label matches the regular button text color, not the danger red. */
+  color: var(--color-heading);
+}
+
+.account-btn--danger:hover:not(:disabled) {
+  background: rgba(255, 80, 80, 0.2);
+  border-color: rgba(255, 80, 80, 0.55);
+}
+
+[data-theme='light'] .account-btn--danger {
+  background: rgba(255, 80, 80, 0.08);
+  border-color: rgba(200, 40, 40, 0.3);
+  color: var(--color-heading);
+}
+
+[data-theme='light'] .account-btn--danger:hover:not(:disabled) {
+  background: rgba(255, 80, 80, 0.15);
+}
+
+/* ── Shared glass popup overlay ─────────────────────────────────────────── */
+
+.account-popup-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5.5rem 1.5rem 2rem;
+  /* Dim scrim — without it the light glass card reads as lighter than the dark
+     page instead of a focused modal. */
+  background: rgba(0, 0, 0, 0.55);
+  animation: si-fade-in 0.22s ease;
+}
+
+[data-theme='light'] .account-popup-overlay {
+  background: rgba(0, 0, 0, 0.35);
+}
+
+/* Glass recipe from .glass-card (index.css). */
+.account-popup-card {
+  position: relative;
+  width: 100%;
+  max-width: 30rem;
+  padding: 2.5rem;
+  border-radius: 30px;
+  cursor: default;
+  /* Entrance animation comes from the global .glass-card bounce-in (index.css). */
+}
+
+/* Hover "grow" inside popups — text + inputs scale up on hover, matching the
+   card. Buttons grow via the global .account-btn / .auth-form submit rules. */
+.account-popup-card :is(h2, label, p, span, code) {
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.account-popup-card :is(h2, label, p, span, code):hover {
+  transform: scale(1.05);
+}
+
+.account-popup-card--danger {
+  border-color: rgba(255, 80, 80, 0.4);
+}
+
+[data-theme='light'] .account-popup-card--danger {
+  border-color: rgba(200, 40, 40, 0.3);
+}

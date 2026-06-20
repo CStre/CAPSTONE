@@ -1,0 +1,101 @@
+/* ── Reusable bouncy dropdown ─────────────────────────────────────────────── */
+
+.dropdown {
+  position: relative;
+  display: inline-flex;
+}
+
+/* Glass panel — portaled to <body> and positioned `fixed` from the trigger, so it
+   floats free of any animated ancestor. Same frosted recipe as the header islands
+   (GlassIsland.css) so it reads as part of the header. `top`/`left` come inline. */
+.dropdown-panel {
+  position: fixed;
+  z-index: 1100; /* above the header (1000) */
+  min-width: 11rem;
+  padding: 0.4rem;
+  border-radius: 26px;
+
+  background: rgba(255, 255, 255, 0.14);
+  backdrop-filter: blur(18px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  box-shadow:
+    0 12px 40px rgba(0, 0, 0, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.18);
+
+  /* `transform` is reserved for the gooey squash (set inline by the hook); the
+     panel itself only fades. The open "pop" scale lives on .dropdown-spring. */
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.18s ease;
+}
+
+.dropdown-panel.is-open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+[data-theme='light'] .dropdown-panel {
+  background: rgba(255, 255, 255, 0.28);
+  border-color: rgba(255, 255, 255, 0.8);
+  box-shadow:
+    0 12px 40px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95),
+    inset 0 -1px 0 rgba(61, 82, 160, 0.08);
+}
+
+/* Open "pop" — scales up from the aligned corner. Kept off the panel so it never
+   collides with the gooey transform the hook writes there. */
+.dropdown-spring {
+  transform: scale(0.85);
+  transform-origin: top center;
+  transition: transform 0.34s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.dropdown-panel--left .dropdown-spring {
+  transform-origin: top left;
+}
+.dropdown-panel--right .dropdown-spring {
+  transform-origin: top right;
+}
+.dropdown-panel.is-open .dropdown-spring {
+  transform: scale(1);
+}
+
+/* Items stagger in one after another, each with its own little bounce. */
+.dropdown-item {
+  opacity: 0;
+}
+
+.dropdown-item + .dropdown-item {
+  margin-top: 0.2rem;
+}
+
+.dropdown-panel.is-open .dropdown-item {
+  animation: dropdown-item-in 0.42s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  animation-delay: calc(var(--stagger, 0) * 45ms + 70ms);
+}
+
+@keyframes dropdown-item-in {
+  0% {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.94);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dropdown-panel {
+    transition: opacity 0.15s ease;
+  }
+  .dropdown-spring {
+    transition: none;
+    transform: none !important;
+  }
+  .dropdown-panel.is-open .dropdown-item {
+    animation: none;
+    opacity: 1;
+  }
+}

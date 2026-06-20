@@ -1,0 +1,102 @@
+/* Glass recipe and tilt come from <GlassCard> + .glass-card (index.css). */
+.intro-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.25rem;
+  padding: 2.5rem 3rem;
+  max-width: 36rem;
+  width: calc(100% - 3rem);
+  text-align: center;
+  z-index: 10;
+  border-radius: 28px;
+  overflow: hidden;
+}
+
+/* Fixed height matches the tallest slide so the card never resizes */
+.intro-slide {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  min-height: 9.5rem;
+  justify-content: center;
+}
+
+/* CTA wrapper — always reserves space so the card height never jumps */
+.intro-cta {
+  margin-top: 0.25rem;
+  display: flex;
+  justify-content: center;
+}
+
+.intro-next-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  background: var(--color-accent);
+  border: none;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease;
+  pointer-events: auto;
+}
+
+.intro-next-btn:hover {
+  background: var(--color-accent-hover, var(--color-accent));
+  transform: scale(1.08);
+}
+
+.intro-title {
+  margin: 0;
+  font-size: var(--fs-3xl);
+  font-weight: var(--fw-black);
+  color: var(--color-heading);
+  line-height: 1.15;
+}
+
+.intro-subtitle {
+  margin: 0;
+  font-size: var(--fs-base);
+  color: var(--color-text);
+}
+
+/* ── Slide progress timeline ──────────────────────────────────────────────── */
+
+.intro-progress {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+  justify-content: center;
+}
+
+.intro-progress__seg {
+  width: 24px;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--color-text);
+  opacity: 0.18;
+  transition:
+    opacity 0.4s ease,
+    background 0.4s ease,
+    width 0.4s ease;
+}
+
+.intro-progress__seg--done {
+  opacity: 0.4;
+}
+
+.intro-progress__seg--active {
+  width: 36px;
+  opacity: 1;
+  background: var(--color-accent);
+}
+
+/* The "Get Started" / "Play with Phil" CTA now lives in the shared
+   <ExploreButton> component (components/ExploreButton/). */

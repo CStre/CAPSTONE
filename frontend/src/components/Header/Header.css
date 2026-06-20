@@ -1,0 +1,249 @@
+/* ── Floating header container ─────────────────────────────────────────────── */
+
+.di-header {
+  position: fixed;
+  top: 1rem;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  /* Grid 1fr/auto/1fr keeps the center island truly page-centred regardless
+     of how wide the flanking islands are. */
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: start;
+  padding: 0 clamp(0.75rem, 3vw, 2rem);
+  gap: 0.6rem;
+  pointer-events: none; /* pass clicks through gaps between islands */
+}
+
+/* ── Per-island layout variants ─────────────────────────────────────────────
+   Base pill styles live in GlassIsland/GlassIsland.css (.gi-island / .gi-glass).
+   These modifier classes add header-specific sizing and flex behaviour.
+   ────────────────────────────────────────────────────────────────────────── */
+
+/* Per-island horizontal padding (heights already locked by min-height) */
+.di-island--left {
+  padding-inline: 1.3rem;
+}
+.di-island--center {
+  padding-inline: 0;
+  gap: 0.1rem;
+} /* nav-items provide outer breathing room — see below */
+.di-island--right {
+  padding-inline: 0.6rem;
+}
+
+/* The first/last items' hover/active highlights must reach the island's rounded pill
+   ends with no crescent gap. `padding` only grows a box rightward, so instead the end
+   items get a negative outer margin that pushes their highlight under the curve; the
+   island then clips that overflow to its own pill shape (safe now the dropdown panel
+   is portaled out, so nothing needs to escape the island). Matching padding keeps the
+   icon centred. The collapsed brand + separator divs precede the first nav anchor, so
+   target it with `:first-of-type` (the first <a> child). */
+.di-island--center {
+  overflow: hidden;
+}
+
+.di-island--center > .di-nav-item:first-of-type {
+  margin-left: -0.7rem;
+  padding-left: 1.4rem;
+}
+
+/* Last item on the right — either the sign-in link (signed out) or the account
+   dropdown trigger, which the DropdownMenu wraps in a `.dropdown` div. */
+.di-island--center > .di-nav-item:last-child {
+  margin-right: -0.7rem;
+  padding-right: 1.4rem;
+}
+.di-island--center > .dropdown:last-child .di-nav-account-trigger {
+  margin-right: -0.7rem;
+  padding-right: 1.4rem;
+}
+
+/* Left island aligns to the start of its 1fr column; right to the end. */
+.di-island--left {
+  justify-self: start;
+  min-width: 0;
+  transition: opacity 0.5s ease;
+}
+.di-island--right {
+  justify-self: end;
+}
+
+/* ── Brand ──────────────────────────────────────────────────────────────────── */
+
+.di-brand {
+  display: block;
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-extrabold);
+  color: var(--color-text);
+  text-decoration: none;
+  white-space: nowrap;
+  letter-spacing: 0.01em;
+  line-height: 1.4; /* room for ascenders/descenders so overflow:hidden doesn't clip them */
+  padding-block: 0.15rem; /* extra vertical breathing room inside the truncation box */
+  /* Truncate at whatever width the left island has — never overflow */
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── Nav items ──────────────────────────────────────────────────────────────── */
+
+.di-nav-item {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.05rem;
+  padding: 0.4rem 0.7rem; /* symmetric — so the hover pill is balanced top/bottom */
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text);
+  text-decoration: none;
+  border-radius: 80px;
+  cursor: pointer;
+  user-select: none;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease;
+}
+
+.di-nav-item:hover {
+  background: rgba(211, 217, 212, 0.1);
+  color: var(--color-accent);
+}
+
+.di-nav-item.active {
+  background: rgba(211, 217, 212, 0.12);
+  color: var(--color-accent);
+}
+
+[data-theme='light'] .di-nav-item:hover {
+  background: rgba(61, 82, 160, 0.08);
+}
+
+[data-theme='light'] .di-nav-item.active {
+  background: rgba(61, 82, 160, 0.1);
+}
+
+/* The visible face of the account dropdown trigger */
+.di-nav-item-face {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.05rem;
+}
+
+.di-icon {
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+}
+
+.di-icon--sm {
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+}
+
+/* ── Account dropdown ──────────────────────────────────────────────────────
+   The dropdown panel + open animation come from the shared DropdownMenu; only the
+   row (link) styling is header-specific. */
+
+.di-menu-link {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  width: 100%;
+  min-height: 2.6rem; /* uniform button size across all rows */
+  padding: 0.5rem 0.9rem;
+  font: inherit;
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text);
+  text-align: left;
+  text-decoration: none;
+  background: none;
+  border: none;
+  border-radius: 80px; /* same curved edges as the header nav pills */
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease;
+}
+
+.di-menu-link:hover,
+.di-menu-link.active {
+  background: rgba(211, 217, 212, 0.1);
+  color: var(--color-accent);
+}
+
+[data-theme='light'] .di-menu-link:hover,
+[data-theme='light'] .di-menu-link.active {
+  background: rgba(61, 82, 160, 0.08);
+}
+
+/* Sign out matches the other rows (same text + hover colour in both themes);
+   only its icon stays in the muted "danger" tone. */
+
+/* ── Center island width animation ─────────────────────────────────────────── */
+
+/* Smooth grow/shrink as nav items slide in during the intro sequence */
+.di-island--center {
+  transition:
+    max-width 0.55s ease,
+    opacity 0.45s ease,
+    padding-inline 0.45s ease;
+  max-width: 700px; /* cap larger than any real nav width */
+}
+
+/* ── Responsive ────────────────────────────────────────────────────────────── */
+
+/* Tablets: hide nav text labels, show icons only */
+@media (max-width: 52rem) {
+  .di-nav-item > span,
+  .di-nav-item-face > span {
+    display: none;
+  }
+
+  .di-nav-item {
+    padding: 0.5rem 0.55rem;
+  }
+}
+
+/* Phones: tighten outer padding and shrink brand */
+@media (max-width: 34rem) {
+  .di-header {
+    padding: 0 0.5rem;
+    gap: 0.35rem;
+  }
+
+  .di-brand {
+    font-size: var(--fs-xs);
+    font-weight: var(--fw-semibold);
+  }
+}
+
+.di-brand__abbr {
+  display: none;
+}
+
+/* Tablet and below: swap full name for abbreviation before it truncates */
+@media (max-width: 52rem) {
+  .di-brand {
+    max-width: none;
+    overflow: visible;
+    text-overflow: clip;
+  }
+
+  .di-brand__full {
+    display: none;
+  }
+
+  .di-brand__abbr {
+    display: inline;
+  }
+}

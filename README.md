@@ -5,9 +5,9 @@ An educational full-stack capstone project that teaches how a simple
 Users rate travel photos from around the world, and a feedback loop adjusts their
 country preferences — visualized live on a dashboard.
 
-- **Domain:** `buildingbetteralgorithms.com` — v1 was deployed on AWS Elastic
-  Beanstalk; the site is **not currently live** and the domain registration has lapsed.
-- **Status:** v1 complete — currently being refactored (see [Roadmap](#roadmap)).
+- **Domain:** `buildbetteralgorithms.com` — registered for the rebuild. (v1 ran on
+  the now-lapsed `buildingbetteralgorithms.com`.)
+- **Status:** Active refactor — DEV environment deployed; backend (Phase 1) is next.
 
 ---
 
@@ -52,14 +52,85 @@ within Google Places API quota.
 
 ## Tech Stack
 
+The refactored stack (active development):
+
 | Layer        | Technology |
 |--------------|------------|
-| Frontend     | React 18 (Create React App), React Router v6, Axios, GSAP, Lottie / Lordicon, canvas-confetti, react-google-charts, react-helmet |
-| Backend      | Django 4.1, Django REST Framework |
-| Auth         | Django session auth (cookie + CSRF), custom email-based user model |
-| Database     | MySQL on AWS RDS (`PyMySQL` driver) |
-| External API | Google Places API (nearby search + photos) |
-| Hosting      | AWS Elastic Beanstalk (Python platform); Django serves the built React app |
+| Frontend     | Vite + React 19, TypeScript, urql + GraphQL Code Generator, AWS Amplify Auth |
+| Backend      | Node.js + TypeScript, AWS Lambda (container image), GraphQL Yoga + Pothos |
+| Auth         | AWS Cognito (TOTP MFA); Amplify Auth client-side |
+| Database     | AWS DynamoDB — per-user preference map (always-free tier) |
+| External API | Unsplash API (weighted random travel photo selection) |
+| Hosting      | S3 + CloudFront (SPA + `/graphql` proxy); API Gateway HTTP API in front of Lambda |
+| IaC          | Terraform — three environments (`dev` / `qa` / `prod`) in one AWS account |
+| CI/CD        | GitHub Actions — lint, SAST, dep scan, IaC scan, SBOM, tests, deploy, DAST |
+
+The archived v1 stack (Django + Create React App + Elastic Beanstalk) lives under `legacy/` and is the reference for app behavior.
+
+---
+
+## Deployed Architecture
+
+One CloudFront distribution fronts everything — the SPA from S3 at `/*`, and the
+GraphQL API via API Gateway at `/graphql`. Same origin, no CORS, single TLS cert.
+
+```mermaid
+flowchart LR
+    Browser["🧑 Browser"]
+
+    subgraph CDN["AWS Edge"]
+        CF["CloudFront<br/>(/* + /graphql)"]
+    end
+
+    subgraph Frontend["Frontend (static)"]
+        S3["S3 Bucket<br/>React/Vite build"]
+    end
+
+    subgraph API["GraphQL API"]
+        APIGW["API Gateway<br/>HTTP API"]
+        Lambda["Lambda<br/>(container image)<br/>GraphQL Yoga + Pothos"]
+    end
+
+    subgraph Data["Stateful services"]
+        Dynamo[("DynamoDB<br/>per-user prefs")]
+        Cognito["Cognito User Pool<br/>TOTP MFA"]
+        SSM["SSM Parameter Store<br/>Unsplash key, etc."]
+    end
+
+    Unsplash["Unsplash API"]
+
+    Browser -- "HTTPS /*<br/>(SPA assets)" --> CF
+    Browser -- "HTTPS /graphql<br/>POST + JWT" --> CF
+    Browser <-- "Sign-up / sign-in / MFA<br/>(Amplify Auth)" --> Cognito
+
+    CF -- "/*" --> S3
+    CF -- "/graphql" --> APIGW
+    APIGW --> Lambda
+
+    Lambda -- "verify JWT (JWKS)" --> Cognito
+    Lambda --> Dynamo
+    Lambda --> SSM
+    Lambda --> Unsplash
+```
+
+**Request flow for a typical mutation** (e.g. `submitFeedback`):
+
+1. Amplify Auth in the browser supplies the Cognito ID token from secure cookies.
+2. urql sends `POST /graphql` with `Authorization: Bearer <jwt>`.
+3. CloudFront forwards `/graphql` to the API Gateway HTTP API (default cache disabled,
+   `AllViewerExceptHostHeader` policy forwards the JWT).
+4. API Gateway invokes the Lambda container with payload-format v2.
+5. The Lambda verifies the JWT against the Cognito pool's JWKS, runs the resolver
+   (updates `preferences` in DynamoDB, fetches Unsplash images for `travelImages`,
+   etc.), and returns the GraphQL response back through API Gateway → CloudFront →
+   the browser.
+
+> **Why API Gateway instead of a Lambda Function URL?** The original plan called for
+> `CloudFront → Lambda Function URL`. New AWS accounts have a guardrail that blocks
+> anonymous Function URL access regardless of resource policy, and the CloudFront
+> OAC + SigV4 path proved brittle in practice. API Gateway HTTP APIs are free for
+> the first 1M requests/month and route to the same Lambda with the same payload
+> format — no signing required.
 
 ---
 
@@ -194,7 +265,7 @@ These are documented honestly to inform the refactor — see [Roadmap](#roadmap)
 The project is being refactored with these goals:
 
 - Rebuild the stack in **TypeScript** end-to-end (React frontend, Node backend).
-- Re-deploy on the **AWS free tier** with **AWS Lambda** as the compute layer.
+- Re-deploy on the **AWS always-free tier** with **AWS Lambda** as the compute layer.
 - Use **Terraform** for infrastructure as code.
 - Adopt **GraphQL** (self-hosted in the Lambda) as the API.
 - Move to a **free-tier database** (DynamoDB).
@@ -204,6 +275,17 @@ The project is being refactored with these goals:
 - Add a **CI/CD pipeline** (GitHub Actions) with a full security-scanning suite
   (SAST, DAST, dependency/container/IaC scanning, SBOM) across DEV / QA / production.
 - Clean up dependencies and split frontend/backend hosting.
+
+### Phase status
+
+| Phase | Scope | Status |
+|---|---|---|
+| 0 | Repo hygiene — archived v1, created new skeleton | ✅ Done |
+| 1 | Backend — TypeScript GraphQL Lambda | 🔜 Next |
+| 2 | Frontend — Vite + React + TypeScript SPA, Amplify Auth | ✅ Done |
+| 3 | Terraform — all AWS infrastructure provisioned | ✅ Done |
+| 4 | CI/CD — GitHub Actions pipelines + security scanning | ✅ Done |
+| 5 | Deploy — DEV → QA → production release | 🚀 In progress — DEV live |
 
 ---
 

@@ -204,9 +204,9 @@ function LearnPage() {
                             src="https://cdn.lordicon.com/auvlcjep.json"
                             trigger="in"
                             state="in-reveal"
-                            stroke="bold"
+                            stroke="regular"
                             colors="primary:#c2c2c2 ,secondary:#38cdfe"
-                            style={{ width: '200px', height: '200px' }}>
+                            style={{ width: '50px', height: '50px' }}>
                         </lord-icon>
                         <h2>Consider This...</h2>
                         <p>

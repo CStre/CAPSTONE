@@ -1,0 +1,103 @@
+/* Hide the native cursor everywhere */
+* {
+  cursor: none !important;
+}
+
+/* ── Custom cursor circle ─────────────────────────────────────────────────── */
+
+.cc {
+  position: fixed;
+  left: -100px;
+  top: -100px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 99999;
+  opacity: 0; /* invisible until first mousemove */
+  /* Center on the real hotspot */
+  transform: translate(-50%, -50%);
+  transition:
+    width 0.18s ease,
+    height 0.18s ease,
+    opacity 0.15s ease,
+    background-color 0.25s ease;
+  will-change: left, top, transform, width, height;
+}
+
+/* Dark theme → warm light gray matching --dp-5 text colour */
+.cc[data-theme='dark'] {
+  background: #d3d9d4;
+}
+
+/* Light theme → dark blue matching --lp-1 text colour */
+.cc[data-theme='light'] {
+  background: #3d52a0;
+}
+
+/* Hover: grow to signal interactivity */
+.cc.cc-hover {
+  width: 40px;
+  height: 40px;
+}
+
+/* ── Click bounce ─────────────────────────────────────────────────────────── */
+
+@keyframes cc-bounce {
+  0% {
+    transform: translate(-50%, -50%) scale(1);
+  }
+  28% {
+    transform: translate(-50%, -50%) scale(0.45);
+  }
+  65% {
+    transform: translate(-50%, -50%) scale(1.4);
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+.cc.cc-click {
+  animation: cc-bounce 0.44s cubic-bezier(0.36, 0.07, 0.19, 0.97) forwards;
+}
+
+/* ── Bubble-pop leave / spring-pop enter ──────────────────────────────────── */
+
+@keyframes cc-pop-out {
+  0% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+  35% {
+    transform: translate(-50%, -50%) scale(2.6);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(0);
+    opacity: 0;
+  }
+}
+
+@keyframes cc-pop-in {
+  0% {
+    transform: translate(-50%, -50%) scale(0);
+    opacity: 0;
+  }
+  55% {
+    transform: translate(-50%, -50%) scale(1.35);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+}
+
+.cc.cc-popping {
+  animation: cc-pop-out 0.22s ease-in forwards;
+}
+
+.cc.cc-popping-in {
+  animation: cc-pop-in 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}

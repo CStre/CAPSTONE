@@ -1,0 +1,228 @@
+# Deploy — Production environment
+#
+# Triggered by a version tag (v*) pushed to main.
+# No DAST — production traffic is real users; use QA DAST results instead.
+# The "production" GitHub Environment requires a manual approval click before
+# the deploy jobs run. Configure the reviewer in:
+#   GitHub → Settings → Environments → production → Required reviewers
+#
+# To release:
+#   git tag v1.0.0
+#   git push origin v1.0.0
+
+name: Deploy Production
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-prod
+  cancel-in-progress: false  # queue; never cancel a prod deploy in flight
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+  AWS_ACCOUNT_ID: "958941188378"
+  AWS_REGION: us-east-1
+  ENVIRONMENT: prod
+  NODE_VERSION: "20"
+  TF_VERSION: "1.9.8"
+  TF_STATE_KEY: bba/prod/terraform.tfstate
+
+jobs:
+  terraform:
+    name: Terraform — Production
+    runs-on: ubuntu-latest
+    environment: production   # pauses here for manual approval
+    permissions:
+      contents: read
+      id-token: write
+    outputs:
+      cognito_user_pool_id: ${{ steps.tf-out.outputs.cognito_user_pool_id }}
+      cognito_client_id: ${{ steps.tf-out.outputs.cognito_client_id }}
+      graphql_url: ${{ steps.tf-out.outputs.graphql_url }}
+      frontend_bucket: ${{ steps.tf-out.outputs.frontend_bucket }}
+      cloudfront_distribution_id: ${{ steps.tf-out.outputs.cloudfront_distribution_id }}
+      ecr_repository_url: ${{ steps.tf-out.outputs.ecr_repository_url }}
+      lambda_function_name: ${{ steps.tf-out.outputs.lambda_function_name }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ env.AWS_ACCOUNT_ID }}:role/bba-prod-deploy
+          role-session-name: gh-deploy-prod-${{ github.run_id }}
+          aws-region: ${{ env.AWS_REGION }}
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+          terraform_wrapper: false
+      - name: Terraform Init
+        working-directory: infra
+        run: terraform init -backend-config="key=${{ env.TF_STATE_KEY }}"
+      - name: Create ECR repository
+        working-directory: infra
+        env:
+          TF_VAR_environment: ${{ env.ENVIRONMENT }}
+          TF_VAR_unsplash_access_key: ${{ secrets.UNSPLASH_ACCESS_KEY }}
+          TF_VAR_twilio_account_sid: ${{ secrets.TWILIO_ACCOUNT_SID }}
+          TF_VAR_twilio_auth_token: ${{ secrets.TWILIO_AUTH_TOKEN }}
+          TF_VAR_twilio_from_number: ${{ secrets.TWILIO_FROM_NUMBER }}
+        run: |
+          terraform apply -auto-approve \
+            -target=aws_ecr_repository.lambda \
+            -target=aws_ecr_lifecycle_policy.lambda
+      - name: Push placeholder image if ECR is empty
+        env:
+          ECR_URL: ${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/bba-${{ env.ENVIRONMENT }}-graphql
+        run: |
+          IMAGE_COUNT=$(aws ecr describe-images \
+            --repository-name bba-$ENVIRONMENT-graphql \
+            --query 'length(imageDetails)' --output text 2>/dev/null || echo "0")
+          if [ "$IMAGE_COUNT" = "0" ]; then
+            aws ecr get-login-password --region $AWS_REGION | \
+              docker login --username AWS --password-stdin $ECR_URL
+            docker pull --platform linux/amd64 public.ecr.aws/lambda/nodejs:20
+            docker tag public.ecr.aws/lambda/nodejs:20 $ECR_URL:placeholder
+            docker push $ECR_URL:placeholder
+          fi
+      # Apply the CloudFront distribution first so any removed origin-request-policy
+      # resources are detached before Terraform tries to delete them in the full apply.
+      # (Deleting a custom policy while the distribution still references it returns 409.)
+      - name: Terraform Apply — CloudFront
+        working-directory: infra
+        env:
+          TF_VAR_environment: ${{ env.ENVIRONMENT }}
+          TF_VAR_unsplash_access_key: ${{ secrets.UNSPLASH_ACCESS_KEY }}
+          TF_VAR_twilio_account_sid: ${{ secrets.TWILIO_ACCOUNT_SID }}
+          TF_VAR_twilio_auth_token: ${{ secrets.TWILIO_AUTH_TOKEN }}
+          TF_VAR_twilio_from_number: ${{ secrets.TWILIO_FROM_NUMBER }}
+        run: terraform apply -auto-approve -target=aws_cloudfront_distribution.main
+      - name: Terraform Apply
+        working-directory: infra
+        env:
+          TF_VAR_environment: ${{ env.ENVIRONMENT }}
+          TF_VAR_unsplash_access_key: ${{ secrets.UNSPLASH_ACCESS_KEY }}
+          TF_VAR_twilio_account_sid: ${{ secrets.TWILIO_ACCOUNT_SID }}
+          TF_VAR_twilio_auth_token: ${{ secrets.TWILIO_AUTH_TOKEN }}
+          TF_VAR_twilio_from_number: ${{ secrets.TWILIO_FROM_NUMBER }}
+        run: terraform apply -auto-approve
+      - name: Read outputs
+        id: tf-out
+        working-directory: infra
+        run: |
+          echo "cognito_user_pool_id=$(terraform output -raw cognito_user_pool_id)" >> $GITHUB_OUTPUT
+          echo "cognito_client_id=$(terraform output -raw cognito_client_id)"       >> $GITHUB_OUTPUT
+          echo "graphql_url=$(terraform output -raw graphql_url)"                   >> $GITHUB_OUTPUT
+          echo "frontend_bucket=$(terraform output -raw frontend_bucket)"           >> $GITHUB_OUTPUT
+          echo "cloudfront_distribution_id=$(terraform output -raw cloudfront_distribution_id)" >> $GITHUB_OUTPUT
+          echo "ecr_repository_url=$(terraform output -raw ecr_repository_url)"   >> $GITHUB_OUTPUT
+          echo "lambda_function_name=$(terraform output -raw lambda_function_name)" >> $GITHUB_OUTPUT
+
+  build-lambda:
+    name: Lambda — Build & Push
+    needs: [terraform]
+    runs-on: ubuntu-latest
+    environment: production
+    permissions:
+      contents: read
+      id-token: write
+    outputs:
+      image-uri: ${{ steps.push.outputs.image-uri }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ env.AWS_ACCOUNT_ID }}:role/bba-prod-deploy
+          role-session-name: gh-lambda-prod-${{ github.run_id }}
+          aws-region: ${{ env.AWS_REGION }}
+      - uses: aws-actions/amazon-ecr-login@v2
+      - name: Build image
+        env:
+          IMAGE_TAG: ${{ github.sha }}
+        run: docker build --platform linux/amd64 -t bba-prod-graphql:$IMAGE_TAG backend/
+      - name: Scan image — Trivy (hard gate for prod)
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          image-ref: bba-prod-graphql:${{ github.sha }}
+          format: table
+          exit-code: "1"
+          ignore-unfixed: true
+          severity: CRITICAL,HIGH   # higher bar than dev/qa
+      - name: Push to ECR
+        id: push
+        env:
+          ECR_URL: ${{ needs.terraform.outputs.ecr_repository_url }}
+          IMAGE_TAG: ${{ github.sha }}
+          REF_NAME: ${{ github.ref_name }}
+        run: |
+          docker tag bba-prod-graphql:$IMAGE_TAG $ECR_URL:$REF_NAME
+          docker push $ECR_URL:$REF_NAME
+          echo "image-uri=$ECR_URL:$REF_NAME" >> $GITHUB_OUTPUT
+
+  build-frontend:
+    name: Frontend — Build
+    needs: [terraform]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+        working-directory: frontend
+      - name: Build
+        working-directory: frontend
+        env:
+          VITE_COGNITO_USER_POOL_ID: ${{ needs.terraform.outputs.cognito_user_pool_id }}
+          VITE_COGNITO_CLIENT_ID: ${{ needs.terraform.outputs.cognito_client_id }}
+          VITE_GRAPHQL_URL: ${{ needs.terraform.outputs.graphql_url }}
+        run: npm run build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: frontend-dist-prod
+          path: frontend/dist/
+          retention-days: 7  # keep prod build artifacts longer
+
+  deploy:
+    name: Deploy — Production
+    needs: [build-frontend, build-lambda, terraform]
+    runs-on: ubuntu-latest
+    environment: production
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ env.AWS_ACCOUNT_ID }}:role/bba-prod-deploy
+          role-session-name: gh-deploy-sync-prod-${{ github.run_id }}
+          aws-region: ${{ env.AWS_REGION }}
+      - uses: actions/download-artifact@v4
+        with:
+          name: frontend-dist-prod
+          path: dist/
+      - name: Sync frontend to S3
+        run: |
+          aws s3 sync dist/ s3://${{ needs.terraform.outputs.frontend_bucket }}/ \
+            --delete \
+            --cache-control "public, max-age=31536000, immutable" \
+            --exclude "index.html"
+          aws s3 cp dist/index.html s3://${{ needs.terraform.outputs.frontend_bucket }}/index.html \
+            --cache-control "no-cache, no-store, must-revalidate"
+      - name: Update Lambda image
+        run: |
+          aws lambda update-function-code \
+            --function-name ${{ needs.terraform.outputs.lambda_function_name }} \
+            --image-uri ${{ needs.build-lambda.outputs.image-uri }}
+          aws lambda wait function-updated \
+            --function-name ${{ needs.terraform.outputs.lambda_function_name }}
+      - name: Invalidate CloudFront
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id ${{ needs.terraform.outputs.cloudfront_distribution_id }} \
+            --paths "/*"

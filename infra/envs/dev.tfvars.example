@@ -1,0 +1,10 @@
+# Copy to dev.tfvars and fill in the values.
+# dev.tfvars is gitignored — never commit secrets.
+#
+# Usage:
+#   terraform init -backend-config="key=bba/dev/terraform.tfstate"
+#   terraform apply -var-file="envs/dev.tfvars"
+
+environment         = "dev"
+unsplash_access_key = "YOUR_UNSPLASH_ACCESS_KEY"
+alert_email         = "collinm.streitman@gmail.com"

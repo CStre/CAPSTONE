@@ -1,0 +1,12 @@
+/* ── Full-screen overlay wrapper ─────────────────────────────────────────── */
+/* All animation styles live in loaders/LoaderVariant*.css, not here.        */
+
+.spinner-box {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-loader-bg);
+}
