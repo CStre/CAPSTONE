@@ -272,13 +272,15 @@ resource "aws_route53_record" "www" {
 # ---------------------------------------------------------------------------
 
 import {
-  to = aws_route53_record.mx[0]
-  id = "Z06750461TVGL3EDH9KNV_buildbetteralgorithms.com_MX"
+  for_each = local.is_prod ? toset(["0"]) : toset([])
+  to       = aws_route53_record.mx[0]
+  id       = "Z06750461TVGL3EDH9KNV_buildbetteralgorithms.com_MX"
 }
 
 import {
-  to = aws_route53_record.spf[0]
-  id = "Z06750461TVGL3EDH9KNV_buildbetteralgorithms.com_TXT"
+  for_each = local.is_prod ? toset(["0"]) : toset([])
+  to       = aws_route53_record.spf[0]
+  id       = "Z06750461TVGL3EDH9KNV_buildbetteralgorithms.com_TXT"
 }
 
 resource "aws_route53_record" "mx" {
