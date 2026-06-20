@@ -20,7 +20,8 @@ describe('selectCountries', () => {
 
   it('heavily favors a country with dominant weight', () => {
     const prefs: Record<string, number> = {};
-    for (const c of COUNTRIES) prefs[c.code] = c.code === 'FR' ? 100 : 1;
+    // FR weight dominates the whole catalog's summed weight.
+    for (const c of COUNTRIES) prefs[c.code] = c.code === 'FR' ? 100000 : 1;
     const picks = selectCountries(prefs, 300);
     const frShare = picks.filter((p) => p.code === 'FR').length / picks.length;
     expect(frShare).toBeGreaterThan(0.5);

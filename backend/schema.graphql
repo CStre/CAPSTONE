@@ -11,12 +11,62 @@ type CountryPreference {
   value: Int!
 }
 
-input FeedbackInput {
-  """Country code the feedback applies to."""
-  country: ID!
+"""
+Algorithm A's surveillance profile of the user (session-controlled, deletable).
+"""
+type Dossier {
+  avgDwellMs: Int!
+  confidence: Float!
+  curiosityRate: Float!
+  disclaimer: String!
+  dislikes: Int!
 
-  """true = liked, false = disliked."""
-  liked: Boolean!
+  """Algorithm A's country ranking, inferred from abstract features."""
+  engagementPreferences: [CountryPreference!]!
+  exploration: Float!
+  inferredTraits: [InferredTrait!]!
+  likes: Int!
+  skipRate: Float!
+  skips: Int!
+  topFeatures: [TasteFeature!]!
+  totalInteractions: Int!
+  totalRatings: Int!
+}
+
+"""Which algorithm drives the feed: A (engagement) or B (user-first)."""
+enum Driver {
+  A
+  B
+}
+
+"""An illustrative trait Algorithm A infers — see Dossier.disclaimer."""
+type InferredTrait {
+  basis: String!
+  confidence: Float!
+  trait: String!
+}
+
+"""What the user did with an image."""
+enum InteractionAction {
+  dislike
+  like
+  skip
+}
+
+"""
+One interaction with an image, echoed back with the image's tags/colour.
+"""
+input InteractionInput {
+  action: InteractionAction!
+  color: String
+  country: ID!
+  detailsTapped: Boolean
+
+  """Time on screen, in milliseconds."""
+  dwellMs: Int
+  imageId: ID!
+  reviews: Int
+  tags: [String!]!
 }
 
 """Which slides of a Learn-page section a user has viewed."""
@@ -52,31 +102,77 @@ type Mutation {
   """
   recordSlideView(sectionId: ID!, slideIndex: Int!): [LearnSectionProgress!]!
 
+  """
+  Delete Algorithm A's dossier and reset the cold start (both tastes cleared).
+  """
+  resetDossier: Boolean!
+
   """Clear all of the user's stored Learn-page progress."""
   resetLearnProgress: Boolean!
 
   """
-  Run a batch of like/dislike feedback through the algorithm and persist it.
+  Clear the user's preferences (Algorithm B), resetting every country to neutral.
   """
-  submitFeedback(feedback: [FeedbackInput!]!): User!
+  resetPreferences: Boolean!
+
+  """
+  Run a batch of image interactions through both algorithms and persist the dossier.
+  """
+  submitFeedback(interactions: [InteractionInput!]!): User!
+
+  """
+  Ping an Unsplash photo's download endpoint when it is used (required by the API guidelines). Pass the photo's downloadLocation.
+  """
+  trackPhotoUse(downloadLocation: String!): Boolean!
 }
 
 type Query {
   """The full country catalog."""
   countries: [Country!]!
 
+  """
+  Algorithm A's full profile of the authenticated user (the surveillance view).
+  """
+  dossier: Dossier!
+
   """The authenticated user, or null if not signed in."""
   me: User
 
-  """A batch of travel photos, weighted by the user's preferences."""
-  travelImages(count: Int = 8): [TravelImage!]!
+  """
+  A batch of travel photos chosen by the given driver (A narrows toward the user's taste; B stays diverse). Defaults to B.
+  """
+  travelImages(count: Int = 8, driver: Driver = B): [TravelImage!]!
+}
+
+"""One axis of the learned taste vector and its weight."""
+type TasteFeature {
+  key: String!
+  value: Float!
 }
 
 """A travel photo for the user to rate."""
 type TravelImage {
   attribution: String!
+
+  """Dominant colour as a hex string, when available."""
+  color: String
   country: Country!
+
+  """Unsplash download-tracking endpoint — pass to trackPhotoUse when used."""
+  downloadLocation: String
   imageUrl: String!
+  photographerName: String!
+
+  """Photographer's Unsplash profile URL (link the credit here)."""
+  photographerUrl: String!
+
+  """
+  Unsplash keyword tags — the abstract signal preferences are inferred from.
+  """
+  tags: [String!]!
+
+  """The photo's Unsplash page URL."""
+  unsplashUrl: String!
 }
 
 """
@@ -91,7 +187,7 @@ type User {
   name: String!
 
   """
-  Every catalog country with its current score (neutral default filled in).
+  Every catalog country scored 0–100 by Algorithm B — inferred from the user's explicit likes (neutral 50 at the cold start).
   """
   preferences: [CountryPreference!]!
 }

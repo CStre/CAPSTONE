@@ -19,6 +19,7 @@ import {
 } from '@aws-sdk/lib-dynamodb';
 import { config } from './config';
 import type { PreferenceMap } from './algorithm';
+import type { DossierState } from './dossier';
 
 const client = new DynamoDBClient({
   region: config.awsRegion,
@@ -67,6 +68,52 @@ export async function persistPreferences(userId: string, changed: PreferenceMap)
       UpdateExpression: `SET ${assignments.join(', ')}`,
       ExpressionAttributeNames: names,
       ExpressionAttributeValues: values,
+    }),
+  );
+}
+
+/** Remove a user's preference map (the "clear preferences" reset; item kept). */
+export async function resetPreferences(userId: string): Promise<void> {
+  await doc.send(
+    new UpdateCommand({
+      TableName: config.dynamoTable,
+      Key: { userId },
+      UpdateExpression: 'REMOVE preferences',
+    }),
+  );
+}
+
+/**
+ * The two-algorithm dossier (Algorithm A + B taste vectors, counters, capped log),
+ * stored as a single `dossier` attribute on the user item. It is read-modified-written
+ * whole on each batch (single-writer per user), so a plain SET is correct here.
+ */
+
+/** Fetch a user's stored dossier, or null if they have none yet. */
+export async function getDossier(userId: string): Promise<DossierState | null> {
+  const res = await doc.send(new GetCommand({ TableName: config.dynamoTable, Key: { userId } }));
+  return (res.Item?.dossier as DossierState | undefined) ?? null;
+}
+
+/** Persist the full dossier blob. */
+export async function saveDossier(userId: string, dossier: DossierState): Promise<void> {
+  await doc.send(
+    new UpdateCommand({
+      TableName: config.dynamoTable,
+      Key: { userId },
+      UpdateExpression: 'SET dossier = :d, createdAt = if_not_exists(createdAt, :now)',
+      ExpressionAttributeValues: { ':d': dossier, ':now': new Date().toISOString() },
+    }),
+  );
+}
+
+/** Remove a user's dossier (the cold-start reset / Algorithm-A delete). */
+export async function resetDossier(userId: string): Promise<void> {
+  await doc.send(
+    new UpdateCommand({
+      TableName: config.dynamoTable,
+      Key: { userId },
+      UpdateExpression: 'REMOVE dossier',
     }),
   );
 }

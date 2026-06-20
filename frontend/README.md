@@ -11,6 +11,8 @@ deployed to S3 + CloudFront.
 - **React Router** — client-side routing _(added with the app shell)_
 - **urql** + **GraphQL Code Generator** — typed GraphQL operations from the backend schema
 - **AWS Amplify Auth** — Cognito sign-in + TOTP MFA (wired to deployed Cognito pool)
+- **react-simple-maps** + **world-atlas** — Brochure choropleth (bundled TopoJSON, no
+  network fetch at runtime or in tests)
 - **Jest** + **React Testing Library** — component and client tests
 
 ## Layout
@@ -29,10 +31,16 @@ src/
     SourcesPage/   glass index-card carousel (scroll-driven scale + spread-apart + cursor tilt)
                    over a faded strings canvas; rAF org-logo marquee (slows on hover, grows the
                    hovered logo), AMA academic references (generated references.ts) + disclosure
-    TravelPage/    swipe-to-rate photo cards
-    DashboardPage/ GeoChart world map of preference scores — labelled "Brochure" in
-                   the UI (kept "Dashboard" in code/routes); gated behind completing
-                   the Learn demo (shows a "your data lives here" card until then)
+    TravelPage/    two-algorithm photo feed: one full-bleed card at a time, double-tap/♥ to
+                   like, ✕ to dislike, Skip to pass (keyboard ↑↓→). A driver toggle flips
+                   Engagement (A) vs User-First (B); a "See your data" dossier panel shows
+                   what A has inferred. Batches interactions to submitFeedback; Unsplash-
+                   compliant (hotlinked images, linked photographer+Unsplash credit w/ UTM,
+                   trackPhotoUse pings the download endpoint when a photo is used)
+    DashboardPage/ react-simple-maps world map (bundled world-atlas TopoJSON) shaded by
+                   preference score, with hover tooltip — labelled "Brochure" in the UI
+                   (kept "Dashboard" in code/routes); gated behind completing the Learn
+                   demo (shows a "your data lives here" card until then)
     AccountPage/   profile (name/email/phone) with User Settings / Data Settings tabs. Rounded buttons (tabs, Messaging terms) + verified badges use the gooey spring; rectangular buttons plus text and inputs use a hover grow (scale). User: name/email/phone, email-based password reset, TOTP re-enrollment; Data: Data Request (download your data / our research), Reset Your Progress (reset learning progress / clear preferences), then Delete account — paired buttons stack as slim, uniform-width rows — each opening a confirm popup ("Reset learning progress" is wired to reset local + DB progress; the others are not yet wired). Reached via the header "Settings" dropdown link (cog icon)
     LoginPage/     Amplify Auth sign-in / sign-up shell
     NotFoundPage/  404

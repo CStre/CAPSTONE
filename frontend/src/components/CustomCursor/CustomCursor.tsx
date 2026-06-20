@@ -10,6 +10,7 @@
 import { useEffect, useRef } from 'react';
 import type { ReactElement } from 'react';
 import { useTheme } from '../../lib/ThemeContext';
+import { clientToFixed } from '../../lib/pointer';
 import './CustomCursor.css';
 
 const INTERACTIVE = [
@@ -82,8 +83,11 @@ export function CustomCursor(): ReactElement {
     let visible = false;
 
     function onMove(e: MouseEvent): void {
-      cursor.style.left = `${e.clientX}px`;
-      cursor.style.top = `${e.clientY}px`;
+      // Convert to layout coords so the dot tracks the pointer under pinch-zoom on
+      // Safari (no-op on Chrome/Firefox — see clientToFixed).
+      const p = clientToFixed(e.clientX, e.clientY);
+      cursor.style.left = `${p.x}px`;
+      cursor.style.top = `${p.y}px`;
       if (!visible) {
         visible = true;
         cursor.style.opacity = '';

@@ -20,18 +20,21 @@
   },
   "dependencies": {
     "@lordicon/element": "^2.2.0",
+    "@types/react-simple-maps": "^3.0.6",
     "@urql/exchange-auth": "^3.0.0",
     "aws-amplify": "^6.17.0",
     "canvas-confetti": "^1.9.4",
     "graphql": "^16.14.0",
     "gsap": "^3.15.0",
+    "prop-types": "^15.8.1",
     "qrcode.react": "^4.2.0",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
-    "react-google-charts": "^5.2.1",
     "react-router": "^7.15.1",
+    "react-simple-maps": "^3.0.0",
     "urql": "^5.0.2",
-    "wonka": "^6.3.6"
+    "wonka": "^6.3.6",
+    "world-atlas": "^2.0.2"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

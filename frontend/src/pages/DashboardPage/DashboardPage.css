@@ -24,22 +24,54 @@
   font-size: var(--fs-base);
 }
 
+/* Break out of the .page max-width (60rem) so the map spans the full viewport width. */
 .dashboard-map {
+  width: 100vw;
+  position: relative;
+  left: 50%;
+  transform: translateX(-50%);
   margin: 1.5rem 0;
-  padding: 0.75rem;
-  background: var(--color-bg);
-  border: 1px solid var(--color-border);
-  border-radius: 14px;
-  overflow: hidden;
-  transition:
-    transform 0.5s cubic-bezier(0.2, 1, 0.3, 1),
-    box-shadow 0.5s cubic-bezier(0.2, 1, 0.3, 1);
-  will-change: transform;
 }
 
-.dashboard-map:hover {
-  transform: perspective(800px) rotateX(3deg);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+/* Floating score readout that loosely trails the cursor — gooey/glass-pill look,
+   not a button. Fixed to the viewport; `transform` eases so it lags behind. */
+.dashboard-score-chip {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 20;
+  pointer-events: none;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  padding: 0.45rem 0.95rem;
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-bold);
+  letter-spacing: 0.02em;
+  color: var(--color-heading);
+  background: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 100px;
+  backdrop-filter: blur(18px) saturate(180%);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  /* transform is driven each frame by the rAF lerp — do not transition it. */
+}
+
+.dashboard-score-chip.is-visible {
+  opacity: 1;
+}
+
+[data-theme='light'] .dashboard-score-chip {
+  background: rgba(255, 255, 255, 0.55);
+  border-color: rgba(61, 82, 160, 0.2);
+}
+
+/* Match the score number to the country name colour (inherit the chip colour). */
+.dashboard-score-chip-value {
+  color: inherit;
 }
 
 .dashboard-summary {

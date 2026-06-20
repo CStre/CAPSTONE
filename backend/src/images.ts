@@ -9,11 +9,29 @@
 import { COUNTRIES, type Country } from './countries';
 import { NEUTRAL_PREFERENCE, type PreferenceMap } from './algorithm';
 import { config } from './config';
+import { PHOTO_POOL } from './photos.data';
+import type { CachedPhoto } from './photos.types';
+
+const COUNTRY_BY_CODE: Record<string, Country> = Object.fromEntries(
+  COUNTRIES.map((c) => [c.code, c]),
+);
 
 export interface TravelImage {
   country: Country;
   imageUrl: string;
   attribution: string;
+  /** Photographer's full name (for the linked credit). */
+  photographerName: string;
+  /** Photographer's Unsplash profile URL. */
+  photographerUrl: string;
+  /** The photo's Unsplash page URL. */
+  unsplashUrl: string;
+  /** Unsplash keyword tags — the abstract signal the recommender reasons over. */
+  tags: string[];
+  /** Dominant colour as a hex string, when Unsplash provides one. */
+  color?: string;
+  /** Unsplash download-tracking endpoint — ping via trackPhotoUse when the photo is used. */
+  downloadLocation?: string;
 }
 
 /**
@@ -46,8 +64,22 @@ export function selectCountries(
 
 interface UnsplashPhoto {
   urls: { regular: string };
-  user: { name: string };
-  links: { download_location: string };
+  user: { name: string; links: { html: string } };
+  links: { html: string; download_location: string };
+  tags?: { title: string }[];
+  color?: string;
+}
+
+/**
+ * Ping a photo's Unsplash download endpoint (fire-and-forget) — required by the API
+ * guidelines whenever a photo is *used*. No-op without a key.
+ */
+export function triggerDownload(downloadLocation: string): void {
+  const key = config.unsplashAccessKey;
+  if (!key || !downloadLocation) return;
+  void fetch(downloadLocation, { headers: { Authorization: `Client-ID ${key}` } }).catch(
+    () => undefined,
+  );
 }
 
 async function fetchUnsplashPhoto(country: Country, accessKey: string): Promise<TravelImage> {
@@ -60,15 +92,16 @@ async function fetchUnsplashPhoto(country: Country, accessKey: string): Promise<
   if (!res.ok) throw new Error(`Unsplash request failed: ${String(res.status)}`);
   const photo = (await res.json()) as UnsplashPhoto;
 
-  // Unsplash API guideline: trigger the photo's download endpoint (fire-and-forget).
-  void fetch(photo.links.download_location, {
-    headers: { Authorization: `Client-ID ${accessKey}` },
-  }).catch(() => undefined);
-
   return {
     country,
     imageUrl: photo.urls.regular,
     attribution: `Photo by ${photo.user.name} on Unsplash`,
+    photographerName: photo.user.name,
+    photographerUrl: photo.user.links.html,
+    unsplashUrl: photo.links.html,
+    tags: photo.tags?.map((t) => t.title).filter(Boolean) ?? [],
+    color: photo.color,
+    downloadLocation: photo.links.download_location,
   };
 }
 
@@ -77,6 +110,10 @@ function placeholderImage(country: Country): TravelImage {
     country,
     imageUrl: `https://picsum.photos/seed/${country.code}/1200/800`,
     attribution: 'Placeholder image (no Unsplash key configured)',
+    photographerName: 'Lorem Picsum',
+    photographerUrl: 'https://picsum.photos',
+    unsplashUrl: 'https://picsum.photos',
+    tags: [],
   };
 }
 
@@ -97,4 +134,48 @@ export async function fetchTravelImages(
       }
     }),
   );
+}
+
+/** Map a cached photo (only catalog countries) to a TravelImage. */
+function cachedToTravelImage(p: CachedPhoto): TravelImage | null {
+  const country = COUNTRY_BY_CODE[p.country];
+  if (!country) return null;
+  return {
+    country,
+    imageUrl: p.imageUrl,
+    attribution: p.attribution,
+    photographerName: p.photographerName,
+    photographerUrl: p.photographerUrl,
+    unsplashUrl: p.unsplashUrl,
+    tags: p.tags,
+    color: p.color,
+    downloadLocation: p.downloadLocation,
+  };
+}
+
+/**
+ * A neutral candidate pool for the driver to select from. Prefers the precomputed
+ * `PHOTO_POOL` (zero runtime Unsplash calls); falls back to a live neutral fetch
+ * until the pool is generated.
+ */
+export async function getImagePool(
+  count: number,
+  rng: () => number = Math.random,
+): Promise<TravelImage[]> {
+  const flat = Object.values(PHOTO_POOL)
+    .flat()
+    .map(cachedToTravelImage)
+    .filter((x): x is TravelImage => x !== null);
+
+  if (flat.length === 0) return fetchTravelImages({}, count);
+
+  // Sample `count` distinct photos at random from the cached pool.
+  const picks: TravelImage[] = [];
+  const pool = [...flat];
+  while (picks.length < count && pool.length > 0) {
+    const idx = Math.floor(rng() * pool.length);
+    const [chosen] = pool.splice(idx, 1);
+    if (chosen) picks.push(chosen);
+  }
+  return picks;
 }

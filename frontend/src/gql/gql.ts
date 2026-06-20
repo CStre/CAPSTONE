@@ -22,8 +22,10 @@ type Documents = {
     "\n  mutation RecordSlideView($sectionId: ID!, $slideIndex: Int!) {\n    recordSlideView(sectionId: $sectionId, slideIndex: $slideIndex) {\n      sectionId\n      viewedSlides\n    }\n  }\n": typeof types.RecordSlideViewDocument,
     "\n  mutation MergeLearnProgress($progress: [LearnSectionProgressInput!]!) {\n    mergeLearnProgress(progress: $progress) {\n      sectionId\n      viewedSlides\n    }\n  }\n": typeof types.MergeLearnProgressDocument,
     "\n  mutation ResetLearnProgress {\n    resetLearnProgress\n  }\n": typeof types.ResetLearnProgressDocument,
-    "\n  query TravelImages($count: Int!) {\n    travelImages(count: $count) {\n      imageUrl\n      attribution\n      country {\n        code\n        name\n      }\n    }\n  }\n": typeof types.TravelImagesDocument,
-    "\n  mutation SubmitFeedback($feedback: [FeedbackInput!]!) {\n    submitFeedback(feedback: $feedback) {\n      id\n      preferences {\n        value\n        country {\n          code\n        }\n      }\n    }\n  }\n": typeof types.SubmitFeedbackDocument,
+    "\n  query TravelImages($count: Int!, $driver: Driver!) {\n    travelImages(count: $count, driver: $driver) {\n      imageUrl\n      attribution\n      photographerName\n      photographerUrl\n      unsplashUrl\n      tags\n      color\n      downloadLocation\n      country {\n        code\n        name\n      }\n    }\n  }\n": typeof types.TravelImagesDocument,
+    "\n  mutation SubmitFeedback($interactions: [InteractionInput!]!) {\n    submitFeedback(interactions: $interactions) {\n      id\n    }\n  }\n": typeof types.SubmitFeedbackDocument,
+    "\n  mutation TrackPhotoUse($downloadLocation: String!) {\n    trackPhotoUse(downloadLocation: $downloadLocation)\n  }\n": typeof types.TrackPhotoUseDocument,
+    "\n  query Dossier {\n    dossier {\n      totalInteractions\n      likes\n      dislikes\n      skips\n      avgDwellMs\n      confidence\n      exploration\n      disclaimer\n      inferredTraits {\n        trait\n        confidence\n      }\n      topFeatures {\n        key\n        value\n      }\n    }\n  }\n": typeof types.DossierDocument,
 };
 const documents: Documents = {
     "\n  mutation FindEmailByPhone($phone: String!) {\n    findEmailByPhone(phone: $phone)\n  }\n": types.FindEmailByPhoneDocument,
@@ -34,8 +36,10 @@ const documents: Documents = {
     "\n  mutation RecordSlideView($sectionId: ID!, $slideIndex: Int!) {\n    recordSlideView(sectionId: $sectionId, slideIndex: $slideIndex) {\n      sectionId\n      viewedSlides\n    }\n  }\n": types.RecordSlideViewDocument,
     "\n  mutation MergeLearnProgress($progress: [LearnSectionProgressInput!]!) {\n    mergeLearnProgress(progress: $progress) {\n      sectionId\n      viewedSlides\n    }\n  }\n": types.MergeLearnProgressDocument,
     "\n  mutation ResetLearnProgress {\n    resetLearnProgress\n  }\n": types.ResetLearnProgressDocument,
-    "\n  query TravelImages($count: Int!) {\n    travelImages(count: $count) {\n      imageUrl\n      attribution\n      country {\n        code\n        name\n      }\n    }\n  }\n": types.TravelImagesDocument,
-    "\n  mutation SubmitFeedback($feedback: [FeedbackInput!]!) {\n    submitFeedback(feedback: $feedback) {\n      id\n      preferences {\n        value\n        country {\n          code\n        }\n      }\n    }\n  }\n": types.SubmitFeedbackDocument,
+    "\n  query TravelImages($count: Int!, $driver: Driver!) {\n    travelImages(count: $count, driver: $driver) {\n      imageUrl\n      attribution\n      photographerName\n      photographerUrl\n      unsplashUrl\n      tags\n      color\n      downloadLocation\n      country {\n        code\n        name\n      }\n    }\n  }\n": types.TravelImagesDocument,
+    "\n  mutation SubmitFeedback($interactions: [InteractionInput!]!) {\n    submitFeedback(interactions: $interactions) {\n      id\n    }\n  }\n": types.SubmitFeedbackDocument,
+    "\n  mutation TrackPhotoUse($downloadLocation: String!) {\n    trackPhotoUse(downloadLocation: $downloadLocation)\n  }\n": types.TrackPhotoUseDocument,
+    "\n  query Dossier {\n    dossier {\n      totalInteractions\n      likes\n      dislikes\n      skips\n      avgDwellMs\n      confidence\n      exploration\n      disclaimer\n      inferredTraits {\n        trait\n        confidence\n      }\n      topFeatures {\n        key\n        value\n      }\n    }\n  }\n": types.DossierDocument,
 };
 
 /**
@@ -87,11 +91,19 @@ export function graphql(source: "\n  mutation ResetLearnProgress {\n    resetLea
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n  query TravelImages($count: Int!) {\n    travelImages(count: $count) {\n      imageUrl\n      attribution\n      country {\n        code\n        name\n      }\n    }\n  }\n"): (typeof documents)["\n  query TravelImages($count: Int!) {\n    travelImages(count: $count) {\n      imageUrl\n      attribution\n      country {\n        code\n        name\n      }\n    }\n  }\n"];
+export function graphql(source: "\n  query TravelImages($count: Int!, $driver: Driver!) {\n    travelImages(count: $count, driver: $driver) {\n      imageUrl\n      attribution\n      photographerName\n      photographerUrl\n      unsplashUrl\n      tags\n      color\n      downloadLocation\n      country {\n        code\n        name\n      }\n    }\n  }\n"): (typeof documents)["\n  query TravelImages($count: Int!, $driver: Driver!) {\n    travelImages(count: $count, driver: $driver) {\n      imageUrl\n      attribution\n      photographerName\n      photographerUrl\n      unsplashUrl\n      tags\n      color\n      downloadLocation\n      country {\n        code\n        name\n      }\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n  mutation SubmitFeedback($feedback: [FeedbackInput!]!) {\n    submitFeedback(feedback: $feedback) {\n      id\n      preferences {\n        value\n        country {\n          code\n        }\n      }\n    }\n  }\n"): (typeof documents)["\n  mutation SubmitFeedback($feedback: [FeedbackInput!]!) {\n    submitFeedback(feedback: $feedback) {\n      id\n      preferences {\n        value\n        country {\n          code\n        }\n      }\n    }\n  }\n"];
+export function graphql(source: "\n  mutation SubmitFeedback($interactions: [InteractionInput!]!) {\n    submitFeedback(interactions: $interactions) {\n      id\n    }\n  }\n"): (typeof documents)["\n  mutation SubmitFeedback($interactions: [InteractionInput!]!) {\n    submitFeedback(interactions: $interactions) {\n      id\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation TrackPhotoUse($downloadLocation: String!) {\n    trackPhotoUse(downloadLocation: $downloadLocation)\n  }\n"): (typeof documents)["\n  mutation TrackPhotoUse($downloadLocation: String!) {\n    trackPhotoUse(downloadLocation: $downloadLocation)\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  query Dossier {\n    dossier {\n      totalInteractions\n      likes\n      dislikes\n      skips\n      avgDwellMs\n      confidence\n      exploration\n      disclaimer\n      inferredTraits {\n        trait\n        confidence\n      }\n      topFeatures {\n        key\n        value\n      }\n    }\n  }\n"): (typeof documents)["\n  query Dossier {\n    dossier {\n      totalInteractions\n      likes\n      dislikes\n      skips\n      avgDwellMs\n      confidence\n      exploration\n      disclaimer\n      inferredTraits {\n        trait\n        confidence\n      }\n      topFeatures {\n        key\n        value\n      }\n    }\n  }\n"];
 
 export function graphql(source: string) {
   return (documents as any)[source] ?? {};

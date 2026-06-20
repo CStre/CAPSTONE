@@ -48,6 +48,12 @@ export const whatUserFirstMeans: LearnSection = {
       body: `Here is the premise that turns "nice to have" into "must": the addictive mechanisms are not necessary to provide the communicative benefits. If you can strip out the slot-machine mechanics without destroying connection and information, then those mechanics are gratuitous harm — and gratuitous harm to the vulnerable is impermissible. This dissolves the "but people love it" defense: keep the benefits, drop the exploitation.`,
     },
     {
+      // TODO(icon): a slider/toggle controlled by a hand / a person steering a dial
+      icon: ICONS.slidePlaceholder,
+      title: "It's already being built — in pieces",
+      body: `This isn't only theory; fragments of it already ship. Instead of inferring what you can stand to see, Instagram's Sensitive Content Control lets you explicitly set it — "Standard," "More," or "Less" — and withholds the permissive option from minors, a default that centers the vulnerable. Pinterest, named in the Molly Russell inquest, now meets a distress search with guided well-being exercises and routes self-harm queries to a crisis line in two taps — deliberately kept outside its ad and recommendation machinery. Neither replaces the engagement engine beneath it; both prove explicit, user-first controls work at billion-user scale. The pieces exist — what's missing is making them the default, not the exception.`,
+    },
+    {
       // TODO(icon): a small set of pillars / a tidy checklist
       icon: ICONS.slidePlaceholder,
       title: 'The principles, in one breath',

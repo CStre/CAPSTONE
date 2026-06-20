@@ -13,9 +13,27 @@ import SchemaBuilder from '@pothos/core';
 import { GraphQLError } from 'graphql';
 import { type AuthUser, deleteCognitoUser, findUserByPhone } from './auth';
 import { COUNTRIES, isValidCountryCode, type Country } from './countries';
-import { NEUTRAL_PREFERENCE, updatePreferences, type Feedback } from './algorithm';
+import { NEUTRAL_PREFERENCE } from './algorithm';
 import type { TravelImage } from './images';
-import { fetchTravelImages } from './images';
+import { getImagePool, triggerDownload } from './images';
+import { extractFeatures } from './features';
+import { scoreCountries } from './scoring';
+import { selectNext, explorationFraction } from './recommender';
+import {
+  emptyDossier,
+  applyInteractions,
+  derivedMetrics,
+  type InteractionInput,
+  type DerivedMetrics,
+} from './dossier';
+import {
+  inferTraits,
+  topFeatures,
+  INFERENCE_DISCLAIMER,
+  type InferredTrait,
+  type RankedFeature,
+} from './insights';
+import { getCountrySignatures } from './signatures';
 import * as db from './db';
 
 export interface GraphQLContext {
@@ -32,6 +50,16 @@ interface LearnSectionProgressModel {
   viewedSlides: number[];
 }
 
+/** The computed view exposed by the `dossier` query (Algorithm A's surveillance profile). */
+interface DossierView {
+  metrics: DerivedMetrics;
+  confidence: number;
+  exploration: number;
+  traits: InferredTrait[];
+  topFeatures: RankedFeature[];
+  engagement: CountryPreferenceModel[];
+}
+
 const builder = new SchemaBuilder<{
   Context: GraphQLContext;
   Objects: {
@@ -40,8 +68,20 @@ const builder = new SchemaBuilder<{
     TravelImage: TravelImage;
     User: AuthUser;
     LearnSectionProgress: LearnSectionProgressModel;
+    Dossier: DossierView;
+    InferredTrait: InferredTrait;
+    TasteFeature: RankedFeature;
   };
 }>({});
+
+/** Build the per-country score list (CountryPreference[]) from a taste vector. */
+function preferencesFromTaste(taste: number[]): CountryPreferenceModel[] {
+  const scores = scoreCountries(taste, getCountrySignatures());
+  return COUNTRIES.map((country) => ({
+    country,
+    value: scores[country.code] ?? NEUTRAL_PREFERENCE,
+  }));
+}
 
 /** Throw a typed UNAUTHENTICATED error unless the request carries a valid identity. */
 function requireUser(ctx: GraphQLContext): AuthUser {
@@ -75,6 +115,31 @@ builder.objectType('TravelImage', {
     country: t.field({ type: 'Country', nullable: false, resolve: (p) => p.country }),
     imageUrl: t.exposeString('imageUrl', { nullable: false }),
     attribution: t.exposeString('attribution', { nullable: false }),
+    photographerName: t.exposeString('photographerName', { nullable: false }),
+    photographerUrl: t.exposeString('photographerUrl', {
+      nullable: false,
+      description: "Photographer's Unsplash profile URL (link the credit here).",
+    }),
+    unsplashUrl: t.exposeString('unsplashUrl', {
+      nullable: false,
+      description: "The photo's Unsplash page URL.",
+    }),
+    tags: t.field({
+      type: ['String'],
+      nullable: false,
+      description: 'Unsplash keyword tags — the abstract signal preferences are inferred from.',
+      resolve: (p) => p.tags,
+    }),
+    color: t.string({
+      nullable: true,
+      description: 'Dominant colour as a hex string, when available.',
+      resolve: (p) => p.color ?? null,
+    }),
+    downloadLocation: t.string({
+      nullable: true,
+      description: 'Unsplash download-tracking endpoint — pass to trackPhotoUse when used.',
+      resolve: (p) => p.downloadLocation ?? null,
+    }),
   }),
 });
 
@@ -100,13 +165,12 @@ builder.objectType('User', {
     preferences: t.field({
       type: ['CountryPreference'],
       nullable: false,
-      description: 'Every catalog country with its current score (neutral default filled in).',
+      description:
+        "Every catalog country scored 0–100 by Algorithm B — inferred from the user's " +
+        'explicit likes (neutral 50 at the cold start).',
       resolve: async (user) => {
-        const stored = await db.getPreferences(user.id);
-        return COUNTRIES.map((country) => ({
-          country,
-          value: stored[country.code] ?? NEUTRAL_PREFERENCE,
-        }));
+        const dossier = await db.getDossier(user.id);
+        return preferencesFromTaste(dossier?.b.taste ?? []);
       },
     }),
     learnProgress: t.field({
@@ -124,10 +188,77 @@ builder.objectType('User', {
   }),
 });
 
-const FeedbackInput = builder.inputType('FeedbackInput', {
+const InteractionActionEnum = builder.enumType('InteractionAction', {
+  description: 'What the user did with an image.',
+  values: ['like', 'dislike', 'skip'] as const,
+});
+
+const DriverEnum = builder.enumType('Driver', {
+  description: 'Which algorithm drives the feed: A (engagement) or B (user-first).',
+  values: ['A', 'B'] as const,
+});
+
+const InteractionInputRef = builder.inputType('InteractionInput', {
+  description: "One interaction with an image, echoed back with the image's tags/colour.",
   fields: (t) => ({
-    liked: t.boolean({ required: true, description: 'true = liked, false = disliked.' }),
-    country: t.id({ required: true, description: 'Country code the feedback applies to.' }),
+    imageId: t.id({ required: true }),
+    country: t.id({ required: true }),
+    tags: t.stringList({ required: true }),
+    color: t.string({ required: false }),
+    action: t.field({ type: InteractionActionEnum, required: true }),
+    dwellMs: t.int({ required: false, description: 'Time on screen, in milliseconds.' }),
+    detailsTapped: t.boolean({ required: false }),
+    reviews: t.int({ required: false }),
+  }),
+});
+
+builder.objectType('InferredTrait', {
+  description: 'An illustrative trait Algorithm A infers — see Dossier.disclaimer.',
+  fields: (t) => ({
+    trait: t.exposeString('trait', { nullable: false }),
+    basis: t.exposeString('basis', { nullable: false }),
+    confidence: t.exposeFloat('confidence', { nullable: false }),
+  }),
+});
+
+builder.objectType('TasteFeature', {
+  description: 'One axis of the learned taste vector and its weight.',
+  fields: (t) => ({
+    key: t.exposeString('key', { nullable: false }),
+    value: t.exposeFloat('value', { nullable: false }),
+  }),
+});
+
+builder.objectType('Dossier', {
+  description: "Algorithm A's surveillance profile of the user (session-controlled, deletable).",
+  fields: (t) => ({
+    totalRatings: t.int({ nullable: false, resolve: (d) => d.metrics.totalRatings }),
+    totalInteractions: t.int({ nullable: false, resolve: (d) => d.metrics.totalInteractions }),
+    likes: t.int({ nullable: false, resolve: (d) => d.metrics.likes }),
+    dislikes: t.int({ nullable: false, resolve: (d) => d.metrics.dislikes }),
+    skips: t.int({ nullable: false, resolve: (d) => d.metrics.skips }),
+    avgDwellMs: t.int({ nullable: false, resolve: (d) => d.metrics.avgDwellMs }),
+    skipRate: t.float({ nullable: false, resolve: (d) => d.metrics.skipRate }),
+    curiosityRate: t.float({ nullable: false, resolve: (d) => d.metrics.curiosityRate }),
+    confidence: t.exposeFloat('confidence', { nullable: false }),
+    exploration: t.exposeFloat('exploration', { nullable: false }),
+    disclaimer: t.string({ nullable: false, resolve: () => INFERENCE_DISCLAIMER }),
+    inferredTraits: t.field({
+      type: ['InferredTrait'],
+      nullable: false,
+      resolve: (d) => d.traits,
+    }),
+    topFeatures: t.field({
+      type: ['TasteFeature'],
+      nullable: false,
+      resolve: (d) => d.topFeatures,
+    }),
+    engagementPreferences: t.field({
+      type: ['CountryPreference'],
+      nullable: false,
+      description: "Algorithm A's country ranking, inferred from abstract features.",
+      resolve: (d) => d.engagement,
+    }),
   }),
 });
 
@@ -156,12 +287,69 @@ builder.queryType({
     travelImages: t.field({
       type: ['TravelImage'],
       nullable: false,
-      description: "A batch of travel photos, weighted by the user's preferences.",
-      args: { count: t.arg.int({ defaultValue: 8 }) },
+      description:
+        'A batch of travel photos chosen by the given driver (A narrows toward the ' +
+        "user's taste; B stays diverse). Defaults to B.",
+      args: {
+        count: t.arg.int({ defaultValue: 8 }),
+        driver: t.arg({ type: DriverEnum, defaultValue: 'B' }),
+      },
       resolve: async (_root, args, ctx) => {
         const user = requireUser(ctx);
-        const prefs = await db.getPreferences(user.id);
-        return fetchTravelImages(prefs, args.count ?? 8);
+        const count = args.count ?? 8;
+        const driver = args.driver ?? 'B';
+        const dossier = await db.getDossier(user.id);
+
+        // A neutral candidate pool larger than the batch (cached when available),
+        // then let the driver pick.
+        const pool = await getImagePool(Math.min(count * 3, 30));
+        const candidates = pool.map((img, i) => ({
+          id: String(i),
+          country: img.country.code,
+          features: extractFeatures({ tags: img.tags, color: img.color }),
+        }));
+
+        const picks =
+          driver === 'A'
+            ? selectNext({
+                driver: 'A',
+                pool: candidates,
+                count,
+                taste: dossier?.a.taste ?? [],
+                exploration: explorationFraction(dossier?.a.confidence ?? 0),
+              })
+            : selectNext({
+                driver: 'B',
+                pool: candidates,
+                count,
+                countryScores: scoreCountries(dossier?.b.taste ?? [], getCountrySignatures()),
+              });
+
+        return picks.flatMap((p) => {
+          const img = pool[Number(p.id)];
+          return img ? [img] : [];
+        });
+      },
+    }),
+    dossier: t.field({
+      type: 'Dossier',
+      nullable: false,
+      description: "Algorithm A's full profile of the authenticated user (the surveillance view).",
+      resolve: async (_root, _args, ctx): Promise<DossierView> => {
+        const user = requireUser(ctx);
+        const d = (await db.getDossier(user.id)) ?? emptyDossier();
+        const metrics = derivedMetrics(d);
+        return {
+          metrics,
+          confidence: d.a.confidence,
+          exploration: explorationFraction(d.a.confidence),
+          traits: inferTraits(d.a.taste, {
+            avgDwellMs: metrics.avgDwellMs,
+            skipRate: metrics.skipRate,
+          }),
+          topFeatures: topFeatures(d.a.taste, 8),
+          engagement: preferencesFromTaste(d.a.taste),
+        };
       },
     }),
   }),
@@ -172,16 +360,26 @@ builder.mutationType({
     submitFeedback: t.field({
       type: 'User',
       nullable: false,
-      description: 'Run a batch of like/dislike feedback through the algorithm and persist it.',
-      args: { feedback: t.arg({ type: [FeedbackInput], required: true }) },
+      description:
+        'Run a batch of image interactions through both algorithms and persist the dossier.',
+      args: { interactions: t.arg({ type: [InteractionInputRef], required: true }) },
       resolve: async (_root, args, ctx) => {
         const user = requireUser(ctx);
-        const feedback: Feedback[] = args.feedback
-          .filter((f) => isValidCountryCode(f.country))
-          .map((f) => ({ country: f.country, liked: f.liked }));
-        const current = await db.getPreferences(user.id);
-        const changed = updatePreferences(current, feedback);
-        await db.persistPreferences(user.id, changed);
+        const inputs: InteractionInput[] = args.interactions
+          .filter((i) => isValidCountryCode(i.country))
+          .map((i) => ({
+            imageId: i.imageId,
+            country: i.country,
+            tags: i.tags,
+            color: i.color ?? undefined,
+            action: i.action,
+            dwellMs: i.dwellMs ?? undefined,
+            detailsTapped: i.detailsTapped ?? undefined,
+            reviews: i.reviews ?? undefined,
+          }));
+        const current = (await db.getDossier(user.id)) ?? emptyDossier();
+        const next = applyInteractions(current, inputs);
+        await db.saveDossier(user.id, next);
         return user;
       },
     }),
@@ -193,6 +391,42 @@ builder.mutationType({
         const user = requireUser(ctx);
         await db.deletePreferences(user.id);
         await deleteCognitoUser(user.email);
+        return true;
+      },
+    }),
+
+    trackPhotoUse: t.field({
+      type: 'Boolean',
+      nullable: false,
+      description:
+        "Ping an Unsplash photo's download endpoint when it is used (required by the API " +
+        "guidelines). Pass the photo's downloadLocation.",
+      args: { downloadLocation: t.arg.string({ required: true }) },
+      resolve: (_root, args) => {
+        triggerDownload(args.downloadLocation);
+        return true;
+      },
+    }),
+
+    resetPreferences: t.field({
+      type: 'Boolean',
+      nullable: false,
+      description:
+        "Clear the user's preferences (Algorithm B), resetting every country to neutral.",
+      resolve: async (_root, _args, ctx) => {
+        const user = requireUser(ctx);
+        await db.resetPreferences(user.id);
+        return true;
+      },
+    }),
+
+    resetDossier: t.field({
+      type: 'Boolean',
+      nullable: false,
+      description: "Delete Algorithm A's dossier and reset the cold start (both tastes cleared).",
+      resolve: async (_root, _args, ctx) => {
+        const user = requireUser(ctx);
+        await db.resetDossier(user.id);
         return true;
       },
     }),

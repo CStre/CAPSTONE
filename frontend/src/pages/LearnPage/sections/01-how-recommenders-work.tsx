@@ -27,6 +27,12 @@ export const howRecommendersWork: LearnSection = {
       body: `These systems are trained mostly on implicit signals — clicks, watch time, scrolls, even mouse movements — not the ratings you consciously give. Behavior is used because there is "orders of magnitude" more of it, and it can be gathered "regardless of the user's willingness to provide explicit ratings." The feed you see is assembled from a trail you didn't know you were leaving.`,
     },
     {
+      // TODO(icon): a fork in the road / a mask over a face — "what you do vs. what you want"
+      icon: ICONS.slidePlaceholder,
+      title: "But your behavior isn't your preference",
+      body: `Here's the crack in the foundation. Platforms treat "what you do" as "what you want," yet researchers formalized why that inference is unsound: people hold inconsistent preferences — an impulsive in-the-moment self and a reflective self that "makes plans over longer time-scales." You can be pulled toward what you wouldn't endorse on reflection; one depressed listener seeks out sad songs, another reaches for upbeat ones, and a click reveals neither. An engagement-optimizer faithfully serves the impulsive self — which is exactly why so many users "regret the time they spend." The honest fix is to stop guessing from behavior and simply ask.`,
+    },
+    {
       icon: ICONS.learn01Network,
       title: 'How your behavior physically becomes the model',
       body: `"It learns from you" is concrete, not metaphorical. In production systems every action you take indexes a row in an embedding table that gradient descent rewrites on each interaction; other models add cross-features that memorize co-occurrences ("installed A and viewing B"); online "bandit" systems inject each click as an immediate reward that updates the serving policy. Every interaction updates an embedding, a weight, or a policy — continuously, against an engagement label.`,

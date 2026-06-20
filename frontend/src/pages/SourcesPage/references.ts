@@ -1,7 +1,7 @@
 /**
  * @fileoverview Research bibliography for the Sources page — AMA (11th ed.) style, linked.
  *
- * The 43-source research corpus (generated from the repository's research/ bibliography)
+ * The 49-source research corpus (generated from the repository's research/ bibliography)
  * plus the project's background essay sources, grouped into site-friendly categories.
  * Within a category, references follow the corpus source-ID order.
  *
@@ -77,6 +77,11 @@ export const RESEARCH_REFERENCES: ReferenceCategory[] = [
           'Jiang R, Chiappa S, Lattimore T, György A, Kohli P. Degenerate feedback loops in recommender systems. In: Proceedings of the 2019 AAAI/ACM Conference on AI, Ethics, and Society (AIES ’19). Association for Computing Machinery; 2019:383-390. doi:10.1145/3306618.3314288',
         url: 'https://doi.org/10.1145/3306618.3314288',
       },
+      {
+        citation:
+          'Kleinberg J, Mullainathan S, Raghavan M. The challenge of understanding what users want: inconsistent preferences and engagement optimization. Manage Sci. 2024;70(9):6336-6355. doi:10.1287/mnsc.2022.03683',
+        url: 'https://doi.org/10.1287/mnsc.2022.03683',
+      },
     ],
   },
   {
@@ -111,6 +116,11 @@ export const RESEARCH_REFERENCES: ReferenceCategory[] = [
         citation:
           'Zuboff S. Big other: surveillance capitalism and the prospects of an information civilization. J Inf Technol. 2015;30(1):75-89. doi:10.1057/jit.2015.5',
         url: 'https://doi.org/10.1057/jit.2015.5',
+      },
+      {
+        citation:
+          'Feathers T, Fondrie-Teitler S, Waller A, Mattu S. Facebook is receiving sensitive medical information from hospital websites. The Markup. June 16, 2022. Accessed June 18, 2026. https://themarkup.org/pixel-hunt/2022/06/16/facebook-is-receiving-sensitive-medical-information-from-hospital-websites',
+        url: 'https://themarkup.org/pixel-hunt/2022/06/16/facebook-is-receiving-sensitive-medical-information-from-hospital-websites',
       },
     ],
   },
@@ -256,6 +266,26 @@ export const RESEARCH_REFERENCES: ReferenceCategory[] = [
         citation:
           'Rathje S, Van Bavel JJ, van der Linden S. Out-group animosity drives engagement on social media. Proc Natl Acad Sci U S A. 2021;118(26):e2024292118. doi:10.1073/pnas.2024292118',
         url: 'https://doi.org/10.1073/pnas.2024292118',
+      },
+      {
+        citation:
+          'Ventola CL. Direct-to-consumer pharmaceutical advertising: therapeutic or toxic? P T. 2011;36(10):669-684. Accessed June 18, 2026. https://pmc.ncbi.nlm.nih.gov/articles/PMC3278148/',
+        url: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC3278148/',
+      },
+      {
+        citation:
+          'Regulation (EU) 2016/679 of the European Parliament and of the Council of 27 April 2016 on the protection of natural persons with regard to the processing of personal data and on the free movement of such data (General Data Protection Regulation). Off J Eur Union. 2016;L119:1-88. Accessed June 18, 2026. https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=celex:32016R0679',
+        url: 'https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=celex:32016R0679',
+      },
+      {
+        citation:
+          'Instagram. Introducing sensitive content control. Instagram Blog. July 20, 2021. Accessed June 18, 2026. https://about.instagram.com/blog/announcements/introducing-sensitive-content-control',
+        url: 'https://about.instagram.com/blog/announcements/introducing-sensitive-content-control',
+      },
+      {
+        citation:
+          'Ta A. Introducing a more compassionate search experience for people in distress. Pinterest Newsroom. July 22, 2019. Accessed June 18, 2026. https://newsroom-archive.pinterest.com/introducing-a-more-compassionate-search-experience-for-people-in-distress',
+        url: 'https://newsroom-archive.pinterest.com/introducing-a-more-compassionate-search-experience-for-people-in-distress',
       },
     ],
   },

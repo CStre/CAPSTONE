@@ -16,6 +16,14 @@ GraphQL Yoga, deployed as an AWS Lambda container image.
 src/
   config.ts      environment configuration
   countries.ts   the country catalog (static config)
+  features.ts    curated image-feature taxonomy (tags + colour → feature vector)
+  scoring.ts     taste vectors, country signatures, cosine scoring (A/B shared math)
+  recommender.ts confidence/exploration, batch selection, novelty (the A/B loop)
+  insights.ts    taste→trait inference + "why this card?" reasons (A/B interpretation)
+  dossier.ts     per-user A/B state + applyInteraction orchestration (persistable)
+  signatures.ts  per-country feature signatures (from the cached pool, else a seed)
+  photos.types.ts  CachedPhoto type (kept apart from the generated data)
+  photos.data.ts   generated per-country photo pool (empty until build:photos)
   algorithm.ts   preference-learning logic (ported from v1)
   db.ts          DynamoDB data access (preferences + learnProgress)
   auth.ts        Cognito token verification (+ local dev bypass)
@@ -63,13 +71,15 @@ npm run dev                 # GraphQL at http://localhost:4000/graphql
 
 ## Scripts
 
-| Command                   | Purpose                                |
-| ------------------------- | -------------------------------------- |
-| `npm run dev`             | Local server with watch reload         |
-| `npm run build`           | Bundle the Lambda handler with esbuild |
-| `npm run typecheck`       | `tsc --noEmit`                         |
-| `npm test`                | Run the Jest suites                    |
-| `npm run lint` / `format` | ESLint + Prettier                      |
+| Command                   | Purpose                                                        |
+| ------------------------- | -------------------------------------------------------------- |
+| `npm run dev`             | Local server with watch reload                                 |
+| `npm run build`           | Bundle the Lambda handler with esbuild                         |
+| `npm run typecheck`       | `tsc --noEmit`                                                 |
+| `npm test`                | Run the Jest suites                                            |
+| `npm run lint` / `format` | ESLint + Prettier                                              |
+| `npm run printschema`     | Regenerate `schema.graphql`                                    |
+| `npm run build:photos`    | Regenerate the cached photo pool (needs `UNSPLASH_ACCESS_KEY`) |
 
 ## Deployment
 

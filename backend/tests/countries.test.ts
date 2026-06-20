@@ -2,8 +2,14 @@ import { describe, it, expect } from '@jest/globals';
 import { COUNTRIES, COUNTRY_BY_CODE, isValidCountryCode } from '../src/countries';
 
 describe('country catalog', () => {
-  it('is non-empty', () => {
-    expect(COUNTRIES.length).toBeGreaterThan(0);
+  it('covers the whole world (UN members + observers + territories)', () => {
+    expect(COUNTRIES.length).toBeGreaterThan(190);
+  });
+
+  it('uses neutral, landmark-free search terms', () => {
+    for (const c of COUNTRIES) {
+      expect(c.searchTerm).toContain('landscape');
+    }
   });
 
   it('has unique country codes', () => {
