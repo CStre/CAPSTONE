@@ -139,12 +139,14 @@ jobs:
         with:
           directory: infra/
           soft_fail: true
-      - name: tfsec
-        uses: aquasecurity/tfsec-action@v1.0.3
+      - name: Trivy IaC scan
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
-          working_directory: infra/
-          soft_fail: true
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          scan-type: config
+          scan-ref: infra/
+          format: table
+          exit-code: "0"
+          severity: CRITICAL,HIGH
 
   sbom:
     name: SBOM — Syft

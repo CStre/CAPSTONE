@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+
+# Don't index auth or user-specific pages
+Disallow: /login
+Disallow: /dashboard
+Disallow: /account
+
+Sitemap: https://buildbetteralgorithms.com/sitemap.xml

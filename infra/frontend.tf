@@ -266,7 +266,22 @@ resource "aws_route53_record" "www" {
 # ---------------------------------------------------------------------------
 # Email (ImprovMX forwarding) — production only; domain-level records
 # Forwards hello@buildbetteralgorithms.com to the owner's personal inbox.
+#
+# These records were created manually via CLI before the prod pipeline ran.
+# The import blocks below adopt them into Terraform state on the first apply.
 # ---------------------------------------------------------------------------
+
+import {
+  for_each = local.is_prod ? toset(["0"]) : toset([])
+  to       = aws_route53_record.mx[0]
+  id       = "Z06750461TVGL3EDH9KNV_buildbetteralgorithms.com_MX"
+}
+
+import {
+  for_each = local.is_prod ? toset(["0"]) : toset([])
+  to       = aws_route53_record.spf[0]
+  id       = "Z06750461TVGL3EDH9KNV_buildbetteralgorithms.com_TXT"
+}
 
 resource "aws_route53_record" "mx" {
   count   = local.is_prod ? 1 : 0
@@ -286,5 +301,8 @@ resource "aws_route53_record" "spf" {
   name    = local.domain
   type    = "TXT"
   ttl     = 300
-  records = ["v=spf1 include:spf.improvmx.com ~all"]
+  records = [
+    "v=spf1 include:spf.improvmx.com ~all",
+    "google-site-verification=JGZsVUqA1SOofPnjIYgUli5kU5oDv4NV_BqQ96iCfvg",
+  ]
 }

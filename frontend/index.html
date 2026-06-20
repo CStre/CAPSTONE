@@ -3,19 +3,135 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="An interactive look at preference-learning algorithms." />
+
+    <!-- Primary meta -->
     <title>Building Better Algorithms</title>
+    <meta
+      name="description"
+      content="What does it mean to design an algorithm that actually puts users first? Explore ethical, user-centric algorithmic design through an interactive preference-learning demo — then take the course on why it matters and how to build it right."
+    />
+    <meta name="author" content="Building Better Algorithms" />
+    <meta
+      name="keywords"
+      content="ethical algorithm design, user-centric AI, preference learning, recommendation systems, algorithmic bias, responsible AI, AI ethics, machine learning education, human-centered design"
+    />
+    <link rel="canonical" href="https://buildbetteralgorithms.com/" />
 
-    <!-- 1. The Vector Flex: SVG for all modern desktop & mobile browsers -->
+    <!-- Open Graph — controls link previews on Facebook, LinkedIn, iMessage, Slack, etc. -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Building Better Algorithms" />
+    <meta property="og:title" content="Building Better Algorithms" />
+    <meta
+      property="og:description"
+      content="What does it mean to design an algorithm that actually puts users first? Explore ethical, user-centric algorithmic design through an interactive preference-learning demo — then take the course on why it matters and how to build it right."
+    />
+    <meta property="og:url" content="https://buildbetteralgorithms.com/" />
+    <meta property="og:image" content="https://buildbetteralgorithms.com/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta
+      property="og:image:alt"
+      content="Building Better Algorithms — an interactive course on preference-learning AI"
+    />
+    <meta property="og:locale" content="en_US" />
+
+    <!-- Twitter / X Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Building Better Algorithms" />
+    <meta
+      name="twitter:description"
+      content="Ethical algorithmic design, made interactive. Rate travel photos, watch a preference-learning system adapt in real time, and take the course on what it really means to build user-first AI."
+    />
+    <meta name="twitter:image" content="https://buildbetteralgorithms.com/og-image.png" />
+    <meta
+      name="twitter:image:alt"
+      content="Building Better Algorithms — interactive AI education"
+    />
+
+    <!-- JSON-LD structured data — tells Google exactly what kind of site this is -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "WebSite",
+            "@id": "https://buildbetteralgorithms.com/#website",
+            "url": "https://buildbetteralgorithms.com/",
+            "name": "Building Better Algorithms",
+            "description": "An interactive platform exploring ethical, user-centric algorithmic design — where you experience preference-learning firsthand and learn the principles behind building AI systems that genuinely serve users.",
+            "publisher": {
+              "@id": "https://buildbetteralgorithms.com/#organization"
+            }
+          },
+          {
+            "@type": "Organization",
+            "@id": "https://buildbetteralgorithms.com/#organization",
+            "name": "Building Better Algorithms",
+            "url": "https://buildbetteralgorithms.com/",
+            "logo": {
+              "@type": "ImageObject",
+              "url": "https://buildbetteralgorithms.com/android-chrome-512x512.png"
+            },
+            "contactPoint": {
+              "@type": "ContactPoint",
+              "email": "hello@buildbetteralgorithms.com",
+              "contactType": "customer support"
+            }
+          },
+          {
+            "@type": "WebApplication",
+            "@id": "https://buildbetteralgorithms.com/#app",
+            "name": "Building Better Algorithms",
+            "url": "https://buildbetteralgorithms.com/",
+            "applicationCategory": "EducationalApplication",
+            "operatingSystem": "Any",
+            "isAccessibleForFree": true,
+            "description": "Rate travel photos and watch a user-centric preference-learning algorithm adapt to your choices in real time. Take the accompanying 8-chapter course to understand ethical algorithm design, data inference, and what it looks like to build recommendation systems that put users genuinely in control.",
+            "featureList": [
+              "Interactive preference-learning demo with real-time feedback",
+              "8-chapter course on ethical, user-centric algorithmic design",
+              "Live visualization of how algorithms update based on user input",
+              "Research bibliography grounded in primary academic sources"
+            ],
+            "screenshot": "https://buildbetteralgorithms.com/og-image.png",
+            "offers": {
+              "@type": "Offer",
+              "price": "0",
+              "priceCurrency": "USD"
+            }
+          },
+          {
+            "@type": "Course",
+            "@id": "https://buildbetteralgorithms.com/learn#course",
+            "name": "Ethical Algorithm Design: Building Recommendation Systems That Put Users First",
+            "description": "An 8-chapter interactive course on the principles of ethical, user-centric algorithmic design. Covers how recommender systems learn preferences, the real-world harms of unchecked algorithmic inference, the legal landscape around AI, and how to implement systems that genuinely serve users rather than exploit them.",
+            "url": "https://buildbetteralgorithms.com/learn",
+            "provider": {
+              "@id": "https://buildbetteralgorithms.com/#organization"
+            },
+            "isAccessibleForFree": true,
+            "educationalLevel": "Beginner to Intermediate",
+            "about": [
+              "Recommendation algorithms",
+              "Machine learning",
+              "AI ethics",
+              "Algorithmic bias",
+              "Data privacy"
+            ],
+            "hasCourseInstance": {
+              "@type": "CourseInstance",
+              "courseMode": "online",
+              "courseWorkload": "PT20M"
+            }
+          }
+        ]
+      }
+    </script>
+
+    <!-- Icons -->
     <link rel="icon" type="image/svg+xml" href="./public/favicon.svg" />
-
-    <!-- 2. Legacy Fallback: Multi-resolution .ico container for older systems -->
     <link rel="icon" type="image/x-icon" href="./public/favicon.ico" sizes="any" />
-
-    <!-- 3. Apple Ecosystem: High-res icon for iOS Home Screen shortcuts -->
     <link rel="apple-touch-icon" href="./public/apple-touch-icon.png" />
-
-    <!-- 4. Android/Chrome Manifest: Connects mobile launcher icons -->
     <link rel="manifest" href="./public/site.webmanifest" />
 
     <!-- Poppins — the brand typeface. Loaded via <link> (not a CSS @import) so the
