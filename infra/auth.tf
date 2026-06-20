@@ -287,6 +287,20 @@ locals {
   cognito_sms_key_arn = data.aws_kms_alias.cognito_sms.target_key_arn
 }
 
+# ── SNS SMS account-level preferences ─────────────────────────────────────────
+# Global per AWS account/region — created once in dev, applies to all envs.
+# Sets the alphanumeric sender ID shown in markets that support it (UK, AU, DE,
+# FR, etc.) — US carriers ignore it; the origination number shows there instead.
+# Monthly spend cap guards against runaway costs; $5 covers MFA-only volume.
+resource "aws_sns_sms_preferences" "main" {
+  count = local.env == "dev" ? 1 : 0
+
+  default_sender_id = "BBA"
+  default_sms_type  = "Transactional"
+  # Hard cap: Lambda also sets per-message attributes, but this is the account guard.
+  monthly_spend_limit = 5
+}
+
 # Allow Cognito to invoke the GraphQL Lambda as a custom SMS sender trigger.
 resource "aws_lambda_permission" "cognito_custom_sms" {
   statement_id  = "AllowCognitoCustomSMS"

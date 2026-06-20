@@ -3,18 +3,22 @@
  *
  * Cognito encrypts the OTP code using the AWS Encryption SDK (not raw KMS)
  * before passing it to this Lambda. We decrypt it with the same SDK, then
- * deliver via Twilio's REST API — bypassing the AWS SNS origination-number
- * registration requirement in the US.
+ * deliver via Pinpoint SMS Voice v2 using the dedicated toll-free origination
+ * number — giving us full control over the origination identity and message.
  *
  * Trigger sources handled: any CustomSMSSender_* event (verification codes,
  * MFA codes, forgot-password codes, admin-created password codes).
  */
 import { buildClient, CommitmentPolicy, KmsKeyringNode } from '@aws-crypto/client-node';
 import { SSMClient, GetParameterCommand } from '@aws-sdk/client-ssm';
-import * as https from 'https';
+import {
+  PinpointSMSVoiceV2Client,
+  SendTextMessageCommand,
+} from '@aws-sdk/client-pinpoint-sms-voice-v2';
 
 const { decrypt } = buildClient(CommitmentPolicy.REQUIRE_ENCRYPT_ALLOW_DECRYPT);
 const ssm = new SSMClient({});
+const pinpoint = new PinpointSMSVoiceV2Client({});
 
 export interface CognitoCustomSMSEvent {
   triggerSource: string;
@@ -24,60 +28,28 @@ export interface CognitoCustomSMSEvent {
   };
 }
 
-let twilioCache: { accountSid: string; authToken: string; from: string } | null = null;
+let originationNumberCache: string | null = null;
 
-async function getTwilioConfig(): Promise<{ accountSid: string; authToken: string; from: string }> {
-  if (twilioCache) return twilioCache;
+async function getOriginationNumber(): Promise<string> {
+  if (originationNumberCache) return originationNumberCache;
   const env = process.env.ENVIRONMENT ?? 'dev';
-  const [sidRes, tokenRes, fromRes] = await Promise.all([
-    ssm.send(
-      new GetParameterCommand({ Name: `/bba/${env}/twilio_account_sid`, WithDecryption: true }),
-    ),
-    ssm.send(
-      new GetParameterCommand({ Name: `/bba/${env}/twilio_auth_token`, WithDecryption: true }),
-    ),
-    ssm.send(
-      new GetParameterCommand({ Name: `/bba/${env}/twilio_from_number`, WithDecryption: false }),
-    ),
-  ]);
-  twilioCache = {
-    accountSid: sidRes.Parameter?.Value ?? '',
-    authToken: tokenRes.Parameter?.Value ?? '',
-    from: fromRes.Parameter?.Value ?? '',
-  };
-  return twilioCache;
+  const res = await ssm.send(
+    new GetParameterCommand({ Name: `/bba/${env}/sns_from_number`, WithDecryption: false }),
+  );
+  originationNumberCache = res.Parameter?.Value ?? '';
+  return originationNumberCache;
 }
 
 async function sendSMS(to: string, body: string): Promise<void> {
-  const { accountSid, authToken, from } = await getTwilioConfig();
-  const payload = new URLSearchParams({ To: to, From: from, Body: body }).toString();
-  const auth = Buffer.from(`${accountSid}:${authToken}`).toString('base64');
-
-  await new Promise<void>((resolve, reject) => {
-    const req = https.request(
-      {
-        hostname: 'api.twilio.com',
-        path: `/2010-04-01/Accounts/${accountSid}/Messages.json`,
-        method: 'POST',
-        headers: {
-          Authorization: `Basic ${auth}`,
-          'Content-Type': 'application/x-www-form-urlencoded',
-          'Content-Length': Buffer.byteLength(payload),
-        },
-      },
-      (res) => {
-        if (res.statusCode !== undefined && res.statusCode >= 200 && res.statusCode < 300) {
-          resolve();
-        } else {
-          reject(new Error(`Twilio responded with ${String(res.statusCode)}`));
-        }
-        res.resume();
-      },
-    );
-    req.on('error', reject);
-    req.write(payload);
-    req.end();
-  });
+  const originationIdentity = await getOriginationNumber();
+  await pinpoint.send(
+    new SendTextMessageCommand({
+      DestinationPhoneNumber: to,
+      OriginationIdentity: originationIdentity,
+      MessageBody: body,
+      MessageType: 'TRANSACTIONAL',
+    }),
+  );
 }
 
 export async function handleCustomSMS(event: CognitoCustomSMSEvent): Promise<void> {
@@ -92,5 +64,6 @@ export async function handleCustomSMS(event: CognitoCustomSMSEvent): Promise<voi
   const { plaintext } = await decrypt(keyring, Buffer.from(code, 'base64'));
   const otp = plaintext.toString('utf-8');
 
-  await sendSMS(phone, `Your Building Better Algorithms code is: ${otp}`);
+  const msg = `${otp} is your one-time Building Better Algorithms sign-in code. Never share this code with anyone.`;
+  await sendSMS(phone, msg);
 }

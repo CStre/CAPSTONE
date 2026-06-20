@@ -116,6 +116,23 @@ resource "aws_iam_role_policy" "lambda_kms" {
   })
 }
 
+# Pinpoint SMS Voice v2 — send SMS via the dedicated toll-free origination number
+resource "aws_iam_role_policy" "lambda_sms" {
+  name = "sms"
+  role = aws_iam_role.lambda.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect   = "Allow"
+        Action   = ["sms-voice:SendTextMessage"]
+        Resource = "*"
+      },
+    ]
+  })
+}
+
 # Cognito — delete user + list users by phone (forgot-email flow)
 resource "aws_iam_role_policy" "lambda_cognito" {
   name = "cognito"
