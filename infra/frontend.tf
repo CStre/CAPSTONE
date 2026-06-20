@@ -95,22 +95,29 @@ data "aws_route53_zone" "main" {
   private_zone = false
 }
 
-# DNS records for certificate validation
+# DNS records for certificate validation.
+# for_each keys must be statically known at plan time — before the cert exists,
+# domain_validation_options is entirely unknown. We key on the domain names we
+# already know (they're our own inputs), and look up the computed record fields
+# (name/value/type) from domain_validation_options by matching domain_name.
 resource "aws_route53_record" "cert_validation" {
-  for_each = local.is_prod ? {
-    for dvo in aws_acm_certificate.main[0].domain_validation_options : dvo.domain_name => {
-      name   = dvo.resource_record_name
-      record = dvo.resource_record_value
-      type   = dvo.resource_record_type
-    }
-  } : {}
+  for_each = local.is_prod ? toset([local.domain, "www.${local.domain}"]) : toset([])
 
   allow_overwrite = true
-  name            = each.value.name
-  records         = [each.value.record]
-  ttl             = 60
-  type            = each.value.type
-  zone_id         = data.aws_route53_zone.main[0].zone_id
+  name = tolist([
+    for dvo in aws_acm_certificate.main[0].domain_validation_options :
+    dvo.resource_record_name if dvo.domain_name == each.key
+  ])[0]
+  records = [tolist([
+    for dvo in aws_acm_certificate.main[0].domain_validation_options :
+    dvo.resource_record_value if dvo.domain_name == each.key
+  ])[0]]
+  type = tolist([
+    for dvo in aws_acm_certificate.main[0].domain_validation_options :
+    dvo.resource_record_type if dvo.domain_name == each.key
+  ])[0]
+  ttl     = 60
+  zone_id = data.aws_route53_zone.main[0].zone_id
 }
 
 resource "aws_acm_certificate_validation" "main" {
@@ -254,4 +261,30 @@ resource "aws_route53_record" "www" {
     zone_id                = aws_cloudfront_distribution.main.hosted_zone_id
     evaluate_target_health = false
   }
+}
+
+# ---------------------------------------------------------------------------
+# Email (ImprovMX forwarding) — production only; domain-level records
+# Forwards hello@buildbetteralgorithms.com to the owner's personal inbox.
+# ---------------------------------------------------------------------------
+
+resource "aws_route53_record" "mx" {
+  count   = local.is_prod ? 1 : 0
+  zone_id = data.aws_route53_zone.main[0].zone_id
+  name    = local.domain
+  type    = "MX"
+  ttl     = 300
+  records = [
+    "10 mx1.improvmx.com",
+    "20 mx2.improvmx.com",
+  ]
+}
+
+resource "aws_route53_record" "spf" {
+  count   = local.is_prod ? 1 : 0
+  zone_id = data.aws_route53_zone.main[0].zone_id
+  name    = local.domain
+  type    = "TXT"
+  ttl     = 300
+  records = ["v=spf1 include:spf.improvmx.com ~all"]
 }

@@ -3,7 +3,7 @@
  *
  * Adapts a Lambda Function URL event (API Gateway payload format 2.0) into a Fetch
  * `Request`, runs it through GraphQL Yoga, and converts the `Response` back.
- * Also routes Cognito CustomSMSSender_* trigger events to the Twilio SMS sender.
+ * Also routes Cognito CustomSMSSender_* trigger events to the Pinpoint SMS sender.
  */
 import type { LambdaFunctionURLEvent, LambdaFunctionURLResult } from 'aws-lambda';
 import { yoga } from './yoga';

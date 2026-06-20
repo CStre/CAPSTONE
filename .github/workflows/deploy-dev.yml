@@ -144,6 +144,7 @@ jobs:
         with:
           working_directory: infra/
           soft_fail: true
+          github_token: ${{ secrets.GITHUB_TOKEN }}
 
   sbom:
     name: SBOM — Syft
@@ -222,9 +223,7 @@ jobs:
         env:
           TF_VAR_environment: ${{ env.ENVIRONMENT }}
           TF_VAR_unsplash_access_key: ${{ secrets.UNSPLASH_ACCESS_KEY }}
-          TF_VAR_twilio_account_sid: ${{ secrets.TWILIO_ACCOUNT_SID }}
-          TF_VAR_twilio_auth_token: ${{ secrets.TWILIO_AUTH_TOKEN }}
-          TF_VAR_twilio_from_number: ${{ secrets.TWILIO_FROM_NUMBER }}
+          TF_VAR_sns_from_number: ${{ secrets.SNS_FROM_NUMBER }}
         run: |
           terraform apply -auto-approve \
             -target=aws_ecr_repository.lambda \
@@ -251,18 +250,14 @@ jobs:
         env:
           TF_VAR_environment: ${{ env.ENVIRONMENT }}
           TF_VAR_unsplash_access_key: ${{ secrets.UNSPLASH_ACCESS_KEY }}
-          TF_VAR_twilio_account_sid: ${{ secrets.TWILIO_ACCOUNT_SID }}
-          TF_VAR_twilio_auth_token: ${{ secrets.TWILIO_AUTH_TOKEN }}
-          TF_VAR_twilio_from_number: ${{ secrets.TWILIO_FROM_NUMBER }}
+          TF_VAR_sns_from_number: ${{ secrets.SNS_FROM_NUMBER }}
         run: terraform apply -auto-approve -target=aws_cloudfront_distribution.main
       - name: Terraform Apply
         working-directory: infra
         env:
           TF_VAR_environment: ${{ env.ENVIRONMENT }}
           TF_VAR_unsplash_access_key: ${{ secrets.UNSPLASH_ACCESS_KEY }}
-          TF_VAR_twilio_account_sid: ${{ secrets.TWILIO_ACCOUNT_SID }}
-          TF_VAR_twilio_auth_token: ${{ secrets.TWILIO_AUTH_TOKEN }}
-          TF_VAR_twilio_from_number: ${{ secrets.TWILIO_FROM_NUMBER }}
+          TF_VAR_sns_from_number: ${{ secrets.SNS_FROM_NUMBER }}
         run: terraform apply -auto-approve
       - name: Read outputs
         id: tf-out

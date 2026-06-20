@@ -203,8 +203,8 @@ resource "aws_cognito_user_pool" "main" {
     }
   }
 
-  # Custom SMS sender — routes all Cognito SMS through the GraphQL Lambda + Twilio
-  # instead of SNS, avoiding the US origination-number registration requirement.
+  # Custom SMS sender — routes all Cognito SMS through the GraphQL Lambda + Pinpoint
+  # SMS Voice v2 using the dedicated toll-free origination number.
   # ARN is constructed directly to avoid a Terraform cycle: Lambda env vars reference
   # Cognito IDs, and Cognito lambda_config references the Lambda — using a computed
   # ARN breaks the dependency chain without changing runtime behavior.
