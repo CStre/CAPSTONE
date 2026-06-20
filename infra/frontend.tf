@@ -299,5 +299,8 @@ resource "aws_route53_record" "spf" {
   name    = local.domain
   type    = "TXT"
   ttl     = 300
-  records = ["v=spf1 include:spf.improvmx.com ~all"]
+  records = [
+    "v=spf1 include:spf.improvmx.com ~all",
+    "google-site-verification=JGZsVUqA1SOofPnjIYgUli5kU5oDv4NV_BqQ96iCfvg",
+  ]
 }
