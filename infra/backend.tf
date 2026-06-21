@@ -116,6 +116,21 @@ resource "aws_iam_role_policy" "lambda_kms" {
   })
 }
 
+# SES — send transactional emails for the custom email sender trigger
+resource "aws_iam_role_policy" "lambda_ses" {
+  name = "ses"
+  role = aws_iam_role.lambda.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect   = "Allow"
+      Action   = ["ses:SendEmail"]
+      Resource = local.ses_identity_arn
+    }]
+  })
+}
+
 # Pinpoint SMS Voice v2 — send SMS via the dedicated toll-free origination number
 resource "aws_iam_role_policy" "lambda_sms" {
   name = "sms"

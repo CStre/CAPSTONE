@@ -30,7 +30,14 @@ src/
   images.ts      weighted country selection + Unsplash client
   schema.ts      Pothos GraphQL schema
   yoga.ts        GraphQL Yoga server instance
-  handler.ts     AWS Lambda entrypoint
+  smsSender.ts   Cognito CustomSMSSender_* trigger — decrypts OTP via AWS Encryption
+                 SDK + KMS, delivers via Pinpoint SMS Voice v2 (toll-free number)
+  emailSender.ts Cognito CustomEmailSender_* trigger — decrypts OTP via same SDK/KMS,
+                 delivers branded HTML + plain-text email via SES; trigger-specific
+                 copy for SignUp, Authentication (MFA), ForgotPassword, and attribute
+                 verification; both multipart/alternative parts always included
+  handler.ts     AWS Lambda entrypoint — routes CustomSMSSender_* to smsSender,
+                 CustomEmailSender_* to emailSender, everything else to GraphQL Yoga
   dev.ts         local HTTP dev server
 tests/           Jest suites
 ```

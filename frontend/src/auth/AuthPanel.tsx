@@ -29,7 +29,7 @@ import {
 } from './ForgotPanel';
 import { SecurityInfo } from '../components/SecurityInfo/SecurityInfo';
 import { PhoneConsentForm } from './PhoneConsentForm';
-import { MfaSelectForm } from './MfaSelectForm';
+import { GooeyButton } from '../components/GooeyButton/GooeyButton';
 import { useCardTilt } from '../components/GlassIsland/useCardTilt';
 import { useAuthFlow } from './useAuthFlow';
 import type { MfaIconPhase } from './useAuthFlow';
@@ -137,16 +137,28 @@ export function AuthPanel(): ReactElement {
     switch (flow.step) {
       case 'mfaSelect':
         return (
-          <MfaSelectForm
+          <CodeForm
+            key="mfa-select"
+            title="Two-factor code"
+            description="Enter the 6-digit code from your authenticator app."
+            submitLabel="Verify"
             pending={flow.pending}
             error={flow.error}
+            onSubmit={(code) => {
+              void flow.handleMfaSelectTotpSubmit(code);
+            }}
             icon={renderMfaIcon(flow.mfaIconPhase)}
-            onSelectTotp={() => {
-              flow.handleSelectMfa('TOTP');
-            }}
-            onSelectEmail={() => {
-              flow.handleSelectMfa('EMAIL');
-            }}
+            footer={
+              <GooeyButton
+                className="auth-link"
+                disabled={flow.pending}
+                onClick={() => {
+                  flow.handleSelectMfa('EMAIL');
+                }}
+              >
+                Verify another way
+              </GooeyButton>
+            }
           />
         );
       case 'mfaCode':
@@ -162,6 +174,15 @@ export function AuthPanel(): ReactElement {
               void flow.handleMfaCodeSubmit(code);
             }}
             icon={renderMfaIcon(flow.mfaIconPhase)}
+            footer={
+              <GooeyButton
+                className="auth-link"
+                disabled={flow.pending}
+                onClick={flow.handleRequestEmailMfa}
+              >
+                Verify another way
+              </GooeyButton>
+            }
           />
         );
       case 'mfaEmail':
@@ -339,9 +360,6 @@ export function AuthPanel(): ReactElement {
         onSubmit={flow.handleSignUp}
         onSwitchToSignIn={() => {
           flow.goToStep('signIn');
-        }}
-        onLearnMore={() => {
-          flow.setShowSecurity(true);
         }}
       />
     );

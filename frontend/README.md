@@ -10,7 +10,7 @@ deployed to S3 + CloudFront.
   mishandled the prefix pair, breaking frosted-glass surfaces in Chrome)
 - **React Router** — client-side routing _(added with the app shell)_
 - **urql** + **GraphQL Code Generator** — typed GraphQL operations from the backend schema
-- **AWS Amplify Auth** — Cognito sign-in + TOTP MFA (wired to deployed Cognito pool)
+- **AWS Amplify Auth** — Cognito `USER_AUTH` flow + TOTP and email OTP MFA (wired to deployed Cognito pool)
 - **react-simple-maps** + **world-atlas** — Brochure choropleth (bundled TopoJSON, no
   network fetch at runtime or in tests). It declares a React ≤18 peer (we run React 19),
   so `.npmrc` sets `legacy-peer-deps=true` for both local installs and CI `npm ci`. Its
@@ -66,7 +66,10 @@ src/
                  on open then hand off to hover),
                  StringsAnimation, CanvasAnimation, StarfieldAnimation (parallax stars
                  + shooting stars — Learn page background), Scrollbar, PasswordStrength
-                 (strength meter + checklist, rendered in a GlassCard with the bounce-in reveal)
+                 (exports PasswordStrengthBar — a 3px coloured bar at the bottom of the
+                 password input, visible only while the field is focused — and PasswordStrength —
+                 an invisible GlassCard below the input with a Weak/Okay/Strong label and a prose
+                 sentence bolding missing rules or suggestions; also hidden on blur)
                  (global `.hover-grow` text utility lives in index.css)
   icons/         LordIcon wrapper + the icon registry, split per-page (header/home/auth/
                  account/learn/sources/travel/notFound) + shared, aggregated as ICONS in index.ts
@@ -76,7 +79,19 @@ src/
   gql/           GraphQL Code Generator output (generated — do not edit)
   auth/          Cognito wrapper + full auth UI: sign-in/up with phone, email verify,
                  TCPA/CTIA phone-consent step (PhoneConsentForm), SMS phone verify,
-                 TOTP setup, forgot-email/password flows (ForgotPanel), email-based password reset
+                 TOTP setup, forgot-email/password flows (ForgotPanel), email-based password reset.
+                 Sign-up form includes two required compliance checkboxes: SMS consent and
+                 ToS/Privacy acceptance (both linking to portal-rendered GlassCard modals —
+                 TermsOfServiceModal and PrivacyPolicyModal — matching SecurityInfo style).
+                 Both boxes must be checked to enable "Create account".
+                 MFA: sign-in uses Cognito USER_AUTH flow (preferredChallenge: PASSWORD_SRP).
+                 After password auth, users with TOTP enrolled see a code entry screen with a
+                 "Verify another way" link; clicking it switches to email OTP for that session
+                 (valid because the SELECT_MFA_TYPE challenge fires before Cognito commits to a
+                 method — both TOTP and email are marked ENABLED, neither PREFERRED, so Cognito
+                 always presents the selector). Users without TOTP enrolled go straight to email
+                 OTP. beginSignIn auto-clears stale Amplify sessions (UserAlreadyAuthenticatedException)
+                 so refreshing mid-registration flow doesn't strand the user.
   test/          Jest setup + asset mocks
 public/
   icons/         Lordicon JSON files (committed; wired-outline-* saved manually), foldered by

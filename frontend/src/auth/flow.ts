@@ -15,6 +15,7 @@ import {
   sendUserAttributeVerificationCode,
   setUpTOTP,
   signIn,
+  signOut,
   signUp,
   updateMFAPreference,
   verifyTOTPSetup,
@@ -87,8 +88,25 @@ export function selectMfaType(type: 'TOTP' | 'EMAIL', email: string): Promise<Ne
 /** Begin sign-in with email + password. */
 export function beginSignIn(email: string, password: string): Promise<NextAction> {
   return traced(`beginSignIn(${email})`, async () => {
-    const { nextStep } = await signIn({ username: email, password });
-    return interpretSignIn(nextStep, email);
+    const attempt = async (): Promise<NextAction> => {
+      const { nextStep } = await signIn({
+        username: email,
+        password,
+        options: { authFlowType: 'USER_AUTH', preferredChallenge: 'PASSWORD_SRP' },
+      });
+      return interpretSignIn(nextStep, email);
+    };
+    try {
+      return await attempt();
+    } catch (err: unknown) {
+      // autoSignIn after email confirmation leaves a stale Amplify session.
+      // Clear it and retry once rather than surfacing a confusing error.
+      if (err instanceof Error && err.name === 'UserAlreadyAuthenticatedException') {
+        await signOut();
+        return attempt();
+      }
+      throw err;
+    }
   });
 }
 
@@ -182,11 +200,13 @@ export function beginTotpEnrollment(email: string): Promise<{ secret: string; ur
   });
 }
 
-/** Confirm optional TOTP enrollment and set TOTP as the preferred MFA method. */
+/** Confirm optional TOTP enrollment.
+ *  Both methods are marked ENABLED (neither PREFERRED) so Cognito issues
+ *  SELECT_MFA_TYPE at every subsequent sign-in, giving the user the choice. */
 export function confirmTotpEnrollment(code: string): Promise<void> {
   return traced(`confirmTotpEnrollment`, async () => {
     await verifyTOTPSetup({ code });
-    await updateMFAPreference({ totp: 'PREFERRED' });
+    await updateMFAPreference({ totp: 'ENABLED', email: 'ENABLED' });
   });
 }
 
@@ -209,23 +229,23 @@ export function confirmForgotPassword(
 }
 
 /**
- * Mark TOTP as the preferred MFA method after successful enrollment.
- * Without this, Cognito knows TOTP is verified but doesn't set it as preferred,
- * causing fetchMFAPreference() to show "not enrolled" after re-login.
+ * Called after Account-page TOTP re-enrollment to mark both methods ENABLED.
+ * Neither is set as PREFERRED — this keeps Cognito in the SELECT_MFA_TYPE branch
+ * so the user always chooses their method at sign-in.
  */
 export function setTotpPreferred(): Promise<void> {
   return traced(`setTotpPreferred`, async () => {
-    await updateMFAPreference({ totp: 'PREFERRED' });
+    await updateMFAPreference({ totp: 'ENABLED', email: 'ENABLED' });
   });
 }
 
 /**
- * Set email OTP as the preferred MFA method.
+ * Set email OTP as the sole MFA method for users who skip or haven't enrolled TOTP.
  *
- * Cognito does not apply email MFA automatically — a user without any
- * MFA preference set will pass `ALLOW_USER_AUTH` sign-in with no challenge.
- * Call this for users who skip TOTP enrollment and for any existing account
- * that signs in without an MFA challenge.
+ * Called when a sign-in completes with no MFA challenge (the user has no
+ * preference set yet) and when a user skips TOTP enrollment post-registration.
+ * Once TOTP is enrolled later (via Account Settings), both methods are set to
+ * ENABLED so Cognito presents SELECT_MFA_TYPE at sign-in instead.
  */
 export function setEmailMfaPreferred(): Promise<void> {
   return traced(`setEmailMfaPreferred`, async () => {

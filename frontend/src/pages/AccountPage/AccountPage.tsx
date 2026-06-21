@@ -36,7 +36,11 @@ import { GooeyButton } from '../../components/GooeyButton/GooeyButton';
 import { useGooeyEffect } from '../../components/GlassIsland/useGooeyEffect';
 import '../../auth/auth.css';
 import '../../components/SecurityInfo/SecurityInfo.css';
-import { PasswordStrength, getStrength } from '../../components/PasswordStrength/PasswordStrength';
+import {
+  PasswordStrength,
+  PasswordStrengthBar,
+  getStrength,
+} from '../../components/PasswordStrength/PasswordStrength';
 import { SecurityInfo } from '../../components/SecurityInfo/SecurityInfo';
 import { CodeForm } from '../../auth/CodeForm';
 import { TotpSetupForm } from '../../auth/TotpSetupForm';
@@ -490,7 +494,7 @@ export function AccountPage(): ReactElement {
     setTotpError(null);
     try {
       await verifyTOTPSetup({ code });
-      await updateMFAPreference({ totp: 'PREFERRED' });
+      await updateMFAPreference({ totp: 'ENABLED', email: 'ENABLED' });
       setTotpEnrolled(true);
       setTotpSuccess(true);
       setTotpSetupDetails(null);
@@ -760,17 +764,21 @@ export function AccountPage(): ReactElement {
                   <form className="account-form" onSubmit={(e) => void sendPasswordResetCode(e)}>
                     <label>
                       New password
-                      <input
-                        type="password"
-                        value={newPassword}
-                        required
-                        minLength={8}
-                        maxLength={50}
-                        autoComplete="new-password"
-                        onChange={(e) => {
-                          setNewPassword(e.target.value.slice(0, 50));
-                        }}
-                      />
+                      <div style={{ position: 'relative' }}>
+                        <input
+                          type="password"
+                          value={newPassword}
+                          required
+                          minLength={8}
+                          maxLength={50}
+                          autoComplete="new-password"
+                          style={{ width: '100%', boxSizing: 'border-box' }}
+                          onChange={(e) => {
+                            setNewPassword(e.target.value.slice(0, 50));
+                          }}
+                        />
+                        <PasswordStrengthBar password={newPassword} />
+                      </div>
                     </label>
                     <PasswordStrength password={newPassword} />
                     <button

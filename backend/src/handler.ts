@@ -3,27 +3,33 @@
  *
  * Adapts a Lambda Function URL event (API Gateway payload format 2.0) into a Fetch
  * `Request`, runs it through GraphQL Yoga, and converts the `Response` back.
- * Also routes Cognito CustomSMSSender_* trigger events to the Pinpoint SMS sender.
+ * Also routes Cognito trigger events:
+ *   CustomSMSSender_*   → Pinpoint SMS sender
+ *   CustomEmailSender_* → SES email sender
  */
 import type { LambdaFunctionURLEvent, LambdaFunctionURLResult } from 'aws-lambda';
 import { yoga } from './yoga';
 import { handleCustomSMS, type CognitoCustomSMSEvent } from './smsSender';
+import { handleCustomEmail, type CognitoCustomEmailEvent } from './emailSender';
 
-function isCognitoSMSTrigger(event: unknown): event is CognitoCustomSMSEvent {
+type CognitoTriggerEvent = CognitoCustomSMSEvent | CognitoCustomEmailEvent;
+
+function isCognitoTrigger(event: unknown): event is CognitoTriggerEvent {
   return (
     typeof event === 'object' &&
     event !== null &&
     'triggerSource' in event &&
-    typeof (event as Record<string, unknown>).triggerSource === 'string' &&
-    ((event as Record<string, unknown>).triggerSource as string).startsWith('CustomSMSSender_')
+    typeof (event as Record<string, unknown>).triggerSource === 'string'
   );
 }
 
 export const handler = async (
-  event: LambdaFunctionURLEvent | CognitoCustomSMSEvent,
-): Promise<LambdaFunctionURLResult | CognitoCustomSMSEvent> => {
-  if (isCognitoSMSTrigger(event)) {
-    await handleCustomSMS(event);
+  event: LambdaFunctionURLEvent | CognitoTriggerEvent,
+): Promise<LambdaFunctionURLResult | CognitoTriggerEvent> => {
+  if (isCognitoTrigger(event)) {
+    const src = event.triggerSource;
+    if (src.startsWith('CustomSMSSender_')) await handleCustomSMS(event);
+    if (src.startsWith('CustomEmailSender_')) await handleCustomEmail(event);
     return event;
   }
 
