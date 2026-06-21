@@ -6,10 +6,16 @@
  */
 import { useState } from 'react';
 import type { ReactElement, SyntheticEvent } from 'react';
-import { PasswordStrength, getStrength } from '../components/PasswordStrength/PasswordStrength';
+import {
+  PasswordStrength,
+  PasswordStrengthBar,
+  getStrength,
+} from '../components/PasswordStrength/PasswordStrength';
 import { LordIcon, ICONS } from '../icons';
 import { GooeyButton } from '../components/GooeyButton/GooeyButton';
 import { PhoneInput } from '../components/PhoneInput/PhoneInput';
+import { TermsOfServiceModal } from './TermsOfServiceModal';
+import { PrivacyPolicyModal } from './PrivacyPolicyModal';
 import { useTheme } from '../lib/ThemeContext';
 import { spawnParticles } from '../components/CanvasAnimation/spawnParticles';
 
@@ -25,7 +31,6 @@ interface SignUpFormProps {
     phone: string,
   ) => void;
   onSwitchToSignIn: () => void;
-  onLearnMore: () => void;
 }
 
 function capitalizeFirst(s: string): string {
@@ -39,7 +44,6 @@ export function SignUpForm({
   iconPhase,
   onSubmit,
   onSwitchToSignIn,
-  onLearnMore,
 }: SignUpFormProps): ReactElement {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -47,6 +51,11 @@ export function SignUpForm({
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [passwordFocused, setPasswordFocused] = useState(false);
+  const [smsConsent, setSmsConsent] = useState(false);
+  const [tosConsent, setTosConsent] = useState(false);
+  const [showTos, setShowTos] = useState(false);
+  const [showPrivacy, setShowPrivacy] = useState(false);
   const { theme } = useTheme();
 
   function handleSubmit(event: SyntheticEvent<HTMLFormElement>): void {
@@ -145,6 +154,12 @@ export function SignUpForm({
             onChange={(e) => {
               setPassword(e.target.value.slice(0, 50));
             }}
+            onFocus={() => {
+              setPasswordFocused(true);
+            }}
+            onBlur={() => {
+              setPasswordFocused(false);
+            }}
           />
           <button
             type="button"
@@ -162,13 +177,74 @@ export function SignUpForm({
               state={showPassword ? undefined : 'hover-cross'}
             />
           </button>
+          {passwordFocused && <PasswordStrengthBar password={password} />}
         </div>
       </label>
-      <PasswordStrength password={password} />
+      {passwordFocused && <PasswordStrength password={password} />}
+
+      <div className="auth-consent-group">
+        <div className="auth-consent-row-wrap">
+          <button
+            type="button"
+            className={`auth-sms-circle-btn${smsConsent ? ' is-checked' : ''}`}
+            aria-label={smsConsent ? 'Remove SMS consent' : 'Consent to SMS verification'}
+            onClick={() => {
+              setSmsConsent((v) => !v);
+            }}
+          >
+            {smsConsent ? '✓' : ''}
+          </button>
+          <div className="auth-consent-body">
+            <span className="auth-consent-label">
+              By checking, you consent to receive one-time passcodes and verification codes from
+              Building Better Algorithms. Message frequency may vary. Message and data rates may
+              apply. Reply HELP for help or STOP to opt-out.
+            </span>
+          </div>
+        </div>
+
+        <div className="auth-consent-row-wrap">
+          <button
+            type="button"
+            className={`auth-sms-circle-btn${tosConsent ? ' is-checked' : ''}`}
+            aria-label={
+              tosConsent ? 'Remove acceptance' : 'Accept Terms of Service and Privacy Policy'
+            }
+            onClick={() => {
+              setTosConsent((v) => !v);
+            }}
+          >
+            {tosConsent ? '✓' : ''}
+          </button>
+          <div className="auth-consent-body">
+            <span className="auth-consent-label">By checking, I accept the</span>
+            <GooeyButton
+              className="auth-link auth-consent-pill"
+              onClick={() => {
+                setShowTos(true);
+              }}
+            >
+              Terms of Service
+            </GooeyButton>
+            <span className="auth-consent-label">and</span>
+            <GooeyButton
+              className="auth-link auth-consent-pill"
+              onClick={() => {
+                setShowPrivacy(true);
+              }}
+            >
+              Privacy Policy
+            </GooeyButton>
+          </div>
+        </div>
+      </div>
+
       {error !== null && <p className="auth-error">{error}</p>}
       <button
         type="submit"
-        disabled={pending || getStrength(password) === 'weak' || !password}
+        disabled={
+          pending || getStrength(password) === 'weak' || !password || !smsConsent || !tosConsent
+        }
         onClick={handleSubmitClick}
       >
         {pending ? 'Creating...' : 'Create account'}
@@ -177,15 +253,22 @@ export function SignUpForm({
         <GooeyButton className="auth-link" onClick={onSwitchToSignIn}>
           Sign in
         </GooeyButton>
-        <button
-          type="button"
-          className="auth-security-btn"
-          onClick={onLearnMore}
-          aria-label="How is my data protected?"
-        >
-          <LordIcon src={ICONS.securityShield} size={22} trigger="hover" stroke="bold" />
-        </button>
       </div>
+
+      {showTos && (
+        <TermsOfServiceModal
+          onClose={() => {
+            setShowTos(false);
+          }}
+        />
+      )}
+      {showPrivacy && (
+        <PrivacyPolicyModal
+          onClose={() => {
+            setShowPrivacy(false);
+          }}
+        />
+      )}
     </form>
   );
 }

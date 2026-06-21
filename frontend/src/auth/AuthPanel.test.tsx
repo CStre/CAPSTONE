@@ -256,39 +256,40 @@ describe('sign-in → MFA selection', () => {
     mockBeginSignIn.mockResolvedValue({ kind: 'selectMfa' });
   });
 
-  it('renders the MFA selection screen', async () => {
+  it('renders the TOTP code form with a Verify another way option', async () => {
     const { front } = renderPanel();
     await fillAndSubmitSignIn(front);
-    await waitFor(() => {
-      expect(screen.getByText('Verify your identity')).toBeInTheDocument();
-    });
-    expect(screen.getByRole('button', { name: 'Authenticator app' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Email me a code' })).toBeInTheDocument();
-  });
-
-  it('advances to TOTP code form when Authenticator app is chosen', async () => {
-    mockSelectMfaType.mockResolvedValue({ kind: 'mfaCode' });
-    const { front } = renderPanel();
-    await fillAndSubmitSignIn(front);
-
-    await waitFor(() => screen.getByRole('button', { name: 'Authenticator app' }));
-    const user = userEvent.setup();
-    await user.click(screen.getByRole('button', { name: 'Authenticator app' }));
-
     await waitFor(() => {
       expect(screen.getByText('Two-factor code')).toBeInTheDocument();
     });
-    expect(mockSelectMfaType).toHaveBeenCalledWith('TOTP', 'user@example.com');
+    expect(screen.getByRole('button', { name: 'Verify another way' })).toBeInTheDocument();
   });
 
-  it('advances to email code form when Email me a code is chosen', async () => {
+  it('selects TOTP and submits the code when the form is submitted', async () => {
+    mockSelectMfaType.mockResolvedValue({ kind: 'mfaCode' });
+    mockSubmitSignInCode.mockResolvedValue({ kind: 'done' });
+    const { front } = renderPanel();
+    await fillAndSubmitSignIn(front);
+
+    await waitFor(() => screen.getByText('Two-factor code'));
+    const user = userEvent.setup();
+    await user.type(screen.getByRole('textbox', { name: 'Code' }), '123456');
+    await user.click(screen.getByRole('button', { name: 'Verify' }));
+
+    await waitFor(() => {
+      expect(mockSelectMfaType).toHaveBeenCalledWith('TOTP', 'user@example.com');
+      expect(mockSubmitSignInCode).toHaveBeenCalledWith('123456', 'user@example.com');
+    });
+  });
+
+  it('advances to email code form when Verify another way is clicked', async () => {
     mockSelectMfaType.mockResolvedValue({ kind: 'emailCode' });
     const { front } = renderPanel();
     await fillAndSubmitSignIn(front);
 
-    await waitFor(() => screen.getByRole('button', { name: 'Email me a code' }));
+    await waitFor(() => screen.getByRole('button', { name: 'Verify another way' }));
     const user = userEvent.setup();
-    await user.click(screen.getByRole('button', { name: 'Email me a code' }));
+    await user.click(screen.getByRole('button', { name: 'Verify another way' }));
 
     await waitFor(() => {
       expect(screen.getByText('Check your email')).toBeInTheDocument();

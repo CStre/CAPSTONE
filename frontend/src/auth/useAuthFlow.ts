@@ -17,6 +17,7 @@ import {
   confirmTotpEnrollment,
   forgotPassword,
   register,
+  requestEmailMfa,
   resendConfirmation,
   selectMfaType,
   sendPhoneVerification,
@@ -82,6 +83,8 @@ export interface AuthFlowReturn {
   handleTotpEnrollSkip: () => void;
   handleConfirmPhone: (code: string) => Promise<void>;
   handleSelectMfa: (type: 'TOTP' | 'EMAIL') => void;
+  handleRequestEmailMfa: () => void;
+  handleMfaSelectTotpSubmit: (code: string) => Promise<void>;
   handleMfaCodeSubmit: (code: string) => Promise<void>;
   handleTotpSetupSubmit: (code: string) => void;
   handleResend: () => void;
@@ -311,6 +314,27 @@ export function useAuthFlow(reload: () => Promise<void>): AuthFlowReturn {
     void runStep(() => selectMfaType(type, email));
   }
 
+  function handleRequestEmailMfa(): void {
+    void runStep(() => requestEmailMfa(email));
+  }
+
+  // Called from the mfaSelect screen when the user submits a TOTP code directly.
+  // Selects TOTP as the method first, then immediately submits the code — two
+  // confirmSignIn calls back-to-back; Amplify holds the session between them.
+  async function handleMfaSelectTotpSubmit(code: string): Promise<void> {
+    setError(null);
+    setPending(true);
+    try {
+      await selectMfaType('TOTP', email);
+      applyAction(await submitSignInCode(code, email));
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Incorrect code. Please sign in again.');
+      setStep('signIn');
+    } finally {
+      setPending(false);
+    }
+  }
+
   // Handles both TOTP and email OTP MFA code challenges — behaviour is identical.
   async function handleMfaCodeSubmit(code: string): Promise<void> {
     setError(null);
@@ -445,6 +469,8 @@ export function useAuthFlow(reload: () => Promise<void>): AuthFlowReturn {
     handleTotpEnrollSkip,
     handleConfirmPhone,
     handleSelectMfa,
+    handleRequestEmailMfa,
+    handleMfaSelectTotpSubmit,
     handleMfaCodeSubmit,
     handleTotpSetupSubmit,
     handleResend,

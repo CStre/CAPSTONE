@@ -213,6 +213,10 @@ resource "aws_cognito_user_pool" "main" {
       lambda_arn     = "arn:aws:lambda:${local.region}:${local.account_id}:function:${local.prefix}-graphql"
       lambda_version = "V1_0"
     }
+    custom_email_sender {
+      lambda_arn     = "arn:aws:lambda:${local.region}:${local.account_id}:function:${local.prefix}-graphql"
+      lambda_version = "V1_0"
+    }
     kms_key_id = local.cognito_sms_key_arn
   }
 
@@ -290,6 +294,15 @@ locals {
 # Allow Cognito to invoke the GraphQL Lambda as a custom SMS sender trigger.
 resource "aws_lambda_permission" "cognito_custom_sms" {
   statement_id  = "AllowCognitoCustomSMS"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.graphql.function_name
+  principal     = "cognito-idp.amazonaws.com"
+  source_arn    = aws_cognito_user_pool.main.arn
+}
+
+# Allow Cognito to invoke the GraphQL Lambda as a custom email sender trigger.
+resource "aws_lambda_permission" "cognito_custom_email" {
+  statement_id  = "AllowCognitoCustomEmail"
   action        = "lambda:InvokeFunction"
   function_name = aws_lambda_function.graphql.function_name
   principal     = "cognito-idp.amazonaws.com"
