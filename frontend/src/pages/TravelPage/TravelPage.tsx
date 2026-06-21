@@ -555,56 +555,60 @@ export function TravelPage(): ReactElement {
           aria-modal="true"
           aria-label="What the algorithm has on you"
         >
-          <div onClick={(e: MouseEvent) => { e.stopPropagation(); }}>
-          <GlassCard className="travel-dossier-card" maxDeg={1.5}>
-            <button
-              type="button"
-              className="travel-dossier-close"
-              aria-label="Close"
-              onClick={() => {
-                setShowDossier(false);
-              }}
-            >
-              ×
-            </button>
-            <div className="travel-dossier-header">
-              <h2 className="travel-dossier-heading">What the algorithm has on you</h2>
-            </div>
-            <section className="travel-dossier-section">
-              <h3>Activity</h3>
-              <p>
-                <strong>{d.totalInteractions}</strong> interactions · {d.likes} likes ·{' '}
-                {d.dislikes} dislikes · {d.skips} skips · avg dwell{' '}
-                <strong>{d.avgDwellMs}ms</strong>
-              </p>
-            </section>
-            <section className="travel-dossier-section">
-              <h3>Model confidence</h3>
-              <p>
-                Confidence <strong>{Math.round(d.confidence * 100)}%</strong> · exploration{' '}
-                <strong>{Math.round(d.exploration * 100)}%</strong>
-              </p>
-            </section>
-            {d.topFeatures.length > 0 && (
+          <div
+            onClick={(e: MouseEvent) => {
+              e.stopPropagation();
+            }}
+          >
+            <GlassCard className="travel-dossier-card" maxDeg={1.5}>
+              <button
+                type="button"
+                className="travel-dossier-close"
+                aria-label="Close"
+                onClick={() => {
+                  setShowDossier(false);
+                }}
+              >
+                ×
+              </button>
+              <div className="travel-dossier-header">
+                <h2 className="travel-dossier-heading">What the algorithm has on you</h2>
+              </div>
               <section className="travel-dossier-section">
-                <h3>Inferred taste</h3>
-                <p>{d.topFeatures.map((f) => f.key).join(', ')}</p>
+                <h3>Activity</h3>
+                <p>
+                  <strong>{d.totalInteractions}</strong> interactions · {d.likes} likes ·{' '}
+                  {d.dislikes} dislikes · {d.skips} skips · avg dwell{' '}
+                  <strong>{d.avgDwellMs}ms</strong>
+                </p>
               </section>
-            )}
-            {d.inferredTraits.length > 0 && (
               <section className="travel-dossier-section">
-                <h3>Traits</h3>
-                <ul className="travel-dossier-traits">
-                  {d.inferredTraits.map((t) => (
-                    <li key={t.trait}>{t.trait}</li>
-                  ))}
-                </ul>
+                <h3>Model confidence</h3>
+                <p>
+                  Confidence <strong>{Math.round(d.confidence * 100)}%</strong> · exploration{' '}
+                  <strong>{Math.round(d.exploration * 100)}%</strong>
+                </p>
               </section>
-            )}
-            <section className="travel-dossier-section">
-              <p className="travel-dossier-disclaimer">{d.disclaimer}</p>
-            </section>
-          </GlassCard>
+              {d.topFeatures.length > 0 && (
+                <section className="travel-dossier-section">
+                  <h3>Inferred taste</h3>
+                  <p>{d.topFeatures.map((f) => f.key).join(', ')}</p>
+                </section>
+              )}
+              {d.inferredTraits.length > 0 && (
+                <section className="travel-dossier-section">
+                  <h3>Traits</h3>
+                  <ul className="travel-dossier-traits">
+                    {d.inferredTraits.map((t) => (
+                      <li key={t.trait}>{t.trait}</li>
+                    ))}
+                  </ul>
+                </section>
+              )}
+              <section className="travel-dossier-section">
+                <p className="travel-dossier-disclaimer">{d.disclaimer}</p>
+              </section>
+            </GlassCard>
           </div>
         </div>
       )}
