@@ -35,12 +35,18 @@ src/
     SourcesPage/   glass index-card carousel (scroll-driven scale + spread-apart + cursor tilt)
                    over a faded strings canvas; rAF org-logo marquee (slows on hover, grows the
                    hovered logo), AMA academic references (generated references.ts) + disclosure
-    TravelPage/    two-algorithm photo feed: one full-bleed card at a time, double-tap/♥ to
-                   like, ✕ to dislike, Skip to pass (keyboard ↑↓→). A driver toggle flips
-                   Engagement (A) vs User-First (B); a "See your data" dossier panel shows
-                   what A has inferred. Batches interactions to submitFeedback; Unsplash-
-                   compliant (hotlinked images, linked photographer+Unsplash credit w/ UTM,
-                   trackPhotoUse pings the download endpoint when a photo is used)
+    TravelPage/    full-viewport snap-scroll photo feed (4 cols × 2 rows per section). Each
+                   section fills the screen and snaps into place; scrolling advances one section
+                   at a time. Row parallax: entering/exiting sections have rows at staggered
+                   offsets that converge to zero when snapped. Click the RIGHT half of a photo
+                   to like (♥, pink tint); click the LEFT half to dislike (✕, greyscale). Arrow
+                   keys (←/→/Enter) also work. Hovering for 1 s marks a photo "engaged" and
+                   boosts the dwell signal sent to the algorithm. Per-photo ℹ button (top-right,
+                   appears on hover/reaction) opens an info panel with photographer name, country,
+                   tags, and a link to Unsplash. Sections auto-submit when scrolled off the top
+                   (no submit button); dossier stats refresh with a one-section lag. Fixed topbar
+                   stays visible while scrolling (driver toggle + "See your data" dossier panel).
+                   Unsplash-compliant: UTM attribution links + trackPhotoUse for liked photos.
     DashboardPage/ react-simple-maps equirectangular world map (bundled world-atlas 50m
                    TopoJSON, Antarctica filtered, full-viewport width) choropleth-shaded by
                    preference score; hover readout is a cursor-following gooey "score chip"

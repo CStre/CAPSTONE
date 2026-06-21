@@ -30,10 +30,21 @@ export function createMockClient(handlers: MockHandlers = {}): MockClient {
   const executeMutation = jest.fn((operation: unknown) =>
     fromValue({ operation, data: handlers.mutation?.(), stale: false, hasNext: false }),
   );
+  // Supports useClient().query(...).toPromise() (used by TravelPage's imperative fetches).
+  const query = jest.fn((_doc: unknown, _vars: unknown) => {
+    const result = {
+      data: handlers.query?.() ?? null,
+      error: undefined,
+      stale: false,
+      hasNext: false,
+    };
+    return { toPromise: () => Promise.resolve(result) };
+  });
   const client = {
     executeQuery,
     executeMutation,
     executeSubscription: jest.fn(),
+    query,
   } as unknown as Client;
   return { client, executeQuery, executeMutation };
 }
