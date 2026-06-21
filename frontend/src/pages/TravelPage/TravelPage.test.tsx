@@ -1,79 +1,127 @@
-import { describe, expect, it } from '@jest/globals';
-import { render, screen } from '@testing-library/react';
+import { beforeEach, describe, expect, it, jest } from '@jest/globals';
+import { act, render, screen, waitFor, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { Provider } from 'urql';
 import { TravelPage } from './TravelPage';
 import { createMockClient } from '../../test/urql';
 
-const PHOTOS = {
-  travelImages: [
-    {
-      imageUrl: 'https://images.example/jp.jpg',
-      attribution: 'Photo by Ada on Unsplash',
-      photographerName: 'Ada',
-      photographerUrl: 'https://unsplash.com/@ada',
-      unsplashUrl: 'https://unsplash.com/photos/jp',
-      tags: ['temple', 'forest'],
-      color: '#224466',
-      downloadLocation: 'https://api.unsplash.com/photos/jp/download',
-      country: { code: 'JP', name: 'Japan' },
-    },
-    {
-      imageUrl: 'https://images.example/no.jpg',
-      attribution: 'Photo by Grace on Unsplash',
-      photographerName: 'Grace',
-      photographerUrl: 'https://unsplash.com/@grace',
-      unsplashUrl: 'https://unsplash.com/photos/no',
-      tags: ['mountain', 'snow'],
-      color: '#88aacc',
-      downloadLocation: 'https://api.unsplash.com/photos/no/download',
-      country: { code: 'NO', name: 'Norway' },
-    },
-  ],
-};
+// jsdom does not implement IntersectionObserver — provide a no-op stub.
+beforeEach(() => {
+  Object.defineProperty(global, 'IntersectionObserver', {
+    writable: true,
+    value: jest.fn().mockImplementation(() => ({
+      observe: jest.fn(),
+      unobserve: jest.fn(),
+      disconnect: jest.fn(),
+    })),
+  });
+});
+
+// 16 photos = 2 full sections (4 cols × 2 rows each).
+function makePhotos(count = 16) {
+  return Array.from({ length: count }, (_, i) => ({
+    imageUrl: `https://images.example/${i}.jpg`,
+    attribution: `Photo by Photographer${i} on Unsplash`,
+    photographerName: `Photographer${i}`,
+    photographerUrl: `https://unsplash.com/@p${i}`,
+    unsplashUrl: `https://unsplash.com/photos/${i}`,
+    tags: ['nature'],
+    color: '#334455',
+    downloadLocation: `https://api.unsplash.com/photos/${i}/download`,
+    country: { code: 'JP', name: 'Japan' },
+  }));
+}
+
+const PHOTOS_RESPONSE = { travelImages: makePhotos(16) };
+
+/** Render TravelPage and wait until photo cells are visible. */
+async function renderAndLoad() {
+  const { client } = createMockClient({ query: () => PHOTOS_RESPONSE });
+  render(
+    <Provider value={client}>
+      <TravelPage />
+    </Provider>,
+  );
+  await waitFor(() => {
+    expect(
+      screen.getAllByRole('button', { name: 'Like or dislike this photo' }).length,
+    ).toBeGreaterThan(0);
+  });
+}
 
 describe('TravelPage', () => {
-  it('renders the active photo card', () => {
-    const { client } = createMockClient({ query: () => PHOTOS });
-    render(
-      <Provider value={client}>
-        <TravelPage />
-      </Provider>,
-    );
-    expect(screen.getByRole('img', { name: 'Travel photo' })).toBeInTheDocument();
-  });
-
-  it('shows the driver toggle (Engagement vs User-First)', () => {
-    const { client } = createMockClient({ query: () => PHOTOS });
-    render(
-      <Provider value={client}>
-        <TravelPage />
-      </Provider>,
-    );
+  it('shows the driver toggle tabs after load', async () => {
+    await renderAndLoad();
     expect(screen.getByRole('tab', { name: 'Engagement' })).toBeInTheDocument();
     expect(screen.getByRole('tab', { name: 'User-First' })).toBeInTheDocument();
   });
 
-  it('renders linked photographer + Unsplash attribution (UTM)', () => {
-    const { client } = createMockClient({ query: () => PHOTOS });
-    render(
-      <Provider value={client}>
-        <TravelPage />
-      </Provider>,
-    );
-    const photographer = screen.getByRole('link', { name: 'Ada' });
-    expect(photographer.getAttribute('href')).toContain('unsplash.com/@ada');
-    expect(photographer.getAttribute('href')).toContain('utm_source');
-    const unsplash = screen.getByRole('link', { name: 'Unsplash' });
-    expect(unsplash.getAttribute('href')).toContain('utm_medium=referral');
+  it('renders 16 photo cells across 2 sections', async () => {
+    await renderAndLoad();
+    expect(screen.getAllByRole('button', { name: 'Like or dislike this photo' })).toHaveLength(16);
   });
 
-  it('does not show the submit button before the batch is rated', () => {
-    const { client } = createMockClient({ query: () => PHOTOS });
-    render(
-      <Provider value={client}>
-        <TravelPage />
-      </Provider>,
-    );
+  it('ArrowRight on a cell likes the photo', async () => {
+    const user = userEvent.setup();
+    await renderAndLoad();
+
+    const cell = screen.getAllByRole('button', { name: 'Like or dislike this photo' })[0];
+    if (!cell) throw new Error('no photo cells rendered');
+
+    await act(async () => {
+      cell.focus();
+      await user.keyboard('{ArrowRight}');
+    });
+
+    expect(screen.getByRole('button', { name: 'Unlike this photo' })).toBeInTheDocument();
+  });
+
+  it('ArrowLeft on a cell dislikes the photo', async () => {
+    const user = userEvent.setup();
+    await renderAndLoad();
+
+    const cell = screen.getAllByRole('button', { name: 'Like or dislike this photo' })[0];
+    if (!cell) throw new Error('no photo cells rendered');
+
+    await act(async () => {
+      cell.focus();
+      await user.keyboard('{ArrowLeft}');
+    });
+
+    expect(screen.getByRole('button', { name: 'Remove dislike' })).toBeInTheDocument();
+  });
+
+  it('does not show a submit button', async () => {
+    await renderAndLoad();
     expect(screen.queryByRole('button', { name: /submit/i })).not.toBeInTheDocument();
+  });
+
+  it('includes Unsplash photographer credit links with UTM params', async () => {
+    await renderAndLoad();
+    const link = screen.getAllByRole('link', {
+      name: /photo by photographer0 on unsplash/i,
+    })[0];
+    expect(link).toBeDefined();
+    expect(link?.getAttribute('href')).toContain('unsplash.com/@p0');
+    expect(link?.getAttribute('href')).toContain('utm_source');
+  });
+
+  it('info button opens a photo details panel', async () => {
+    const user = userEvent.setup();
+    await renderAndLoad();
+
+    const infoBtn = screen.getAllByRole('button', { name: 'Photo info' })[0];
+    if (!infoBtn) throw new Error('no info buttons rendered');
+
+    await act(async () => {
+      await user.click(infoBtn);
+    });
+
+    const dialog = screen.getByRole('dialog', { name: 'Photo details' });
+    expect(dialog).toBeInTheDocument();
+    // Photographer name appears inside the info panel.
+    expect(within(dialog).getByText('Photographer0')).toBeInTheDocument();
+    // Link to Unsplash is present.
+    expect(within(dialog).getByRole('link', { name: /view on unsplash/i })).toBeInTheDocument();
   });
 });
