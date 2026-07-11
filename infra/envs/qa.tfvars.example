@@ -3,4 +3,4 @@
 
 environment         = "qa"
 unsplash_access_key = "YOUR_UNSPLASH_ACCESS_KEY"
-alert_email         = "collinm.streitman@gmail.com"
+alert_email         = "you@example.com"

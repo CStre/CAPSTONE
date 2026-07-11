@@ -2,10 +2,11 @@
  * @fileoverview The country catalog — static server-side config.
  *
  * Each country has a stable `code` (ISO 3166-1 alpha-2), a display `name`, and a
- * neutral Unsplash `searchTerm`. Search terms are **templated and landmark-free**
- * (`"<name> landscape nature scenery"`) on purpose: the demo infers preference from
- * abstract scenery, not from recognizable landmarks (see TravelPage/plan §1b). Weak
- * results for obscure entries are dropped by the photo-pool quality guardrail.
+ * neutral Unsplash `searchTerm`. Search terms are **templated, short, and landmark-free**
+ * (`"<name> landscape"`) on purpose: the demo infers preference from abstract scenery,
+ * not from recognizable landmarks (see TravelPage/plan §1b), and a short query keeps
+ * recall high on Unsplash's keyword-restrictive search. Weak results for obscure entries
+ * are dropped by the photo-pool quality guardrail.
  *
  * This is just data — per-user preferences key off `code`, so reordering or extending
  * never breaks stored data. Covers UN members + observers + common territories the
@@ -21,8 +22,12 @@ export interface Country {
   searchTerm: string;
 }
 
-/** Neutral, landmark-free search term for a place. */
-const term = (name: string): string => `${name} landscape nature scenery`;
+/** Neutral, landmark-free search term for a place. Deliberately SHORT: Unsplash search
+ * is keyword-restrictive, so a long phrase like "<name> landscape nature scenery"
+ * returns near-zero for niche countries (e.g. "Benin landscape nature scenery" → 0,
+ * while "Benin landscape" → 8 and "Benin" → 37). One scenery word keeps recall high
+ * without pulling in the people/art/food that a bare name would. */
+const term = (name: string): string => `${name} landscape`;
 
 // [code, name] tuples — grouped by region. searchTerm is templated from the name.
 const CATALOG: readonly [string, string][] = [

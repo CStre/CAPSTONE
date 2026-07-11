@@ -19,6 +19,12 @@ export interface Config {
   cognitoClientId?: string;
   /** Unsplash access key; when absent, images.ts falls back to placeholders. */
   unsplashAccessKey?: string;
+  /** Shared S3 bucket holding the Travel photo pool (metadata JSON + image binaries). */
+  photosBucket: string;
+  /** Key of the metadata JSON within `photosBucket`. */
+  photosKey: string;
+  /** Owner address that receives research-download notifications (empty disables them). */
+  ownerEmail: string;
   /** Local dev HTTP port. */
   port: number;
 }
@@ -39,6 +45,9 @@ export function loadConfig(): Config {
     cognitoUserPoolId: process.env.COGNITO_USER_POOL_ID,
     cognitoClientId: process.env.COGNITO_CLIENT_ID,
     unsplashAccessKey: process.env.UNSPLASH_ACCESS_KEY,
+    photosBucket: process.env.PHOTOS_BUCKET ?? 'bba-photos',
+    photosKey: process.env.PHOTOS_KEY ?? 'photos.json',
+    ownerEmail: process.env.OWNER_EMAIL ?? '',
     port: Number(process.env.PORT ?? 4000),
   };
 }

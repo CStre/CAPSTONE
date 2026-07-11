@@ -16,6 +16,7 @@ import { COUNTRIES, isValidCountryCode, type Country } from './countries';
 import { NEUTRAL_PREFERENCE } from './algorithm';
 import type { TravelImage } from './images';
 import { getImagePool, triggerDownload } from './images';
+import { notifyResearchDownload } from './ownerNotify';
 import { extractFeatures } from './features';
 import { scoreCountries } from './scoring';
 import { selectNext, explorationFraction } from './recommender';
@@ -193,11 +194,6 @@ const InteractionActionEnum = builder.enumType('InteractionAction', {
   values: ['like', 'dislike', 'skip'] as const,
 });
 
-const DriverEnum = builder.enumType('Driver', {
-  description: 'Which algorithm drives the feed: A (engagement) or B (user-first).',
-  values: ['A', 'B'] as const,
-});
-
 const InteractionInputRef = builder.inputType('InteractionInput', {
   description: "One interaction with an image, echoed back with the image's tags/colour.",
   fields: (t) => ({
@@ -288,20 +284,18 @@ builder.queryType({
       type: ['TravelImage'],
       nullable: false,
       description:
-        'A batch of travel photos chosen by the given driver (A narrows toward the ' +
-        "user's taste; B stays diverse). Defaults to B.",
+        "A batch of travel photos chosen user-first: diverse, weighted by the user's " +
+        'learned per-country preferences (Algorithm B).',
       args: {
         count: t.arg.int({ defaultValue: 8 }),
-        driver: t.arg({ type: DriverEnum, defaultValue: 'B' }),
       },
       resolve: async (_root, args, ctx) => {
         const user = requireUser(ctx);
         const count = args.count ?? 8;
-        const driver = args.driver ?? 'B';
         const dossier = await db.getDossier(user.id);
 
         // A neutral candidate pool larger than the batch (cached when available),
-        // then let the driver pick.
+        // then the user-first algorithm picks.
         const pool = await getImagePool(Math.min(count * 3, 30));
         const candidates = pool.map((img, i) => ({
           id: String(i),
@@ -309,21 +303,12 @@ builder.queryType({
           features: extractFeatures({ tags: img.tags, color: img.color }),
         }));
 
-        const picks =
-          driver === 'A'
-            ? selectNext({
-                driver: 'A',
-                pool: candidates,
-                count,
-                taste: dossier?.a.taste ?? [],
-                exploration: explorationFraction(dossier?.a.confidence ?? 0),
-              })
-            : selectNext({
-                driver: 'B',
-                pool: candidates,
-                count,
-                countryScores: scoreCountries(dossier?.b.taste ?? [], getCountrySignatures()),
-              });
+        const picks = selectNext({
+          driver: 'B',
+          pool: candidates,
+          count,
+          countryScores: scoreCountries(dossier?.b.taste ?? [], getCountrySignatures()),
+        });
 
         return picks.flatMap((p) => {
           const img = pool[Number(p.id)];
@@ -417,6 +402,19 @@ builder.mutationType({
         const user = requireUser(ctx);
         await db.resetPreferences(user.id);
         return true;
+      },
+    }),
+
+    notifyResearchDownload: t.field({
+      type: 'Boolean',
+      nullable: false,
+      description:
+        'Email the site owner that the authenticated user is downloading the research ' +
+        'paper. Returns true ONLY if the email was sent — the client gates the download ' +
+        'on this, so an unidentified user or a failed send blocks the download.',
+      resolve: async (_root, _args, ctx) => {
+        const user = requireUser(ctx);
+        return notifyResearchDownload(user.email);
       },
     }),
 

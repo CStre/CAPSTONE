@@ -12,6 +12,8 @@
 #
 # Secrets required (set in the "dev" GitHub Environment):
 #   UNSPLASH_ACCESS_KEY — Unsplash API key for SSM
+#   SNS_FROM_NUMBER     — SMS origination number (TF_VAR_sns_from_number)
+#   ALERT_EMAIL         — owner email for the billing alarm + research-download notices
 # Secrets required at repo level:
 #   SONAR_TOKEN — SonarCloud analysis token
 #
@@ -226,6 +228,7 @@ jobs:
           TF_VAR_environment: ${{ env.ENVIRONMENT }}
           TF_VAR_unsplash_access_key: ${{ secrets.UNSPLASH_ACCESS_KEY }}
           TF_VAR_sns_from_number: ${{ secrets.SNS_FROM_NUMBER }}
+          TF_VAR_alert_email: ${{ secrets.ALERT_EMAIL }}
         run: |
           terraform apply -auto-approve \
             -target=aws_ecr_repository.lambda \
@@ -253,6 +256,7 @@ jobs:
           TF_VAR_environment: ${{ env.ENVIRONMENT }}
           TF_VAR_unsplash_access_key: ${{ secrets.UNSPLASH_ACCESS_KEY }}
           TF_VAR_sns_from_number: ${{ secrets.SNS_FROM_NUMBER }}
+          TF_VAR_alert_email: ${{ secrets.ALERT_EMAIL }}
         run: terraform apply -auto-approve -target=aws_cloudfront_distribution.main
       - name: Terraform Apply
         working-directory: infra
@@ -260,6 +264,7 @@ jobs:
           TF_VAR_environment: ${{ env.ENVIRONMENT }}
           TF_VAR_unsplash_access_key: ${{ secrets.UNSPLASH_ACCESS_KEY }}
           TF_VAR_sns_from_number: ${{ secrets.SNS_FROM_NUMBER }}
+          TF_VAR_alert_email: ${{ secrets.ALERT_EMAIL }}
         run: terraform apply -auto-approve
       - name: Read outputs
         id: tf-out

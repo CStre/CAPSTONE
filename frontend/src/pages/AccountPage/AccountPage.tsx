@@ -54,6 +54,20 @@ const DeleteAccountMutation = graphql(`
   }
 `);
 
+// resetDossier (not resetPreferences) clears the live learned state — both the
+// Algorithm-A dossier and the Algorithm-B taste that backs the Dashboard scores.
+const ResetPreferencesMutation = graphql(`
+  mutation ResetDossier {
+    resetDossier
+  }
+`);
+
+const NotifyResearchDownloadMutation = graphql(`
+  mutation NotifyResearchDownload {
+    notifyResearchDownload
+  }
+`);
+
 type Status = { tone: 'ok' | 'error'; message: string } | null;
 type Popup =
   | 'emailVerify'
@@ -223,6 +237,8 @@ export function AccountPage(): ReactElement {
   const { status, user, reload, logout } = useAuth();
   const navigate = useNavigate();
   const [deletion, deleteAccount] = useMutation(DeleteAccountMutation);
+  const [clearing, resetPreferences] = useMutation(ResetPreferencesMutation);
+  const [notifying, notifyResearchDownload] = useMutation(NotifyResearchDownloadMutation);
   const { theme } = useTheme();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   useCanvasAnimation(canvasRef, theme);
@@ -283,6 +299,8 @@ export function AccountPage(): ReactElement {
 
   // ── Delete ────────────────────────────────────────────────────────────────
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [clearError, setClearError] = useState<string | null>(null);
+  const [researchError, setResearchError] = useState<string | null>(null);
 
   useEffect(() => {
     iconTimerRef.current = setTimeout(() => {
@@ -518,6 +536,45 @@ export function AccountPage(): ReactElement {
     setPopup(null);
     await logout();
     void navigate('/');
+  }
+
+  async function clearPreferences(): Promise<void> {
+    setClearError(null);
+    // Invalidate cached User/CountryPreference so the Dashboard refetches the reset scores.
+    const result = await resetPreferences(
+      {},
+      { additionalTypenames: ['User', 'CountryPreference', 'Dossier'] },
+    );
+    if (result.error) {
+      setClearError(
+        result.error.networkError ? 'Network error. Please try again.' : result.error.message,
+      );
+      return;
+    }
+    setPopup(null);
+  }
+
+  async function downloadResearch(): Promise<void> {
+    setResearchError(null);
+    // Gate the download: only proceed if the owner-notification email actually sends
+    // (which also requires the backend to have identified the user's email).
+    const result = await notifyResearchDownload({});
+    if (result.error || result.data?.notifyResearchDownload !== true) {
+      setResearchError(
+        result.error?.networkError
+          ? 'Network error. Please try again.'
+          : 'We could not complete your request right now. Please try again.',
+      );
+      return;
+    }
+    // Confirmed — trigger the browser download (served same-origin at /research.pdf).
+    const a = document.createElement('a');
+    a.href = '/research.pdf';
+    a.download = 'Building-Better-Algorithms-Research.pdf';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setPopup(null);
   }
 
   // ── Render ─────────────────────────────────────────────────────────────────
@@ -859,6 +916,7 @@ export function AccountPage(): ReactElement {
                       type="button"
                       className="account-btn"
                       onClick={() => {
+                        setResearchError(null);
                         setPopup('downloadResearch');
                       }}
                     >
@@ -886,6 +944,7 @@ export function AccountPage(): ReactElement {
                       type="button"
                       className="account-btn account-btn--danger"
                       onClick={() => {
+                        setClearError(null);
                         setPopup('clearPreferences');
                       }}
                     >
@@ -1064,23 +1123,26 @@ export function AccountPage(): ReactElement {
           title="Clear preferences data?"
           hoverState="hover-trash"
           onClose={() => {
+            setClearError(null);
             setPopup(null);
           }}
         >
           <div className="auth-form">
             <p className="auth-description">
-              This permanently removes all of your learned country preferences. Your account data
-              will be fully erased and this action cannot be undone.
+              This permanently removes all of your learned country preferences, resetting every
+              country to neutral. This action cannot be undone.
             </p>
             <button
               type="button"
               className="account-btn account-btn--danger"
+              disabled={clearing.fetching}
               onClick={() => {
-                setPopup(null);
+                void clearPreferences();
               }}
             >
-              Clear preferences data
+              {clearing.fetching ? 'Clearing…' : 'Clear preferences data'}
             </button>
+            {clearError && <p className="auth-error">{clearError}</p>}
           </div>
         </AccountPopup>
       )}
@@ -1121,6 +1183,7 @@ export function AccountPage(): ReactElement {
           title="Download our research?"
           hoverState="hover-swipe"
           onClose={() => {
+            setResearchError(null);
             setPopup(null);
           }}
         >
@@ -1134,12 +1197,14 @@ export function AccountPage(): ReactElement {
             <button
               type="button"
               className="account-btn"
+              disabled={notifying.fetching}
               onClick={() => {
-                setPopup(null);
+                void downloadResearch();
               }}
             >
-              Download our research
+              {notifying.fetching ? 'Requesting…' : 'Download our research'}
             </button>
+            {researchError && <p className="auth-error">{researchError}</p>}
           </div>
         </AccountPopup>
       )}

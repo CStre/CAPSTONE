@@ -116,8 +116,10 @@ jobs:
         working-directory: infra
         env:
           TF_VAR_environment: ${{ inputs.environment }}  # choice input; constrained to dev/qa/prod
-          # unsplash_access_key is required by the variable block even for destroy
+          # All three are required by the variable block even for destroy.
           TF_VAR_unsplash_access_key: ${{ secrets.UNSPLASH_ACCESS_KEY }}
+          TF_VAR_sns_from_number: ${{ secrets.SNS_FROM_NUMBER }}
+          TF_VAR_alert_email: ${{ secrets.ALERT_EMAIL }}
         run: |
           terraform destroy -auto-approve
           echo "Destroy complete for environment: $ENVIRONMENT"

@@ -34,14 +34,15 @@ Production additionally creates an ACM certificate and Route 53 A records for
 
 | File | Purpose |
 |---|---|
-| `bootstrap/main.tf` | One-time account setup (state bucket, OIDC provider) |
+| `bootstrap/main.tf` | One-time account setup (state bucket, OIDC provider, shared `bba-photos` bucket) |
 | `main.tf` | Terraform settings, S3 backend, provider, account data sources |
 | `variables.tf` | Input variables (`environment`, `unsplash_access_key`, `alert_email`) |
 | `locals.tf` | Naming prefix, environment flags, shared tags |
 | `data.tf` | DynamoDB `bba-<env>-prefs` table |
 | `auth.tf` | Cognito user pool (TOTP MFA) + app client |
-| `frontend.tf` | S3 bucket, CloudFront distribution, OAC, ACM cert + R53 (prod only) |
-| `backend.tf` | ECR, Lambda, IAM execution role, CloudWatch log group, API Gateway HTTP API |
+| `frontend.tf` | S3 bucket, CloudFront distribution (`/*`, `/photos/*`, `/graphql`), OAC, ACM cert + R53 (prod only) |
+| `photos.tf` | Data lookup of the shared `bba-photos` bucket (created in `bootstrap/`), wired as the `/photos/*` + `/research.pdf` CloudFront origin |
+| `backend.tf` | ECR, Lambda (reads `bba-photos/photos.json` via IAM), execution role, log group, API Gateway HTTP API |
 | `secrets.tf` | SSM Parameter Store — Unsplash key, Cognito IDs |
 | `security.tf` | CloudFront response-headers policy, CloudTrail, billing alarm (prod) |
 | `cicd.tf` | GitHub Actions OIDC deploy role (one per environment) |

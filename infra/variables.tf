@@ -20,7 +20,6 @@ variable "sns_from_number" {
 }
 
 variable "alert_email" {
-  description = "Email address for the monthly billing alarm. Defaults to the owner address."
+  description = "Owner email for the billing alarm and research-download notifications. Set per environment in the gitignored envs/<env>.tfvars — no default so a real address is never committed."
   type        = string
-  default     = "collinm.streitman@gmail.com"
 }

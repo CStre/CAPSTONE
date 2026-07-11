@@ -9,7 +9,7 @@
 import { COUNTRIES, type Country } from './countries';
 import { NEUTRAL_PREFERENCE, type PreferenceMap } from './algorithm';
 import { config } from './config';
-import { PHOTO_POOL } from './photos.data';
+import { ensurePool } from './pool';
 import type { CachedPhoto } from './photos.types';
 
 const COUNTRY_BY_CODE: Record<string, Country> = Object.fromEntries(
@@ -142,7 +142,9 @@ function cachedToTravelImage(p: CachedPhoto): TravelImage | null {
   if (!country) return null;
   return {
     country,
-    imageUrl: p.imageUrl,
+    // Deployed, `/photos/<id>.jpg` resolves same-origin via CloudFront. Local dev
+    // has no S3, so fall back to the Unsplash CDN url the sync source retains.
+    imageUrl: config.isLocal ? p.unsplashImageUrl : p.imageUrl,
     attribution: p.attribution,
     photographerName: p.photographerName,
     photographerUrl: p.photographerUrl,
@@ -154,15 +156,16 @@ function cachedToTravelImage(p: CachedPhoto): TravelImage | null {
 }
 
 /**
- * A neutral candidate pool for the driver to select from. Prefers the precomputed
- * `PHOTO_POOL` (zero runtime Unsplash calls); falls back to a live neutral fetch
+ * A neutral candidate pool for the driver to select from. Prefers the cached pool
+ * loaded from S3 (zero runtime Unsplash calls); falls back to a live neutral fetch
  * until the pool is generated.
  */
 export async function getImagePool(
   count: number,
   rng: () => number = Math.random,
 ): Promise<TravelImage[]> {
-  const flat = Object.values(PHOTO_POOL)
+  const poolMap = await ensurePool();
+  const flat = Object.values(poolMap)
     .flat()
     .map(cachedToTravelImage)
     .filter((x): x is TravelImage => x !== null);

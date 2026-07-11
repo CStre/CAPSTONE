@@ -37,16 +37,19 @@ src/
                    hovered logo), AMA academic references (generated references.ts) + disclosure
     TravelPage/    full-viewport snap-scroll photo feed (4 cols × 2 rows per section). Each
                    section fills the screen and snaps into place; scrolling advances one section
-                   at a time. Row parallax: entering/exiting sections have rows at staggered
-                   offsets that converge to zero when snapped. Click the RIGHT half of a photo
-                   to like (♥, pink tint); click the LEFT half to dislike (✕, greyscale). Arrow
-                   keys (←/→/Enter) also work. Hovering for 1 s marks a photo "engaged" and
-                   boosts the dwell signal sent to the algorithm. Per-photo ℹ button (top-right,
-                   appears on hover/reaction) opens an info panel with photographer name, country,
-                   tags, and a link to Unsplash. Sections auto-submit when scrolled off the top
-                   (no submit button); dossier stats refresh with a one-section lag. Fixed topbar
-                   stays visible while scrolling (driver toggle + "See your data" dossier panel).
-                   Unsplash-compliant: UTM attribution links + trackPhotoUse for liked photos.
+                   at a time. Click the RIGHT half of a photo to like (♥, pink tint); click the
+                   LEFT half to dislike (✕, greyscale). Arrow keys (←/→/Enter) also work.
+                   Hovering for 1 s marks a photo "engaged" and boosts the dwell signal sent to
+                   the algorithm. Per-photo ℹ button (top-right, appears on hover/reaction) opens
+                   an info panel with photographer name, country, tags, and a link to Unsplash.
+                   Sections auto-submit when scrolled off the top (no submit button). Fixed
+                   "See your data" button (top-right) opens the "Same taps, two algorithms"
+                   contrast: two ledgers from the same session's dossier — User-First (just the
+                   explicit likes/dislikes it keeps) vs Engagement (impressions, dwell samples,
+                   skips, inferred features/traits it would harvest), each with a data-points
+                   tally and an "Nx the data" punchline. The feed is user-first only — no
+                   display-swapping algorithm toggle. Unsplash-compliant: UTM attribution links +
+                   trackPhotoUse for liked photos.
     DashboardPage/ react-simple-maps equirectangular world map (bundled world-atlas 50m
                    TopoJSON, Antarctica filtered, full-viewport width) choropleth-shaded by
                    preference score; hover readout is a cursor-following gooey "score chip"

@@ -82,6 +82,23 @@ resource "aws_iam_role_policy" "lambda_dynamodb" {
   })
 }
 
+# S3 — read the shared Travel photo-pool metadata (created in bootstrap/).
+resource "aws_iam_role_policy" "lambda_photos" {
+  name = "photos"
+  role = aws_iam_role.lambda.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect   = "Allow"
+        Action   = ["s3:GetObject"]
+        Resource = "arn:aws:s3:::bba-photos-${local.account_id}/photos.json"
+      },
+    ]
+  })
+}
+
 # SSM — read parameters scoped to this environment
 resource "aws_iam_role_policy" "lambda_ssm" {
   name = "ssm"
@@ -116,7 +133,13 @@ resource "aws_iam_role_policy" "lambda_kms" {
   })
 }
 
-# SES — send transactional emails for the custom email sender trigger
+# SES — send transactional emails for the custom email sender trigger.
+# Resource is scoped to all SES identities in this account/region (identity/*),
+# not just the From domain. While the account is in the SES sandbox, SES checks
+# ses:SendEmail against the *recipient's* verified identity as well as the From
+# identity — so a domain-only grant gets AccessDenied on every send to a verified
+# recipient address (e.g. the email-OTP MFA code). identity/* covers both the
+# noreply@${domain} sender and any sandbox-verified recipient.
 resource "aws_iam_role_policy" "lambda_ses" {
   name = "ses"
   role = aws_iam_role.lambda.id
@@ -126,7 +149,7 @@ resource "aws_iam_role_policy" "lambda_ses" {
     Statement = [{
       Effect   = "Allow"
       Action   = ["ses:SendEmail"]
-      Resource = local.ses_identity_arn
+      Resource = "arn:aws:ses:${local.region}:${local.account_id}:identity/*"
     }]
   })
 }
@@ -211,6 +234,8 @@ resource "aws_lambda_function" "graphql" {
       COGNITO_CLIENT_ID    = aws_cognito_user_pool_client.main.id
       COGNITO_REGION       = local.region
       DYNAMODB_TABLE       = aws_dynamodb_table.prefs.name
+      PHOTOS_BUCKET        = "bba-photos-${local.account_id}"
+      OWNER_EMAIL          = var.alert_email
       SSM_PREFIX           = "/bba/${local.env}"
       COGNITO_SMS_KEY_ARN  = local.cognito_sms_key_arn
       # Passed directly — Lambda env vars are KMS-encrypted at rest. SSM is the

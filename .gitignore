@@ -20,6 +20,11 @@ coverage/
 .eslintcache
 .vite/
 
+# === Photo pool (generated; metadata JSON + image cache live in S3, not the repo) ===
+backend/photos.json
+backend/photos-cache/
+backend/.photos-build.pid
+
 # === Python (legacy/) ===
 __pycache__/
 *.py[cod]

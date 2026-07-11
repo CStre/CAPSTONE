@@ -11,7 +11,6 @@
 import { COUNTRIES } from './countries';
 import { countrySignature } from './scoring';
 import type { FeatureVector, ImageFeatureInput } from './features';
-import { PHOTO_POOL } from './photos.data';
 
 let cache: Record<string, FeatureVector> | null = null;
 
@@ -36,15 +35,16 @@ export function signaturesFromPool(
 }
 
 /**
- * The current country→signature map. Prefers the precomputed photo pool (real,
- * photo-derived signatures); falls back to the catalog seed until the pool exists.
+ * The current country→signature map. Photo-derived signatures are injected by
+ * `pool.ts` (`setCountrySignatures`) once the pool loads; until then — and when the
+ * pool is empty — this falls back to the catalog seed.
  */
 export function getCountrySignatures(): Record<string, FeatureVector> {
-  cache ??= Object.keys(PHOTO_POOL).length > 0 ? signaturesFromPool(PHOTO_POOL) : seed();
+  cache ??= seed();
   return cache;
 }
 
-/** Replace the signature map — used by step 3 to inject cached-pool signatures (and by tests). */
+/** Replace the signature map — pool.ts injects photo-derived signatures (and tests use it). */
 export function setCountrySignatures(sigs: Record<string, FeatureVector>): void {
   cache = sigs;
 }
