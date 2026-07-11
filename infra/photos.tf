@@ -7,5 +7,5 @@
 # ---------------------------------------------------------------------------
 
 data "aws_s3_bucket" "photos" {
-  bucket = "bba-photos"
+  bucket = "bba-photos-${local.account_id}"
 }

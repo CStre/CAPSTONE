@@ -101,7 +101,8 @@ resource "aws_dynamodb_table" "tf_state_lock" { # nosemgrep: terraform.aws.secur
 # ---------------------------------------------------------------------------
 
 resource "aws_s3_bucket" "photos" {
-  bucket = "bba-photos"
+  # Account-ID suffixed for global S3 uniqueness (same pattern as the state bucket).
+  bucket = "bba-photos-${data.aws_caller_identity.current.account_id}"
 }
 
 resource "aws_s3_bucket_public_access_block" "photos" {

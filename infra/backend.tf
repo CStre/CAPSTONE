@@ -93,7 +93,7 @@ resource "aws_iam_role_policy" "lambda_photos" {
       {
         Effect   = "Allow"
         Action   = ["s3:GetObject"]
-        Resource = "arn:aws:s3:::bba-photos/photos.json"
+        Resource = "arn:aws:s3:::bba-photos-${local.account_id}/photos.json"
       },
     ]
   })
@@ -234,7 +234,7 @@ resource "aws_lambda_function" "graphql" {
       COGNITO_CLIENT_ID    = aws_cognito_user_pool_client.main.id
       COGNITO_REGION       = local.region
       DYNAMODB_TABLE       = aws_dynamodb_table.prefs.name
-      PHOTOS_BUCKET        = "bba-photos"
+      PHOTOS_BUCKET        = "bba-photos-${local.account_id}"
       OWNER_EMAIL          = var.alert_email
       SSM_PREFIX           = "/bba/${local.env}"
       COGNITO_SMS_KEY_ARN  = local.cognito_sms_key_arn

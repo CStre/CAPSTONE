@@ -68,6 +68,7 @@ jobs:
           TF_VAR_environment: ${{ env.ENVIRONMENT }}
           TF_VAR_unsplash_access_key: ${{ secrets.UNSPLASH_ACCESS_KEY }}
           TF_VAR_sns_from_number: ${{ secrets.SNS_FROM_NUMBER }}
+          TF_VAR_alert_email: ${{ secrets.ALERT_EMAIL }}
         run: |
           terraform apply -auto-approve \
             -target=aws_ecr_repository.lambda \
@@ -95,6 +96,7 @@ jobs:
           TF_VAR_environment: ${{ env.ENVIRONMENT }}
           TF_VAR_unsplash_access_key: ${{ secrets.UNSPLASH_ACCESS_KEY }}
           TF_VAR_sns_from_number: ${{ secrets.SNS_FROM_NUMBER }}
+          TF_VAR_alert_email: ${{ secrets.ALERT_EMAIL }}
         run: terraform apply -auto-approve -target=aws_cloudfront_distribution.main
       - name: Terraform Apply
         working-directory: infra
@@ -102,6 +104,7 @@ jobs:
           TF_VAR_environment: ${{ env.ENVIRONMENT }}
           TF_VAR_unsplash_access_key: ${{ secrets.UNSPLASH_ACCESS_KEY }}
           TF_VAR_sns_from_number: ${{ secrets.SNS_FROM_NUMBER }}
+          TF_VAR_alert_email: ${{ secrets.ALERT_EMAIL }}
         run: terraform apply -auto-approve
       - name: Read outputs
         id: tf-out

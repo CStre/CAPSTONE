@@ -27,6 +27,9 @@ const config: Config = {
         'schema.graphql',
         '.env*',
         '.dockerignore',
+        // Generated photo pool (lives in S3, not the repo) + its runtime artifacts.
+        'photos.json',
+        'photos-cache/**',
       ],
       options: { parser: 'ignored' },
     },
