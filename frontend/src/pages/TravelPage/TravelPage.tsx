@@ -6,12 +6,9 @@
  * Click the LEFT  half of a photo to dislike (✕, greyscale).
  * Hover for 1 s counts as "engaged" and boosts the dwell signal.
  *
- * Row parallax: entering and exiting sections have rows at staggered offsets that
- * converge to zero when the section is fully snapped (centred in the feed).
- *
- * Sections auto-submit when scrolled off the top — no submit button. The top bar
- * (algorithm toggle + dossier) stays fixed. A per-photo info button (top-right ℹ)
- * reveals photographer details.
+ * Sections auto-submit when scrolled off the top — no submit button. The fixed
+ * "See your data" button opens the data-collected contrast. A per-photo info
+ * button (top-right ℹ) reveals photographer details.
  *
  * Unsplash compliance: `trackPhotoUse` pings the download endpoint for liked
  * photos; attribution links carry UTM params.
@@ -31,15 +28,14 @@ const COLS = 4;
 const ROWS = 2;
 const SECTION_SIZE = COLS * ROWS; // 8 photos per section
 const INITIAL_SECTIONS = 2;
-const PARALLAX_PX = 160; // max row offset in px when adjacent section is fully off-screen
 const HOVER_DWELL_MS = 1000; // hover duration before counting as "engaged"
 const APP_NAME = 'Building Better Algorithms';
 
 // ── GraphQL ───────────────────────────────────────────────────────────────────
 
 const TravelImagesQuery = graphql(`
-  query TravelImages($count: Int!, $driver: Driver!) {
-    travelImages(count: $count, driver: $driver) {
+  query TravelImages($count: Int!) {
+    travelImages(count: $count) {
       imageUrl
       attribution
       photographerName
@@ -95,7 +91,6 @@ const DossierQuery = graphql(`
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
-type Driver = 'A' | 'B';
 type PhotoReaction = 'like' | 'dislike' | null;
 
 interface FeedPhoto {
@@ -129,17 +124,69 @@ function photoKey(sectionId: number, photoIdx: number): string {
   return `${sectionId}-${photoIdx}`;
 }
 
+interface ContrastRow {
+  n: number;
+  label: string;
+}
+
+interface DataContrast {
+  total: number;
+  bTotal: number;
+  aTotal: number;
+  ratio: number | null;
+  bRows: ContrastRow[];
+  aRows: ContrastRow[];
+  traits: string[];
+}
+
+/**
+ * Split the same session's dossier into two ledgers: what the **user-first** algorithm
+ * keeps (only the explicit reactions) vs. what an **engagement** algorithm would harvest
+ * from the identical taps (every impression, dwell sample, skip, and inference). Both
+ * are derived from the one `dossier` query — the contrast is the lesson.
+ */
+function computeContrast(d: {
+  totalInteractions: number;
+  likes: number;
+  dislikes: number;
+  skips: number;
+  topFeatures: { key: string }[];
+  inferredTraits: { trait: string }[];
+}): DataContrast {
+  const total = d.totalInteractions;
+  const bRows: ContrastRow[] = [
+    { n: d.likes, label: 'likes' },
+    { n: d.dislikes, label: 'dislikes' },
+  ];
+  const aRows: ContrastRow[] = [
+    { n: total, label: 'impressions logged' },
+    { n: total, label: 'dwell-time samples' },
+    { n: d.likes + d.dislikes, label: 'reactions' },
+    { n: d.skips, label: 'skips' },
+    { n: d.topFeatures.length, label: 'inferred taste features' },
+    { n: d.inferredTraits.length, label: 'inferred traits' },
+    { n: 2, label: 'derived scores' },
+  ];
+  const bTotal = bRows.reduce((s, r) => s + r.n, 0);
+  const aTotal = aRows.reduce((s, r) => s + r.n, 0);
+  return {
+    total,
+    bTotal,
+    aTotal,
+    ratio: bTotal > 0 ? Math.round(aTotal / bTotal) : null,
+    bRows,
+    aRows,
+    traits: d.inferredTraits.map((t) => t.trait),
+  };
+}
+
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export function TravelPage(): ReactElement {
-  const [driver, setDriver] = useState<Driver>('B');
   const [sections, setSections] = useState<FeedSection[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [showDossier, setShowDossier] = useState(false);
   const [infoOpen, setInfoOpen] = useState<string | null>(null);
-  const [zoomedPhoto, setZoomedPhoto] = useState<{ sectionId: number; photoIdx: number } | null>(
-    null,
-  );
 
   const sectionEls = useRef<(HTMLElement | null)[]>([]);
   const sectionIdCounter = useRef(0);
@@ -148,8 +195,6 @@ export function TravelPage(): ReactElement {
   const pendingDossierRefresh = useRef(false);
   const feedRef = useRef<HTMLDivElement>(null);
   const hoverTimers = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
-  const holdTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const holdFiredRef = useRef(false);
 
   const client = useClient();
   const [dossier, refetchDossier] = useQuery({ query: DossierQuery });
@@ -177,7 +222,7 @@ export function TravelPage(): ReactElement {
         const result = await client
           .query(
             TravelImagesQuery,
-            { count: count * SECTION_SIZE, driver },
+            { count: count * SECTION_SIZE },
             { requestPolicy: 'network-only' },
           )
           .toPromise();
@@ -222,7 +267,7 @@ export function TravelPage(): ReactElement {
         setIsLoading(false);
       }
     },
-    [client, driver],
+    [client],
   );
 
   useEffect(() => {
@@ -231,45 +276,11 @@ export function TravelPage(): ReactElement {
 
   // ── Interaction ────────────────────────────────────────────────────────────
 
-  // ── Hold-to-zoom ──────────────────────────────────────────────────────────
-
-  function handlePhotoPointerDown(sectionId: number, photoIdx: number): void {
-    holdFiredRef.current = false;
-    holdTimerRef.current = setTimeout(() => {
-      holdFiredRef.current = true;
-      setZoomedPhoto({ sectionId, photoIdx });
-    }, 400);
-  }
-
-  function handlePhotoPointerUp(): void {
-    if (holdTimerRef.current !== null) {
-      clearTimeout(holdTimerRef.current);
-      holdTimerRef.current = null;
-    }
-  }
-
-  // Close zoom on Escape.
-  useEffect(() => {
-    if (!zoomedPhoto) return;
-    function handleEsc(e: globalThis.KeyboardEvent): void {
-      if (e.key === 'Escape') setZoomedPhoto(null);
-    }
-    window.addEventListener('keydown', handleEsc);
-    return () => {
-      window.removeEventListener('keydown', handleEsc);
-    };
-  }, [zoomedPhoto]);
-
   function handlePhotoClick(
     e: MouseEvent<HTMLDivElement>,
     sectionId: number,
     photoIdx: number,
   ): void {
-    // If a hold just fired, swallow the synthetic click — don't react.
-    if (holdFiredRef.current) {
-      holdFiredRef.current = false;
-      return;
-    }
     // A tap anywhere on the cell closes an open info panel first (no reaction change).
     if (infoOpen !== null) {
       setInfoOpen(null);
@@ -463,77 +474,17 @@ export function TravelPage(): ReactElement {
     };
   }, [sections.length, refetchDossier]);
 
-  // ── Row parallax (on the feed scroll container) ────────────────────────────
-
-  useEffect(() => {
-    const feedEl = feedRef.current;
-    if (!feedEl) return;
-
-    // Each column has its own speed multiplier; both rows in the same column
-    // share that speed so rows stay level with each other.
-    const COL_SPEEDS = [0.5, 1.4, 0.8, 1.2];
-
-    function handleScroll(): void {
-      if (!feedEl) return;
-      const feedH = feedEl.clientHeight;
-      if (feedH === 0) return;
-
-      for (const el of sectionEls.current) {
-        if (!el) continue;
-        const progress = (el.offsetTop - feedEl.scrollTop) / feedH;
-        const cells = el.querySelectorAll<HTMLElement>('.travel-cell');
-        cells.forEach((cell, idx) => {
-          const colIdx = idx % COLS;
-          const speed = COL_SPEEDS[colIdx] ?? 1;
-          cell.style.translate = `0 ${progress * speed * PARALLAX_PX}px`;
-        });
-      }
-    }
-
-    feedEl.addEventListener('scroll', handleScroll, { passive: true });
-    return () => {
-      feedEl.removeEventListener('scroll', handleScroll);
-    };
-  }, [sections.length]);
-
-  // ── Driver switch ──────────────────────────────────────────────────────────
-
-  function switchDriver(next: Driver): void {
-    if (next === driver) return;
-    setDriver(next);
-  }
-
   // ── Render ─────────────────────────────────────────────────────────────────
 
   if (isLoading && sections.length === 0) return <Loader />;
 
   const d = dossier.data?.dossier;
-
-  // Resolve the currently zoomed photo for the overlay.
-  const zoomedSection = zoomedPhoto
-    ? sections.find((s) => s.id === zoomedPhoto.sectionId)
-    : undefined;
-  const zoomedImg = zoomedSection?.photos[zoomedPhoto?.photoIdx ?? -1];
+  const contrast = d ? computeContrast(d) : null;
 
   return (
     <section className="page travel">
       {/* Controls overlay — floats over the photos, no background bar */}
       <div className="travel-controls">
-        <div className="travel-driver" role="tablist" aria-label="Recommendation algorithm">
-          {(['A', 'B'] as Driver[]).map((drvr) => (
-            <GooeyButton
-              key={drvr}
-              role="tab"
-              aria-selected={driver === drvr}
-              className={'travel-driver-tab' + (driver === drvr ? ' is-active' : '')}
-              onClick={() => {
-                switchDriver(drvr);
-              }}
-            >
-              {drvr === 'A' ? 'Engagement' : 'User-First'}
-            </GooeyButton>
-          ))}
-        </div>
         <GooeyButton
           className="travel-dossier-toggle"
           onClick={() => {
@@ -544,8 +495,8 @@ export function TravelPage(): ReactElement {
         </GooeyButton>
       </div>
 
-      {/* Dossier modal — same structure and classes as SecurityInfo */}
-      {showDossier && d && (
+      {/* "See your data" — the same taps, seen by two algorithms */}
+      {showDossier && d && contrast && (
         <div
           className="travel-dossier-overlay"
           onClick={() => {
@@ -553,14 +504,14 @@ export function TravelPage(): ReactElement {
           }}
           role="dialog"
           aria-modal="true"
-          aria-label="What the algorithm has on you"
+          aria-label="What each algorithm collects from you"
         >
           <div
             onClick={(e: MouseEvent) => {
               e.stopPropagation();
             }}
           >
-            <GlassCard className="travel-dossier-card" maxDeg={1.5}>
+            <GlassCard className="travel-dossier-card travel-dossier-card--contrast" maxDeg={1.5}>
               <button
                 type="button"
                 className="travel-dossier-close"
@@ -572,70 +523,75 @@ export function TravelPage(): ReactElement {
                 ×
               </button>
               <div className="travel-dossier-header">
-                <h2 className="travel-dossier-heading">What the algorithm has on you</h2>
+                <h2 className="travel-dossier-heading">Same taps. Two algorithms.</h2>
+                {contrast.total > 0 ? (
+                  <p className="travel-dossier-sub">
+                    You reacted to <strong>{contrast.total}</strong> photos this session. Here is
+                    what each kind of system keeps from that.
+                  </p>
+                ) : (
+                  <p className="travel-dossier-sub">
+                    Rate a few photos in the feed, then reopen this to see the difference.
+                  </p>
+                )}
               </div>
-              <section className="travel-dossier-section">
-                <h3>Activity</h3>
-                <p>
-                  <strong>{d.totalInteractions}</strong> interactions · {d.likes} likes ·{' '}
-                  {d.dislikes} dislikes · {d.skips} skips · avg dwell{' '}
-                  <strong>{d.avgDwellMs}ms</strong>
-                </p>
-              </section>
-              <section className="travel-dossier-section">
-                <h3>Model confidence</h3>
-                <p>
-                  Confidence <strong>{Math.round(d.confidence * 100)}%</strong> · exploration{' '}
-                  <strong>{Math.round(d.exploration * 100)}%</strong>
-                </p>
-              </section>
-              {d.topFeatures.length > 0 && (
-                <section className="travel-dossier-section">
-                  <h3>Inferred taste</h3>
-                  <p>{d.topFeatures.map((f) => f.key).join(', ')}</p>
-                </section>
+
+              {contrast.total > 0 && (
+                <>
+                  <div className="travel-contrast">
+                    <div className="travel-contrast-col travel-contrast-col--b">
+                      <h3 className="travel-contrast-title">
+                        User-First <span>this app</span>
+                      </h3>
+                      <ul className="travel-contrast-list">
+                        {contrast.bRows.map((r) => (
+                          <li key={r.label}>
+                            <b>{r.n}</b> {r.label}
+                          </li>
+                        ))}
+                      </ul>
+                      <p className="travel-contrast-note">
+                        Two numbers per country you rated. Nothing else leaves your browser.
+                      </p>
+                      <div className="travel-contrast-tally">
+                        <span className="travel-contrast-num">{contrast.bTotal}</span> data points
+                      </div>
+                    </div>
+
+                    <div className="travel-contrast-col travel-contrast-col--a">
+                      <h3 className="travel-contrast-title">
+                        Engagement <span>the usual feed</span>
+                      </h3>
+                      <ul className="travel-contrast-list">
+                        {contrast.aRows.map((r) => (
+                          <li key={r.label}>
+                            <b>{r.n}</b> {r.label}
+                          </li>
+                        ))}
+                      </ul>
+                      {contrast.traits.length > 0 && (
+                        <p className="travel-contrast-note travel-contrast-note--a">
+                          …and it would guess: {contrast.traits.join(', ')}
+                        </p>
+                      )}
+                      <div className="travel-contrast-tally travel-contrast-tally--a">
+                        <span className="travel-contrast-num">{contrast.aTotal}</span> data points
+                      </div>
+                    </div>
+                  </div>
+
+                  <p className="travel-dossier-footer">
+                    {contrast.ratio !== null && (
+                      <>
+                        Same session — <strong>{contrast.ratio}× the data</strong>.{' '}
+                      </>
+                    )}
+                    {d.disclaimer}
+                  </p>
+                </>
               )}
-              {d.inferredTraits.length > 0 && (
-                <section className="travel-dossier-section">
-                  <h3>Traits</h3>
-                  <ul className="travel-dossier-traits">
-                    {d.inferredTraits.map((t) => (
-                      <li key={t.trait}>{t.trait}</li>
-                    ))}
-                  </ul>
-                </section>
-              )}
-              <section className="travel-dossier-section">
-                <p className="travel-dossier-disclaimer">{d.disclaimer}</p>
-              </section>
             </GlassCard>
           </div>
-        </div>
-      )}
-
-      {/* Hold-to-zoom overlay — appears when user presses and holds a photo */}
-      {zoomedImg && (
-        <div
-          className="travel-zoom-overlay"
-          onClick={() => {
-            setZoomedPhoto(null);
-          }}
-          role="dialog"
-          aria-modal="true"
-          aria-label="Zoomed photo"
-        >
-          <img
-            className="travel-zoom-img"
-            src={zoomedImg.imageUrl}
-            alt={`${zoomedImg.country.name} — photo by ${zoomedImg.photographerName}`}
-            draggable={false}
-            onClick={(e) => {
-              e.stopPropagation();
-            }}
-          />
-          <p className="travel-zoom-credit">
-            {zoomedImg.photographerName} · {zoomedImg.country.name}
-          </p>
         </div>
       )}
 
@@ -684,11 +640,6 @@ export function TravelPage(): ReactElement {
                             : 'Like or dislike this photo'
                       }
                       aria-pressed={photo.reaction !== null}
-                      onPointerDown={() => {
-                        handlePhotoPointerDown(section.id, photoIdx);
-                      }}
-                      onPointerUp={handlePhotoPointerUp}
-                      onPointerCancel={handlePhotoPointerUp}
                       onClick={(e) => {
                         handlePhotoClick(e, section.id, photoIdx);
                       }}

@@ -50,10 +50,11 @@ async function renderAndLoad() {
 }
 
 describe('TravelPage', () => {
-  it('shows the driver toggle tabs after load', async () => {
+  it('shows the "See your data" button after load, not a driver toggle', async () => {
     await renderAndLoad();
-    expect(screen.getByRole('tab', { name: 'Engagement' })).toBeInTheDocument();
-    expect(screen.getByRole('tab', { name: 'User-First' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /see your data/i })).toBeInTheDocument();
+    expect(screen.queryByRole('tab', { name: 'Engagement' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('tab', { name: 'User-First' })).not.toBeInTheDocument();
   });
 
   it('renders 16 photo cells across 2 sections', async () => {

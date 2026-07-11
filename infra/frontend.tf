@@ -150,7 +150,16 @@ resource "aws_cloudfront_distribution" "main" { # nosemgrep: terraform.aws.secur
     origin_access_control_id = aws_cloudfront_origin_access_control.frontend.id
   }
 
-  # Origin 2: API Gateway HTTP API (GraphQL). API Gateway is publicly reachable
+  # Origin 2: S3 (shared Travel photo pool, created in bootstrap/) — served
+  # same-origin at /photos/*. OAC read is authorised by the bucket policy's
+  # AWS:SourceAccount condition, so no per-distribution ARN wiring is needed.
+  origin {
+    domain_name              = data.aws_s3_bucket.photos.bucket_regional_domain_name
+    origin_id                = "s3-photos"
+    origin_access_control_id = aws_cloudfront_origin_access_control.frontend.id
+  }
+
+  # Origin 3: API Gateway HTTP API (GraphQL). API Gateway is publicly reachable
   # and CloudFront proxies the request unchanged — no signing required.
   origin {
     domain_name = "${aws_apigatewayv2_api.graphql.id}.execute-api.${local.region}.amazonaws.com"
@@ -167,6 +176,54 @@ resource "aws_cloudfront_distribution" "main" { # nosemgrep: terraform.aws.secur
   # Default behaviour: serve the SPA from S3
   default_cache_behavior {
     target_origin_id       = "s3-frontend"
+    viewer_protocol_policy = "redirect-to-https"
+    allowed_methods        = ["GET", "HEAD", "OPTIONS"]
+    cached_methods         = ["GET", "HEAD"]
+    compress               = true
+
+    forwarded_values {
+      query_string = false
+      cookies {
+        forward = "none"
+      }
+    }
+
+    response_headers_policy_id = aws_cloudfront_response_headers_policy.security.id
+
+    min_ttl     = 0
+    default_ttl = 3600
+    max_ttl     = 86400
+  }
+
+  # /photos/* behaviour: serve immutable image binaries from the photos bucket,
+  # cached hard (they never change — id-addressed).
+  ordered_cache_behavior {
+    path_pattern           = "/photos/*"
+    target_origin_id       = "s3-photos"
+    viewer_protocol_policy = "redirect-to-https"
+    allowed_methods        = ["GET", "HEAD", "OPTIONS"]
+    cached_methods         = ["GET", "HEAD"]
+    compress               = true
+
+    forwarded_values {
+      query_string = false
+      cookies {
+        forward = "none"
+      }
+    }
+
+    response_headers_policy_id = aws_cloudfront_response_headers_policy.security.id
+
+    min_ttl     = 0
+    default_ttl = 86400
+    max_ttl     = 31536000
+  }
+
+  # /research.pdf: the capstone paper, served from the shared photos bucket (uploaded
+  # out-of-band, never committed to the repo). Same origin so the download button works.
+  ordered_cache_behavior {
+    path_pattern           = "/research.pdf"
+    target_origin_id       = "s3-photos"
     viewer_protocol_policy = "redirect-to-https"
     allowed_methods        = ["GET", "HEAD", "OPTIONS"]
     cached_methods         = ["GET", "HEAD"]

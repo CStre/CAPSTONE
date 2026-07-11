@@ -33,12 +33,6 @@ type Dossier {
   totalRatings: Int!
 }
 
-"""Which algorithm drives the feed: A (engagement) or B (user-first)."""
-enum Driver {
-  A
-  B
-}
-
 """An illustrative trait Algorithm A infers — see Dossier.disclaimer."""
 type InferredTrait {
   basis: String!
@@ -98,6 +92,11 @@ type Mutation {
   mergeLearnProgress(progress: [LearnSectionProgressInput!]!): [LearnSectionProgress!]!
 
   """
+  Email the site owner that the authenticated user is downloading the research paper. Returns true ONLY if the email was sent — the client gates the download on this, so an unidentified user or a failed send blocks the download.
+  """
+  notifyResearchDownload: Boolean!
+
+  """
   Record that a Learn-page slide was viewed; returns the full updated progress.
   """
   recordSlideView(sectionId: ID!, slideIndex: Int!): [LearnSectionProgress!]!
@@ -139,9 +138,9 @@ type Query {
   me: User
 
   """
-  A batch of travel photos chosen by the given driver (A narrows toward the user's taste; B stays diverse). Defaults to B.
+  A batch of travel photos chosen user-first: diverse, weighted by the user's learned per-country preferences (Algorithm B).
   """
-  travelImages(count: Int = 8, driver: Driver = B): [TravelImage!]!
+  travelImages(count: Int = 8): [TravelImage!]!
 }
 
 """One axis of the learned taste vector and its weight."""

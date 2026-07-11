@@ -7,6 +7,7 @@
 import { createYoga } from 'graphql-yoga';
 import { schema, type GraphQLContext } from './schema';
 import { authenticate } from './auth';
+import { ensurePool } from './pool';
 import { config } from './config';
 
 export const yoga = createYoga({
@@ -15,7 +16,10 @@ export const yoga = createYoga({
   // Introspection UI is enabled only outside production.
   graphiql: config.isLocal,
   landingPage: false,
-  context: async ({ request }): Promise<GraphQLContext> => ({
-    user: await authenticate(request.headers),
-  }),
+  // Load the photo pool once (memoized) before resolvers run — this also primes the
+  // country signatures that the synchronous getCountrySignatures() reads.
+  context: async ({ request }): Promise<GraphQLContext> => {
+    const [user] = await Promise.all([authenticate(request.headers), ensurePool()]);
+    return { user };
+  },
 });

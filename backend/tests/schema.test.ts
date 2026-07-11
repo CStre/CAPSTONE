@@ -24,9 +24,10 @@ describe('GraphQL schema', () => {
 
   it('exposes the two-algorithm surface', () => {
     expect(sdl).toContain('type Dossier');
-    expect(sdl).toContain('enum Driver');
     expect(sdl).toContain('input InteractionInput');
-    expect(sdl).toMatch(/travelImages\(count: Int = 8, driver: Driver = B\)/);
+    // The feed is user-first only — no driver arg / Driver enum on the public API.
+    expect(sdl).not.toContain('enum Driver');
+    expect(sdl).toMatch(/travelImages\(count: Int = 8\)/);
     expect(sdl).toMatch(/submitFeedback\(interactions: \[InteractionInput!\]!\)/);
     expect(sdl).toMatch(/dossier: Dossier!/);
     expect(sdl).toMatch(/resetPreferences:/);
